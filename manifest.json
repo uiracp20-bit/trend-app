@@ -1,0 +1,14 @@
+{
+  "name": "Trend Following Dashboard",
+  "short_name": "Trend",
+  "description": "Shark Strategy — Trend Following signal tracker",
+  "start_url": "/trend-app/",
+  "scope": "/trend-app/",
+  "display": "standalone",
+  "background_color": "#0d1117",
+  "theme_color": "#0d1117",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

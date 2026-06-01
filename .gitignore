@@ -1,0 +1,11 @@
+*.xlsx
+*.pdf
+*.docx
+*.pptx
+*.log
+.last_sync_hash
+.sync_log.txt
+.sync_daemon.log
+.sync_daemon_err.log
+__pycache__/
+.github_token
