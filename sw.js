@@ -1,4 +1,4 @@
-const CACHE = 'trend-v2';
+const CACHE = 'trend-v3';
 const SHELL = ['./', './index.html', './manifest.json', './icon.svg'];
 
 self.addEventListener('install', e => {
@@ -16,12 +16,23 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  // Never cache external scripts or API calls
+  // External requests (CDN scripts, APIs): network only
   if (!e.request.url.startsWith(self.location.origin)) {
     e.respondWith(fetch(e.request).catch(() => new Response('', { status: 503 })));
     return;
   }
-  // App shell: cache-first
+  // HTML pages: network-first so updates show immediately; cache is offline fallback
+  if (e.request.mode === 'navigate' || e.request.destination === 'document') {
+    e.respondWith(
+      fetch(e.request).then(resp => {
+        const copy = resp.clone();
+        caches.open(CACHE).then(c => c.put(e.request, copy));
+        return resp;
+      }).catch(() => caches.match(e.request).then(m => m || caches.match('./index.html')))
+    );
+    return;
+  }
+  // Other assets (icon, manifest): cache-first
   e.respondWith(
     caches.match(e.request).then(cached => cached || fetch(e.request))
   );
