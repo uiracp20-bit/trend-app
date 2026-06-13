@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="theme-color" content="#0d1117"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Trend"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icon.svg"/>
+<title>Trend Following Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0d1117; color: #e6edf3; font-family: 'Segoe UI', Arial, sans-serif; min-height: 100vh; }
+.hero { background: linear-gradient(135deg,#1a1a2e 0%,#16213e 55%,#0f3460 100%); padding: 22px 32px 16px; border-bottom: 2px solid #e94560; }
+.hero-top { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:14px; }
+.hero h1 { font-size:1.55rem; font-weight:700; color:#fff; letter-spacing:.03em; }
+.hero h1 span { color:#e94560; }
+.hero-meta { margin-top:8px; font-size:.8rem; color:#8b949e; display:flex; gap:20px; flex-wrap:wrap; align-items:center; }
+.badge { background:#21262d; border:1px solid #30363d; padding:3px 10px; border-radius:20px; font-size:.75rem; }
+.badge.weekend { background:#2d2d0d; color:#e3b341; border-color:#9e6a03; }
+.badge.date { color:#ffa657; }
+.ny-clock { background:#161b22; border:1px solid #30363d; border-radius:20px; padding:4px 12px; font-size:.75rem; color:#e6edf3; display:inline-flex; align-items:center; gap:8px; white-space:nowrap; }
+.market-open { color:#3fb950; font-weight:700; }
+.market-pre { color:#e3b341; font-weight:700; }
+.market-after { color:#e3b341; font-weight:700; }
+.market-closed { color:#f85149; font-weight:700; }
+.market-countdown { color:#8b949e; font-size:.72rem; }
+.capital-widget { background:#161b22; border:1px solid #30363d; border-radius:10px; padding:12px 18px; display:flex; gap:18px; align-items:center; flex-wrap:wrap; min-width:280px; }
+.cap-field { display:flex; flex-direction:column; gap:3px; }
+.cap-label { font-size:.67rem; color:#8b949e; text-transform:uppercase; letter-spacing:.06em; }
+.cap-input { background:#0d1117; border:1px solid #30363d; border-radius:6px; color:#ffa657; font-size:1.05rem; font-weight:700; padding:5px 10px; width:130px; outline:none; transition: border-color .2s; }
+.cap-input:focus { border-color:#e94560; }
+.risk-select { background:#0d1117; border:1px solid #30363d; border-radius:6px; color:#79c0ff; font-size:.9rem; font-weight:700; padding:5px 8px; outline:none; cursor:pointer; }
+.cap-derived { font-size:.78rem; color:#8b949e; }
+.cap-derived strong { color:#3fb950; }
+.tab-nav { display:flex; gap:0; background:#161b22; border-bottom:1px solid #30363d; padding:0 20px; overflow-x:auto; }
+.tab-btn { padding:12px 20px; font-size:.85rem; font-weight:600; color:#8b949e; border:none; background:transparent; border-bottom:2px solid transparent; cursor:pointer; white-space:nowrap; transition:color .15s, border-color .15s; }
+.tab-btn:hover { color:#e6edf3; }
+.tab-btn.active { color:#e94560; border-bottom-color:#e94560; }
+.container { max-width:1120px; margin:0 auto; padding:28px 20px 50px; }
+.tab-panel { display:none; }
+.tab-panel.active { display:block; }
+.summary-bar { display:flex; gap:14px; margin-bottom:26px; flex-wrap:wrap; }
+.sum-card { flex:1 1 170px; background:#161b22; border:1px solid #30363d; border-radius:10px; padding:14px 18px; text-align:center; }
+.sum-card .slabel { font-size:.68rem; color:#8b949e; text-transform:uppercase; letter-spacing:.06em; }
+.sum-card .svalue { font-size:1.85rem; font-weight:700; margin-top:4px; }
+.sum-card.buy .svalue { color:#3fb950; }
+.sum-card.sell .svalue { color:#f85149; }
+.sum-card.watch .svalue { color:#e3b341; }
+.sum-card.all .svalue { color:#79c0ff; }
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(460px,1fr)); gap:18px; }
+.card { background:#161b22; border:1px solid #30363d; border-radius:12px; overflow:hidden; }
+.card-header { display:flex; justify-content:space-between; align-items:center; padding:13px 18px; border-bottom:1px solid #21262d; }
+.c-ticker { font-size:1.2rem; font-weight:700; color:#fff; }
+.c-name { font-size:.75rem; color:#8b949e; margin-top:2px; }
+.c-price { font-size:1.3rem; font-weight:700; text-align:right; }
+.c-plabel { font-size:.68rem; color:#8b949e; text-align:right; }
+.card-body { padding:14px 18px; }
+.indicators { display:flex; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
+.ind { flex:1 1 90px; background:#0d1117; border:1px solid #21262d; border-radius:8px; padding:9px 10px; text-align:center; }
+.ind-label { font-size:.65rem; color:#8b949e; text-transform:uppercase; letter-spacing:.06em; margin-bottom:3px; }
+.ind-val { font-size:.95rem; font-weight:700; }
+.buy { color:#3fb950; }
+.sell { color:#f85149; }
+.neutral { color:#8b949e; }
+.bullish { color:#3fb950; }
+.bearish { color:#f85149; }
+.warn { color:#e3b341; }
+.signal-block { border-radius:8px; padding:11px 14px; display:flex; justify-content:space-between; align-items:center; gap:12px; }
+.signal-block.BUY { background:#0d2b1f; border:1px solid #238636; }
+.signal-block.SELL { background:#2b0d0d; border:1px solid #da3633; }
+.signal-block.WATCH { background:#2b1d0d; border:1px solid #9e6a03; }
+.sig-label { font-size:.7rem; color:#8b949e; text-transform:uppercase; }
+.sig-text { font-size:1.4rem; font-weight:800; letter-spacing:.04em; }
+.sig-text.BUY { color:#3fb950; }
+.sig-text.SELL { color:#f85149; }
+.sig-text.WATCH { color:#e3b341; }
+.sig-meta { font-size:.72rem; color:#8b949e; text-align:right; line-height:1.7; }
+.sig-meta strong { color:#e6edf3; }
+.flags { margin-top:9px; }
+.flag { display:inline-block; font-size:.7rem; padding:2px 8px; border-radius:12px; margin:2px 3px 2px 0; }
+.flag.warn { background:#2d1e00; color:#e3b341; border:1px solid #9e6a03; }
+.flag.info { background:#051d38; color:#79c0ff; border:1px solid #1f6feb; }
+.flag.ok { background:#0d2b1f; color:#3fb950; border:1px solid #238636; }
+.planner-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:18px; }
+.plan-card { background:#161b22; border:1px solid #30363d; border-radius:12px; overflow:hidden; }
+.plan-header { padding:12px 16px; border-bottom:1px solid #21262d; display:flex; justify-content:space-between; align-items:center; }
+.plan-ticker { font-size:1.05rem; font-weight:700; color:#fff; }
+.plan-sig { font-size:.78rem; font-weight:700; padding:3px 10px; border-radius:12px; }
+.plan-sig.BUY { background:#0d2b1f; color:#3fb950; }
+.plan-sig.SELL { background:#2b0d0d; color:#f85149; }
+.plan-sig.WATCH { background:#2b1d0d; color:#e3b341; }
+.plan-body { padding:14px 16px; }
+.plan-row { display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid #21262d; font-size:.82rem; }
+.plan-row:last-child { border-bottom:none; }
+.plan-row .pkey { color:#8b949e; }
+.plan-row .pval { font-weight:600; color:#e6edf3; }
+.plan-row .pval.green { color:#3fb950; }
+.plan-row .pval.red { color:#f85149; }
+.plan-row .pval.amber { color:#e3b341; }
+.plan-row .pval.blue { color:#79c0ff; }
+.plan-note { margin-top:10px; padding:8px 12px; background:#0d1117; border-radius:6px; border:1px solid #21262d; font-size:.72rem; color:#8b949e; line-height:1.5; }
+.blockers { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+.blocker-pill { font-size:.68px; padding:2px 8px; border-radius:10px; background:#2d1e00; color:#e3b341; border:1px solid #9e6a03; font-size:.68rem; }
+.log-table { width:100%; border-collapse:collapse; font-size:.82rem; }
+.log-table th { background:#0f3460; color:#e6edf3; padding:10px 14px; text-align:left; font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; border-bottom:2px solid #30363d; }
+.log-table td { padding:9px 14px; border-bottom:1px solid #21262d; }
+.log-table tr:hover td { background:#161b22; }
+.log-table tr:nth-child(even) td { background:#0d1117; }
+.trades-toolbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px; }
+.btn { padding:9px 18px; border-radius:8px; font-size:.83rem; font-weight:600; border:none; cursor:pointer; transition:opacity .15s; }
+.btn:hover { opacity:.85; }
+.btn-primary { background:#e94560; color:#fff; }
+.btn-success { background:#238636; color:#fff; }
+.btn-warning { background:#9e6a03; color:#fff; }
+.btn-danger { background:#da3633; color:#fff; }
+.btn-outline { background:transparent; border:1px solid #30363d; color:#8b949e; }
+.btn-excel { background:#1e6b2e; color:#fff; display:flex; align-items:center; gap:6px; }
+.btn-sm { padding:5px 12px; font-size:.75rem; }
+.trade-form-wrap { background:#161b22; border:1px solid #30363d; border-radius:12px; padding:20px; margin-bottom:24px; display:none; }
+.trade-form-wrap.visible { display:block; }
+.trade-form-wrap h3 { font-size:.88rem; color:#79c0ff; text-transform:uppercase; letter-spacing:.06em; margin-bottom:16px; }
+.form-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:14px; }
+.form-group { display:flex; flex-direction:column; gap:5px; }
+.form-label { font-size:.68rem; color:#8b949e; text-transform:uppercase; letter-spacing:.05em; }
+.form-input, .form-select { background:#0d1117; border:1px solid #30363d; border-radius:6px; color:#e6edf3; font-size:.88rem; padding:8px 10px; outline:none; transition:border-color .2s; }
+.form-input:focus, .form-select:focus { border-color:#e94560; }
+.form-input.auto-fill { color:#79c0ff; }
+.form-row-linked { display:flex; gap:10px; align-items:center; }
+.form-row-linked .form-group { flex:1; }
+.linked-sep { color:#30363d; font-size:1.1rem; padding-top:18px; }
+.form-actions { display:flex; gap:10px; margin-top:18px; }
+.form-hint { font-size:.68rem; color:#8b949e; margin-top:3px; }
+.trades-section-title { font-size:.75rem; color:#8b949e; text-transform:uppercase; letter-spacing:.07em; margin:20px 0 12px; padding-bottom:6px; border-bottom:1px solid #21262d; display:flex; justify-content:space-between; align-items:center; }
+.trade-cards { display:flex; flex-direction:column; gap:12px; }
+.trade-card { background:#161b22; border:1px solid #30363d; border-radius:10px; overflow:hidden; }
+.trade-card.open-trade { border-left:3px solid #238636; }
+.trade-card.closed-trade { border-left:3px solid #30363d; }
+.trade-card.profit { border-left-color:#3fb950; }
+.trade-card.loss { border-left-color:#f85149; }
+.trade-card-header { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:1px solid #21262d; flex-wrap:wrap; gap:8px; }
+.trade-card-title { display:flex; align-items:center; gap:10px; }
+.trade-ticker { font-size:1rem; font-weight:700; color:#fff; }
+.trade-date { font-size:.72rem; color:#8b949e; }
+.trade-status-badge { font-size:.72rem; font-weight:700; padding:3px 10px; border-radius:12px; }
+.trade-status-badge.open { background:#0d2b1f; color:#3fb950; border:1px solid #238636; }
+.trade-status-badge.closed { background:#21262d; color:#8b949e; border:1px solid #30363d; }
+.trade-card-body { padding:12px 16px; }
+.trade-metrics { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:8px; margin-bottom:12px; }
+.trade-metric { background:#0d1117; border-radius:6px; padding:8px 10px; }
+.tm-label { font-size:.62rem; color:#8b949e; text-transform:uppercase; letter-spacing:.05em; }
+.tm-val { font-size:.88rem; font-weight:700; color:#e6edf3; margin-top:2px; }
+.tm-val.green { color:#3fb950; }
+.tm-val.red { color:#f85149; }
+.tm-val.amber { color:#e3b341; }
+.tm-val.blue { color:#79c0ff; }
+.trade-card-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+.close-form { background:#0d1117; border:1px solid #30363d; border-radius:8px; padding:14px; margin-top:12px; display:none; }
+.close-form.visible { display:block; }
+.close-form h4 { font-size:.75rem; color:#e3b341; margin-bottom:12px; }
+.close-form-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:10px; }
+.empty-state { text-align:center; padding:40px 20px; color:#484f58; background:#161b22; border:1px dashed #30363d; border-radius:10px; }
+.empty-state .es-icon { font-size:2.5rem; margin-bottom:10px; }
+.empty-state p { font-size:.85rem; }
+.pnl-strip { display:flex; gap:14px; flex-wrap:wrap; margin-bottom:20px; }
+.pnl-card { flex:1 1 150px; background:#161b22; border:1px solid #30363d; border-radius:8px; padding:12px 16px; }
+.pnl-card .pl { font-size:.65rem; color:#8b949e; text-transform:uppercase; letter-spacing:.05em; }
+.pnl-card .pv { font-size:1.3rem; font-weight:700; margin-top:3px; }
+.pnl-card .pv.green { color:#3fb950; }
+.pnl-card .pv.red { color:#f85149; }
+.pnl-card .pv.blue { color:#79c0ff; }
+.pnl-card .pv.amber { color:#e3b341; }
+.rules-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+@media(max-width:680px){ .rules-grid { grid-template-columns:1fr; } }
+.rule-card { background:#161b22; border:1px solid #30363d; border-radius:10px; padding:18px 20px; }
+.rule-card h3 { font-size:.85rem; color:#79c0ff; text-transform:uppercase; letter-spacing:.06em; margin-bottom:12px; }
+.rule-item { padding:7px 0; border-bottom:1px solid #21262d; font-size:.82rem; }
+.rule-item:last-child { border-bottom:none; }
+.rule-item .rkey { color:#8b949e; font-size:.73rem; text-transform:uppercase; letter-spacing:.04em; }
+.rule-item .rval { color:#e6edf3; margin-top:2px; }
+.rule-item .rval.accent { color:#ffa657; font-weight:700; }
+.section-title { font-size:.78rem; color:#8b949e; text-transform:uppercase; letter-spacing:.07em; margin-bottom:14px; padding-bottom:6px; border-bottom:1px solid #21262d; }
+.log-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+@media(max-width:600px){
+  .hero { padding:14px 14px 10px; }
+  .hero h1 { font-size:1.15rem; }
+  .hero-meta { gap:8px; font-size:.72rem; }
+  .capital-widget { width:100%; padding:10px 14px; gap:12px; }
+  .cap-input { width:110px; font-size:1rem; }
+  .grid, .planner-grid { grid-template-columns:1fr; gap:12px; }
+  .form-grid { grid-template-columns:1fr; }
+  .trade-metrics { grid-template-columns:1fr 1fr; }
+  .container { padding:16px 12px 70px; }
+  .tab-nav { padding:0 4px; position:sticky; top:0; z-index:50; }
+  .tab-btn { padding:14px 12px; font-size:.78rem; flex:1; }
+  .summary-bar { gap:8px; margin-bottom:16px; display:grid; grid-template-columns:1fr 1fr; }
+  .sum-card { padding:10px 12px; }
+  .sum-card .svalue { font-size:1.4rem; }
+  .indicators { gap:6px; }
+  .ind { padding:7px 6px; flex:1 1 30%; }
+  .card-header { padding:11px 13px; }
+  .card-body { padding:11px 13px; }
+  .c-ticker { font-size:1.05rem; }
+  .c-price { font-size:1.1rem; }
+  .sig-text { font-size:1.15rem; }
+  .signal-block { flex-direction:column; align-items:flex-start; gap:6px; }
+  .sig-meta { text-align:left; }
+  .log-table { font-size:.72rem; min-width:640px; }
+  .log-table th, .log-table td { padding:7px 8px; white-space:nowrap; }
+  .btn { padding:12px 16px; }
+  .trades-toolbar { flex-direction:column; align-items:stretch; }
+  .trades-toolbar > div { width:100%; }
+  .trades-toolbar .btn { flex:1; }
+  .pnl-strip { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .pnl-card { padding:10px 12px; }
+  .pnl-card .pv { font-size:1.05rem; }
+}
+.footer { margin-top:36px; text-align:center; font-size:.72rem; color:#484f58; }
+.footer strong { color:#8b949e; }
+</style>
+</head>
+<body>
+<div class="hero">
+  <div class="hero-top">
+    <div>
+      <h1>📈 Trend Following <span>Dashboard</span></h1>
+      <div class="hero-meta">
+        <span class="badge prep">🟡 PRE-CLOSE</span>
+        <span class="badge date">📅 13/06/2026</span>
+        <span>Strategy: <strong>Shark</strong></span>
+        <span>Platform: <strong>Stake</strong> (Long Only)</span>
+        <span class="ny-clock" id="nyClock">🕐 Loading NY time...</span>
+      </div>
+    </div>
+    <div class="capital-widget">
+      <div class="cap-field">
+        <span class="cap-label">💰 Capital</span>
+        <input class="cap-input" id="capitalInput" type="number" value="0" min="0" step="500" oninput="refresh()"/>
+      </div>
+      <div class="cap-field">
+        <span class="cap-label">⚠️ Risk %</span>
+        <select class="risk-select" id="riskSelect" onchange="refresh()">
+          <option value="1">1%</option>
+          <option value="2" selected>2%</option>
+          <option value="3">3%</option>
+          <option value="5">5%</option>
+        </select>
+      </div>
+      <div class="cap-derived">Risk per trade:<br/><strong id="riskAmount">$0</strong></div>
+    </div>
+  </div>
+</div>
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab('dashboard',this)">📊 Dashboard</button>
+  <button class="tab-btn" onclick="switchTab('planner',this)">💰 Trade Planner</button>
+  <button class="tab-btn" onclick="switchTab('trades',this)">📒 My Trades</button>
+  <button class="tab-btn" onclick="switchTab('log',this)">📅 Daily Log</button>
+  <button class="tab-btn" onclick="switchTab('rules',this)">📐 Strategy Rules</button>
+</div>
+<div class="container">
+  <div class="tab-panel active" id="panel-dashboard">
+    <div class="summary-bar" id="summaryBar"></div>
+    <div class="grid" id="assetGrid"></div>
+  </div>
+  <div class="tab-panel" id="panel-planner">
+    <p class="section-title">Position Sizing — based on your capital &amp; risk settings above</p>
+    <div class="planner-grid" id="plannerGrid"></div>
+  </div>
+  <div class="tab-panel" id="panel-trades">
+    <div class="pnl-strip" id="pnlStrip"></div>
+    <div class="trades-toolbar">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="toggleTradeForm()">＋ Add Trade</button>
+        <button class="btn btn-excel" onclick="exportATO()">📊 Export ATO Excel</button>
+      </div>
+      <span style="font-size:.72rem;color:#484f58;">Data saved in browser · ATO = Australian Tax Office CGT format</span>
+    </div>
+    <div class="trade-form-wrap" id="tradeFormWrap">
+      <h3>📝 Record New Trade (BUY Entry)</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Ticker</label>
+          <select class="form-select" id="fTicker" onchange="autoFillForm()">
+            <option value="NVDA">NVDA — NVIDIA</option>
+            <option value="AAPL">AAPL — Apple</option>
+            <option value="META" selected>META — Meta</option>
+            <option value="QQQ">QQQ — Nasdaq ETF</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Date Opened</label>
+          <input class="form-input" type="text" id="fDateOpen" placeholder="DD/MM/YYYY" onchange="fetchAndFillRate()"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Entry Price (USD)</label>
+          <input class="form-input auto-fill" type="number" id="fEntryPrice" step="0.01" oninput="calcLinkedFields('price')" placeholder="auto-filled"/>
+          <span class="form-hint">Auto-fills from last close</span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Brokerage — Entry (USD)</label>
+          <input class="form-input" type="number" id="fBrokerageEntry" value="3" step="0.01"/>
+        </div>
+      </div>
+      <div style="margin-top:14px;">
+        <div class="form-label" style="margin-bottom:8px;">Position Size — enter USD amount OR shares (auto-calculates the other)</div>
+        <div class="form-row-linked">
+          <div class="form-group">
+            <label class="form-label">USD Amount</label>
+            <input class="form-input" type="number" id="fUSD" step="0.01" placeholder="e.g. 1987.47" oninput="calcLinkedFields('usd')"/>
+          </div>
+          <div class="linked-sep">⟷</div>
+          <div class="form-group">
+            <label class="form-label">Shares</label>
+            <input class="form-input" type="number" id="fShares" step="1" placeholder="e.g. 3" oninput="calcLinkedFields('shares')"/>
+          </div>
+        </div>
+      </div>
+      <div class="form-grid" style="margin-top:14px;">
+        <div class="form-group">
+          <label class="form-label">Stop Loss (USD)</label>
+          <input class="form-input auto-fill" type="number" id="fStopLoss" step="0.01" placeholder="auto-filled"/>
+          <span class="form-hint">Auto-fills from Hilo value</span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Target (USD)</label>
+          <input class="form-input auto-fill" type="number" id="fTarget" step="0.01" placeholder="auto-filled (2:1 R/R)"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">AUD/USD Rate (Entry)</label>
+          <input class="form-input auto-fill" type="number" id="fAudUsdEntry" step="0.0001" placeholder="Fetching…"/>
+          <span class="form-hint" id="audRateHint">Auto-fetched for trade date</span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notes (optional)</label>
+          <input class="form-input" type="text" id="fNotes" placeholder="e.g. Evening prep signal"/>
+        </div>
+      </div>
+      <div style="margin-top:14px;padding:10px 14px;background:#0d1117;border-radius:8px;border:1px solid #21262d;font-size:.78rem;color:#8b949e;" id="costBasePreview">Fill in the fields above to see cost base preview.</div>
+      <div class="form-actions">
+        <button class="btn btn-success" onclick="saveTrade()">💾 Save Trade</button>
+        <button class="btn btn-outline" onclick="toggleTradeForm()">Cancel</button>
+      </div>
+    </div>
+    <div class="trades-section-title">
+      <span>🟢 Open Positions</span>
+      <span id="openCount" style="color:#3fb950;"></span>
+    </div>
+    <div class="trade-cards" id="openTradesList"></div>
+    <div class="trades-section-title" style="margin-top:28px;">
+      <span>📁 Closed Trades</span>
+      <span id="closedCount" style="color:#8b949e;"></span>
+    </div>
+    <div class="trade-cards" id="closedTradesList"></div>
+  </div>
+  <div class="tab-panel" id="panel-log">
+    <p class="section-title">Daily Signal Log</p>
+    <div class="log-scroll">
+    <table class="log-table" id="logTable">
+      <thead><tr><th>#</th><th>Date</th><th>Ticker</th><th>Hilo</th><th>Net Vol</th><th>RSI</th><th>Final Signal</th><th>Price</th><th>Stop Loss</th></tr></thead>
+      <tbody id="logBody"></tbody>
+    </table>
+    </div>
+  </div>
+  <div class="tab-panel" id="panel-rules">
+    <p class="section-title">Shark — Trend Following System</p>
+    <div class="rules-grid">
+      <div class="rule-card">
+        <h3>📡 Indicators</h3>
+        <div class="rule-item"><div class="rkey">Hilo Activator</div><div class="rval">BUY if Close &gt; SMA(P) of Highs<br/>SELL if Close &lt; SMA(P) of Lows</div></div>
+        <div class="rule-item"><div class="rkey">RSI (14-period)</div><div class="rval">Must be 30–70. &gt;70 = overbought, &lt;30 = oversold → no trade</div></div>
+        <div class="rule-item"><div class="rkey">Net Volume</div><div class="rval">Sum vol last 5 days vs prior 5. BULLISH if higher, BEARISH if lower.</div></div>
+      </div>
+      <div class="rule-card">
+        <h3>🚦 Signal Rules</h3>
+        <div class="rule-item"><div class="rkey">BUY (enter long)</div><div class="rval accent">Hilo = BUY + Net Vol = BULLISH + RSI 30–70 ✅</div></div>
+        <div class="rule-item"><div class="rkey">SELL (close position)</div><div class="rval">Hilo = SELL + Net Vol = BEARISH + RSI 30–70</div></div>
+        <div class="rule-item"><div class="rkey">WATCH</div><div class="rval">Partial confirmation only — do not act</div></div>
+      </div>
+      <div class="rule-card">
+        <h3>💼 Risk Management</h3>
+        <div class="rule-item"><div class="rkey">Risk per trade</div><div class="rval">Configurable % of capital (default 2%)</div></div>
+        <div class="rule-item"><div class="rkey">Stop Loss</div><div class="rval">= Hilo Value (HiloLow when BUY, HiloHigh when SELL)</div></div>
+        <div class="rule-item"><div class="rkey">Position Size</div><div class="rval">Risk $ ÷ (Entry − Stop) = number of shares</div></div>
+        <div class="rule-item"><div class="rkey">Platform note</div><div class="rval">Stake is long-only. SELL = close trade, not short.</div></div>
+      </div>
+      <div class="rule-card">
+        <h3>⚙️ Optimised Hilo Periods</h3>
+        <div class="rule-item"><div class="rkey">NVDA</div><div class="rval accent">Period 23</div></div>
+        <div class="rule-item"><div class="rkey">AAPL</div><div class="rval accent">Period 9</div></div>
+        <div class="rule-item"><div class="rkey">META</div><div class="rval accent">Period 15</div></div>
+        <div class="rule-item"><div class="rkey">QQQ</div><div class="rval accent">Period 30</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><strong>Trend Following System</strong> — Shark Strategy · Stake Platform · All signals for educational purposes only.</div>
+</div>
+<script>
+const ASSETS = {
+  NVDA: { name:"NVIDIA Corporation", price:203.94, hiloVal:220.37, hiHigh:220.37, hiLow:212.77, rsi:44.41, hiloSignal:"SELL", netVol:"BEARISH", period:23 },
+  AAPL: { name:"Apple Inc.", price:290.3, hiloVal:307.57, hiHigh:307.57, hiLow:298.65, rsi:43.43, hiloSignal:"SELL", netVol:"BULLISH", period:9 },
+  META: { name:"Meta Platforms Inc.", price:564.21, hiloVal:614.32, hiHigh:614.32, hiLow:594.96, rsi:33.87, hiloSignal:"SELL", netVol:"BEARISH", period:15 },
+  QQQ: { name:"Nasdaq 100 ETF", price:719.72, hiloVal:706.89, hiHigh:718.48, hiLow:706.89, rsi:54.69, hiloSignal:"BUY", netVol:"BULLISH", period:30 }
+};
+const LOG = [
+  { date:"13/04/2026", ticker:"NVDA", hilo:"BUY",     netVol:"BEARISH", rsi:68.17, signal:"WATCH", price:188.63, stop:176.30 },
+  { date:"13/04/2026", ticker:"AAPL", hilo:"BUY",     netVol:"BEARISH", rsi:67.47, signal:"WATCH", price:260.48, stop:252.26 },
+  { date:"13/04/2026", ticker:"META", hilo:"BUY",     netVol:"BEARISH", rsi:58.65, signal:"WATCH", price:629.86, stop:574.60 },
+  { date:"13/04/2026", ticker:"QQQ",  hilo:"BUY",     netVol:"BEARISH", rsi:65.09, signal:"WATCH", price:611.07, stop:589.57 },
+  { date:"14/04/2026", ticker:"NVDA", hilo:"BUY",     netVol:"BEARISH", rsi:65.0,  signal:"WATCH", price:186.00, stop:176.50 },
+  { date:"14/04/2026", ticker:"AAPL", hilo:"BUY",     netVol:"BEARISH", rsi:67.5,  signal:"WATCH", price:261.00, stop:252.26 },
+  { date:"14/04/2026", ticker:"META", hilo:"BUY",     netVol:"BEARISH", rsi:58.7,  signal:"WATCH", price:629.86, stop:574.60 },
+  { date:"14/04/2026", ticker:"QQQ",  hilo:"BUY",     netVol:"BEARISH", rsi:64.0,  signal:"WATCH", price:607.00, stop:589.57 },
+  { date:"14/04/2026", ticker:"NVDA", hilo:"BUY",     netVol:"BEARISH", rsi:66.44, signal:"WATCH", price:189.31, stop:176.46 },
+  { date:"14/04/2026", ticker:"AAPL", hilo:"BUY",     netVol:"BULLISH", rsi:61.50, signal:"BUY",   price:259.20, stop:253.50 },
+  { date:"14/04/2026", ticker:"META", hilo:"BUY",     netVol:"BEARISH", rsi:57.49, signal:"WATCH", price:634.53, stop:577.08 },
+  { date:"14/04/2026", ticker:"QQQ",  hilo:"BUY",     netVol:"BEARISH", rsi:65.23, signal:"WATCH", price:617.39, stop:589.77 },
+  { date:"15/04/2026", ticker:"NVDA", hilo:"BUY",     netVol:"BEARISH", rsi:72.05, signal:"WATCH", price:196.51, stop:176.73 },
+  { date:"15/04/2026", ticker:"AAPL", hilo:"NEUTRAL", netVol:"BEARISH", rsi:60.65, signal:"WATCH", price:258.83, stop:257.08 },
+  { date:"15/04/2026", ticker:"META", hilo:"BUY",     netVol:"BULLISH", rsi:65.79, signal:"BUY",   price:662.49, stop:579.77 },
+  { date:"15/04/2026", ticker:"QQQ",  hilo:"BUY",     netVol:"BEARISH", rsi:71.51, signal:"WATCH", price:628.60, stop:590.51 },
+  { date:"16/04/2026", ticker:"NVDA", hilo:"BUY",     netVol:"BEARISH", rsi:72.05, signal:"WATCH", price:196.51, stop:176.73 },
+  { date:"16/04/2026", ticker:"AAPL", hilo:"NEUTRAL", netVol:"BEARISH", rsi:60.65, signal:"WATCH", price:258.83, stop:257.08 },
+  { date:"16/04/2026", ticker:"META", hilo:"BUY",     netVol:"BULLISH", rsi:65.79, signal:"WATCH*",price:670.00, stop:579.77 },
+  { date:"16/04/2026", ticker:"QQQ",  hilo:"BUY",     netVol:"BEARISH", rsi:71.51, signal:"WATCH", price:628.60, stop:590.51 },
+  { date:"16/04/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:71.38, signal:"WATCH", price:198.87, stop:177.34 },
+  { date:"16/04/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:67.10, signal:"WATCH", price:266.43, stop:255.12 },
+  { date:"16/04/2026", ticker:"META", hilo:"BUY", netVol:"BEARISH", rsi:66.86, signal:"WATCH", price:671.58, stop:584.65 },
+  { date:"16/04/2026", ticker:"QQQ",  hilo:"BUY", netVol:"BEARISH", rsi:72.81, signal:"WATCH", price:637.40, stop:591.72 },
+  { date:"17/04/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:83.84, signal:"WATCH", price:198.45, stop:178.03 },
+  { date:"17/04/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:62.94, signal:"BUY",   price:263.92, stop:256.30 },
+  { date:"17/04/2026", ticker:"META", hilo:"BUY", netVol:"BEARISH", rsi:84.76, signal:"WATCH", price:675.44, stop:589.61 },
+  { date:"17/04/2026", ticker:"QQQ",  hilo:"BUY", netVol:"BEARISH", rsi:84.05, signal:"WATCH", price:640.02, stop:592.78 },
+  { date:"17/04/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:83.64, signal:"WATCH", price:198.35, stop:178.03 },
+  { date:"17/04/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:62.18, signal:"BUY",   price:263.40, stop:256.30 },
+  { date:"17/04/2026", ticker:"META", hilo:"BUY", netVol:"BEARISH", rsi:84.88, signal:"WATCH", price:676.87, stop:589.61 },
+  { date:"17/04/2026", ticker:"QQQ",  hilo:"BUY", netVol:"BEARISH", rsi:84.12, signal:"WATCH", price:640.47, stop:592.78 },
+  { date:"18/04/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:92.74, signal:"WATCH", price:201.33, stop:178.81 },
+  { date:"18/04/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:73.39, signal:"WATCH", price:270.28, stop:257.44 },
+  { date:"18/04/2026", ticker:"META", hilo:"BUY", netVol:"BEARISH", rsi:96.47, signal:"WATCH", price:689.37, stop:598.39 },
+  { date:"18/04/2026", ticker:"QQQ",  hilo:"BUY", netVol:"BULLISH", rsi:95.45, signal:"WATCH", price:648.44, stop:594.17 },
+  { date:"20/04/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:92.81, signal:"WATCH", price:201.68, stop:178.81 },
+  { date:"20/04/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:73.36, signal:"WATCH", price:270.23, stop:257.44 },
+  { date:"20/04/2026", ticker:"META", hilo:"BUY", netVol:"BEARISH", rsi:96.46, signal:"WATCH", price:688.55, stop:598.39 },
+  { date:"20/04/2026", ticker:"QQQ",  hilo:"BUY", netVol:"BULLISH", rsi:95.47, signal:"WATCH", price:648.85, stop:594.17 },
+  { date:"21/04/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:98.12, signal:"WATCH", price:201.49, stop:179.51 },
+  { date:"21/04/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:78.03, signal:"WATCH", price:272.28, stop:260.17 },
+  { date:"21/04/2026", ticker:"META", hilo:"BUY", netVol:"BEARISH", rsi:87.23, signal:"WATCH", price:671.58, stop:608.24 },
+  { date:"21/04/2026", ticker:"QQQ",  hilo:"BUY", netVol:"BULLISH", rsi:97.16, signal:"WATCH", price:646.20, stop:595.65 },
+  { date:"21/04/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:98.63, signal:"WATCH", price:202.06, stop:179.51 },
+  { date:"21/04/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:78.40, signal:"WATCH", price:273.05, stop:260.17 },
+  { date:"21/04/2026", ticker:"META", hilo:"BUY", netVol:"BEARISH", rsi:86.91, signal:"WATCH", price:670.91, stop:608.24 },
+  { date:"21/04/2026", ticker:"QQQ",  hilo:"BUY", netVol:"BULLISH", rsi:97.78, signal:"WATCH", price:646.79, stop:595.65 },
+  { date:"22/04/2026", ticker:"NVDA", hilo:"BUY", netVol:"BEARISH", rsi:93.36, signal:"WATCH", price:199.82, stop:180.32 },
+  { date:"22/04/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:64.79, signal:"BUY",   price:266.48, stop:261.16 },
+  { date:"22/04/2026", ticker:"META", hilo:"BUY", netVol:"BEARISH", rsi:83.92, signal:"WATCH", price:670.50, stop:617.52 },
+  { date:"22/04/2026", ticker:"QQQ",  hilo:"BUY", netVol:"BEARISH", rsi:96.46, signal:"WATCH", price:644.09, stop:597.38 },
+  { date:"23/04/2026", ticker:"NVDA", hilo:"BUY", netVol:"BEARISH", rsi:91.60, signal:"WATCH",  price:202.50, stop:181.33 },
+  { date:"23/04/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:67.06, signal:"BUY",    price:273.17, stop:262.36 },
+  { date:"23/04/2026", ticker:"META", hilo:"BUY", netVol:"BEARISH", rsi:82.41, signal:"WATCH",  price:674.72, stop:625.69 },
+  { date:"23/04/2026", ticker:"QQQ",  hilo:"BUY", netVol:"BULLISH", rsi:94.34, signal:"WATCH",  price:655.11, stop:598.78 },
+  { date:"24/04/2026", ticker:"NVDA", hilo:"BUY", netVol:"BEARISH", rsi:82.02, signal:"WATCH",  price:199.10, stop:182.44 },
+  { date:"24/04/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:67.26, signal:"BUY",    price:273.77, stop:263.76 },
+  { date:"24/04/2026", ticker:"META", hilo:"BUY", netVol:"BEARISH", rsi:77.25, signal:"WATCH",  price:660.10, stop:630.97 },
+  { date:"24/04/2026", ticker:"QQQ",  hilo:"BUY", netVol:"BEARISH", rsi:89.13, signal:"WATCH",  price:650.53, stop:600.13 },
+
+  { date:"24/04/2026", ticker:"NVDA", hilo:"BUY", netVol:"BEARISH", rsi:71.66, signal:"WATCH", price:208.27, stop:183.53 },  // 👀 EVENING PREP 25/04/2026 13:01 AEDT
+  { date:"24/04/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:59.84, signal:"WATCH", price:271.06, stop:265.21 },  // 👀 EVENING PREP 25/04/2026 13:01 AEDT
+  { date:"24/04/2026", ticker:"META", hilo:"BUY", netVol:"BEARISH", rsi:61.55, signal:"WATCH", price:675.03, stop:637.25 },  // 👀 EVENING PREP 25/04/2026 13:01 AEDT
+  { date:"24/04/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:75.04, signal:"WATCH", price:663.88, stop:601.96 },  // 👀 EVENING PREP 25/04/2026 13:01 AEDT
+
+  { date:"24/04/2026", ticker:"NVDA", hilo:"BUY", netVol:"BEARISH", rsi:71.66, signal:"WATCH", price:208.27, stop:183.53 },  // 👀 EVENING PREP 25/04/2026 13:03 AEDT
+  { date:"24/04/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:59.84, signal:"WATCH", price:271.06, stop:265.21 },  // 👀 EVENING PREP 25/04/2026 13:03 AEDT
+  { date:"24/04/2026", ticker:"META", hilo:"BUY", netVol:"BEARISH", rsi:61.55, signal:"WATCH", price:675.03, stop:637.25 },  // 👀 EVENING PREP 25/04/2026 13:03 AEDT
+  { date:"24/04/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:75.04, signal:"WATCH", price:663.88, stop:601.96 },  // 👀 EVENING PREP 25/04/2026 13:03 AEDT
+
+  { date:"24/04/2026", ticker:"NVDA", hilo:"BUY", netVol:"BEARISH", rsi:71.66, signal:"WATCH", price:208.27, stop:183.53 },  // 👀 EVENING PREP 25/04/2026 13:10 AEDT
+  { date:"24/04/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:59.84, signal:"WATCH", price:271.06, stop:265.21 },  // 👀 EVENING PREP 25/04/2026 13:10 AEDT
+  { date:"24/04/2026", ticker:"META", hilo:"BUY", netVol:"BEARISH", rsi:61.55, signal:"WATCH", price:675.03, stop:637.25 },  // 👀 EVENING PREP 25/04/2026 13:10 AEDT
+  { date:"24/04/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:75.04, signal:"WATCH", price:663.88, stop:601.96 },  // 👀 EVENING PREP 25/04/2026 13:10 AEDT
+
+  { date:"24/04/2026", ticker:"NVDA", hilo:"BUY", netVol:"BEARISH", rsi:71.66, signal:"WATCH", price:208.27, stop:183.53 },  // 👀 EVENING PREP 25/04/2026 13:12 AEDT
+  { date:"24/04/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:59.84, signal:"WATCH", price:271.06, stop:265.21 },  // 👀 EVENING PREP 25/04/2026 13:12 AEDT
+  { date:"24/04/2026", ticker:"META", hilo:"BUY", netVol:"BEARISH", rsi:61.55, signal:"WATCH", price:675.03, stop:637.25 },  // 👀 EVENING PREP 25/04/2026 13:12 AEDT
+  { date:"24/04/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:75.04, signal:"WATCH", price:663.88, stop:601.96 },  // 👀 EVENING PREP 25/04/2026 13:12 AEDT
+
+  { date:"24/04/2026", ticker:"NVDA", hilo:"BUY", netVol:"BEARISH", rsi:71.66, signal:"WATCH", price:208.27, stop:183.53 },  // 👀 EVENING PREP 27/04/2026 20:02 AEDT
+  { date:"24/04/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:59.84, signal:"WATCH", price:271.06, stop:265.21 },  // 👀 EVENING PREP 27/04/2026 20:02 AEDT
+  { date:"24/04/2026", ticker:"META", hilo:"BUY", netVol:"BEARISH", rsi:61.55, signal:"WATCH", price:675.03, stop:637.25 },  // 👀 EVENING PREP 27/04/2026 20:02 AEDT
+  { date:"24/04/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:75.04, signal:"WATCH", price:663.88, stop:601.96 },  // 👀 EVENING PREP 27/04/2026 20:02 AEDT
+
+  { date:"27/04/2026", ticker:"NVDA", hilo:"BUY", netVol:"BEARISH", rsi:76.03, signal:"WATCH", price:215.77, stop:184.98 },  // 👀 PRE-CLOSE 28/04/2026 05:35 AEDT
+  { date:"27/04/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:55.15, signal:"WATCH", price:267.48, stop:266.08 },  // 👀 PRE-CLOSE 28/04/2026 05:35 AEDT
+  { date:"27/04/2026", ticker:"META", hilo:"BUY", netVol:"BEARISH", rsi:62.44, signal:"WATCH", price:678.77, stop:643.84 },  // 👀 PRE-CLOSE 28/04/2026 05:35 AEDT
+  { date:"27/04/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:75.03, signal:"WATCH", price:663.9, stop:604.26 },  // 👀 PRE-CLOSE 28/04/2026 05:35 AEDT
+
+  { date:"27/04/2026", ticker:"NVDA", hilo:"BUY", netVol:"BEARISH", rsi:76.43, signal:"WATCH", price:216.61, stop:184.98 },  // 👀 EVENING PREP 28/04/2026 20:02 AEDT
+  { date:"27/04/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:55.34, signal:"WATCH", price:267.61, stop:266.08 },  // 👀 EVENING PREP 28/04/2026 20:02 AEDT
+  { date:"27/04/2026", ticker:"META", hilo:"BUY", netVol:"BEARISH", rsi:62.43, signal:"WATCH", price:678.62, stop:643.84 },  // 👀 EVENING PREP 28/04/2026 20:02 AEDT
+  { date:"27/04/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:75.12, signal:"WATCH", price:664.23, stop:604.26 },  // 👀 EVENING PREP 28/04/2026 20:02 AEDT
+
+  { date:"28/04/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:72.42, signal:"WATCH", price:214.08, stop:186.34 },  // 👀 PRE-CLOSE 29/04/2026 05:35 AEDT
+  { date:"28/04/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:57.76, signal:"WATCH", price:270.05, stop:267.29 },  // 👀 PRE-CLOSE 29/04/2026 05:35 AEDT
+  { date:"28/04/2026", ticker:"META", hilo:"BUY", netVol:"BEARISH", rsi:58.84, signal:"WATCH", price:669.56, stop:650.56 },  // 👀 PRE-CLOSE 29/04/2026 05:35 AEDT
+  { date:"28/04/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:69.32, signal:"WATCH", price:657.58, stop:606.11 },  // 👀 PRE-CLOSE 29/04/2026 05:35 AEDT
+
+  { date:"28/04/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:71.08, signal:"WATCH", price:213.17, stop:186.34 },  // 👀 EVENING PREP 29/04/2026 20:02 AEDT
+  { date:"28/04/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:58.35, signal:"WATCH", price:270.71, stop:267.29 },  // 👀 EVENING PREP 29/04/2026 20:02 AEDT
+  { date:"28/04/2026", ticker:"META", hilo:"BUY", netVol:"BEARISH", rsi:59.32, signal:"WATCH", price:671.34, stop:650.56 },  // 👀 EVENING PREP 29/04/2026 20:02 AEDT
+  { date:"28/04/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:69.33, signal:"WATCH", price:657.55, stop:606.11 },  // 👀 EVENING PREP 29/04/2026 20:02 AEDT
+
+  { date:"29/04/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:65.17, signal:"BUY", price:209.03, stop:187.93 },  // ✅ PRE-CLOSE 30/04/2026 05:36 AEDT
+  { date:"29/04/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:57.34, signal:"WATCH", price:269.96, stop:267.93 },  // 👀 PRE-CLOSE 30/04/2026 05:36 AEDT
+  { date:"29/04/2026", ticker:"META", hilo:"BUY", netVol:"BULLISH", rsi:59.59, signal:"BUY", price:672.3, stop:655.36 },  // ✅ PRE-CLOSE 30/04/2026 05:36 AEDT
+  { date:"29/04/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:70.32, signal:"WATCH", price:660.22, stop:607.95 },  // 👀 PRE-CLOSE 30/04/2026 05:36 AEDT
+
+  { date:"29/04/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:65.48, signal:"BUY", price:209.25, stop:187.93 },  // ✅ EVENING PREP 30/04/2026 20:02 AEDT
+  { date:"29/04/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:57.6, signal:"WATCH", price:270.17, stop:267.93 },  // 👀 EVENING PREP 30/04/2026 20:02 AEDT
+  { date:"29/04/2026", ticker:"META", hilo:"BUY", netVol:"BULLISH", rsi:58.51, signal:"BUY", price:669.12, stop:655.36 },  // ✅ EVENING PREP 30/04/2026 20:02 AEDT
+  { date:"29/04/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:70.87, signal:"WATCH", price:661.57, stop:607.95 },  // 👀 EVENING PREP 30/04/2026 20:02 AEDT
+
+  { date:"30/04/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:55.24, signal:"BUY", price:200.71, stop:189.31 },  // ✅ PRE-CLOSE 01/05/2026 05:35 AEDT
+  { date:"30/04/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:61.38, signal:"WATCH", price:274.06, stop:268.09 },  // 👀 PRE-CLOSE 01/05/2026 05:35 AEDT
+  { date:"30/04/2026", ticker:"META", hilo:"SELL", netVol:"BULLISH", rsi:42.51, signal:"WATCH", price:618.07, stop:668.75 },  // 👀 PRE-CLOSE 01/05/2026 05:35 AEDT
+  { date:"30/04/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:73.08, signal:"WATCH", price:667.96, stop:610.08 },  // 👀 PRE-CLOSE 01/05/2026 05:35 AEDT
+
+  { date:"30/04/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:54.16, signal:"BUY", price:199.57, stop:189.31 },  // ✅ EVENING PREP 01/05/2026 20:02 AEDT
+  { date:"30/04/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:58.71, signal:"BUY", price:271.35, stop:268.09 },  // ✅ EVENING PREP 01/05/2026 20:02 AEDT
+  { date:"30/04/2026", ticker:"META", hilo:"SELL", netVol:"BULLISH", rsi:41.18, signal:"WATCH", price:611.91, stop:668.76 },  // 👀 EVENING PREP 01/05/2026 20:02 AEDT
+  { date:"30/04/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:72.99, signal:"WATCH", price:667.74, stop:610.08 },  // 👀 EVENING PREP 01/05/2026 20:02 AEDT
+
+  { date:"01/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:55.44, signal:"BUY", price:201.05, stop:190.87 },  // ✅ PRE-CLOSE 01/05/2026 23:38 AEDT
+  { date:"01/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:66.32, signal:"BUY", price:279.93, stop:268.98 },  // ✅ PRE-CLOSE 01/05/2026 23:38 AEDT
+  { date:"01/05/2026", ticker:"META", hilo:"SELL", netVol:"BULLISH", rsi:41.41, signal:"WATCH", price:612.63, stop:667.44 },  // 👀 PRE-CLOSE 01/05/2026 23:38 AEDT
+  { date:"01/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:74.3, signal:"WATCH", price:671.72, stop:612.83 },  // 👀 PRE-CLOSE 01/05/2026 23:38 AEDT
+
+  { date:"01/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:54.35, signal:"BUY", price:199.78, stop:190.73 },  // ✅ PRE-CLOSE 02/05/2026 05:35 AEDT
+  { date:"01/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:66.48, signal:"BUY", price:280.15, stop:268.98 },  // ✅ PRE-CLOSE 02/05/2026 05:35 AEDT
+  { date:"01/05/2026", ticker:"META", hilo:"SELL", netVol:"BULLISH", rsi:41.07, signal:"WATCH", price:611.42, stop:667.44 },  // 👀 PRE-CLOSE 02/05/2026 05:35 AEDT
+  { date:"01/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:75.31, signal:"WATCH", price:675.07, stop:612.83 },  // 👀 PRE-CLOSE 02/05/2026 05:35 AEDT
+
+  { date:"01/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:53.01, signal:"BUY", price:198.45, stop:190.73 },  // ✅ EVENING PREP 04/05/2026 20:02 AEDT
+  { date:"01/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:66.47, signal:"BUY", price:280.14, stop:268.98 },  // ✅ EVENING PREP 04/05/2026 20:02 AEDT
+  { date:"01/05/2026", ticker:"META", hilo:"SELL", netVol:"BULLISH", rsi:40.47, signal:"WATCH", price:608.75, stop:667.45 },  // 👀 EVENING PREP 04/05/2026 20:02 AEDT
+  { date:"01/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:75.04, signal:"WATCH", price:674.15, stop:612.83 },  // 👀 EVENING PREP 04/05/2026 20:02 AEDT
+
+  { date:"04/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:53.62, signal:"BUY", price:198.96, stop:191.94 },  // ✅ PRE-CLOSE 05/05/2026 05:36 AEDT
+  { date:"04/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:62.11, signal:"BUY", price:277.13, stop:270.03 },  // ✅ PRE-CLOSE 05/05/2026 05:36 AEDT
+  { date:"04/05/2026", ticker:"META", hilo:"SELL", netVol:"BULLISH", rsi:41.77, signal:"WATCH", price:612.24, stop:666.05 },  // 👀 PRE-CLOSE 05/05/2026 05:36 AEDT
+  { date:"04/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:74.22, signal:"WATCH", price:673.07, stop:615.86 },  // 👀 PRE-CLOSE 05/05/2026 05:36 AEDT
+
+  { date:"04/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:53.2, signal:"BUY", price:198.48, stop:191.94 },  // ✅ EVENING PREP 05/05/2026 20:02 AEDT
+  { date:"04/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:61.72, signal:"BUY", price:276.83, stop:270.03 },  // ✅ EVENING PREP 05/05/2026 20:02 AEDT
+  { date:"04/05/2026", ticker:"META", hilo:"SELL", netVol:"BULLISH", rsi:41.14, signal:"WATCH", price:610.41, stop:666.05 },  // 👀 EVENING PREP 05/05/2026 20:02 AEDT
+  { date:"04/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:74.14, signal:"WATCH", price:672.88, stop:615.86 },  // 👀 EVENING PREP 05/05/2026 20:02 AEDT
+
+  { date:"05/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BEARISH", rsi:50.64, signal:"WATCH", price:196.18, stop:192.87 },  // 👀 PRE-CLOSE 06/05/2026 05:34 AEDT
+  { date:"05/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:67.23, signal:"BUY", price:284.11, stop:271.1 },  // ✅ PRE-CLOSE 06/05/2026 05:34 AEDT
+  { date:"05/05/2026", ticker:"META", hilo:"SELL", netVol:"BULLISH", rsi:40.01, signal:"WATCH", price:605.97, stop:662.59 },  // 👀 PRE-CLOSE 06/05/2026 05:34 AEDT
+  { date:"05/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:77.03, signal:"WATCH", price:682.14, stop:618.92 },  // 👀 PRE-CLOSE 06/05/2026 05:34 AEDT
+
+  { date:"05/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BEARISH", rsi:50.81, signal:"WATCH", price:196.5, stop:192.87 },  // 👀 EVENING PREP 06/05/2026 20:02 AEDT
+  { date:"05/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:67.25, signal:"BUY", price:284.18, stop:271.1 },  // ✅ EVENING PREP 06/05/2026 20:02 AEDT
+  { date:"05/05/2026", ticker:"META", hilo:"SELL", netVol:"BULLISH", rsi:39.79, signal:"WATCH", price:604.96, stop:662.59 },  // 👀 EVENING PREP 06/05/2026 20:02 AEDT
+  { date:"05/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:76.84, signal:"WATCH", price:681.61, stop:618.92 },  // 👀 EVENING PREP 06/05/2026 20:02 AEDT
+
+  { date:"06/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BEARISH", rsi:60.49, signal:"WATCH", price:207.24, stop:194.05 },  // 👀 PRE-CLOSE 07/05/2026 05:35 AEDT
+  { date:"06/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:69.44, signal:"BUY", price:287.55, stop:272.15 },  // ✅ PRE-CLOSE 07/05/2026 05:35 AEDT
+  { date:"06/05/2026", ticker:"META", hilo:"SELL", netVol:"BULLISH", rsi:42.59, signal:"WATCH", price:612.36, stop:658.68 },  // 👀 PRE-CLOSE 07/05/2026 05:35 AEDT
+  { date:"06/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:80.19, signal:"WATCH", price:694.54, stop:622.4 },  // 👀 PRE-CLOSE 07/05/2026 05:35 AEDT
+
+  { date:"06/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BEARISH", rsi:60.87, signal:"WATCH", price:207.83, stop:194.05 },  // 👀 EVENING PREP 07/05/2026 20:02 AEDT
+  { date:"06/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:69.47, signal:"BUY", price:287.51, stop:272.15 },  // ✅ EVENING PREP 07/05/2026 20:02 AEDT
+  { date:"06/05/2026", ticker:"META", hilo:"SELL", netVol:"BULLISH", rsi:42.71, signal:"WATCH", price:612.88, stop:658.68 },  // 👀 EVENING PREP 07/05/2026 20:02 AEDT
+  { date:"06/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:80.45, signal:"WATCH", price:695.77, stop:622.4 },  // 👀 EVENING PREP 07/05/2026 20:02 AEDT
+
+  { date:"07/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BEARISH", rsi:63.84, signal:"WATCH", price:212.03, stop:195.39 },  // 👀 PRE-CLOSE 08/05/2026 05:33 AEDT
+  { date:"07/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:68.6, signal:"BUY", price:286.92, stop:273.94 },  // ✅ PRE-CLOSE 08/05/2026 05:33 AEDT
+  { date:"07/05/2026", ticker:"META", hilo:"SELL", netVol:"BEARISH", rsi:43.73, signal:"SELL", price:615.58, stop:655.17 },  // ❌ PRE-CLOSE 08/05/2026 05:33 AEDT
+  { date:"07/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:78.59, signal:"WATCH", price:693.78, stop:625.94 },  // 👀 PRE-CLOSE 08/05/2026 05:33 AEDT
+
+  { date:"07/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BEARISH", rsi:63.49, signal:"WATCH", price:211.5, stop:195.39 },  // 👀 EVENING PREP 08/05/2026 20:02 AEDT
+  { date:"07/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:69.37, signal:"BUY", price:287.44, stop:273.94 },  // ✅ EVENING PREP 08/05/2026 20:02 AEDT
+  { date:"07/05/2026", ticker:"META", hilo:"SELL", netVol:"BEARISH", rsi:44.19, signal:"SELL", price:616.81, stop:655.18 },  // ❌ EVENING PREP 08/05/2026 20:02 AEDT
+  { date:"07/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:79.66, signal:"WATCH", price:694.94, stop:625.94 },  // 👀 EVENING PREP 08/05/2026 20:02 AEDT
+
+  { date:"08/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BEARISH", rsi:65.76, signal:"WATCH", price:214.87, stop:197.09 },  // 👀 PRE-CLOSE 09/05/2026 05:33 AEDT
+  { date:"08/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:73.09, signal:"WATCH", price:293.46, stop:276.71 },  // 👀 PRE-CLOSE 09/05/2026 05:33 AEDT
+  { date:"08/05/2026", ticker:"META", hilo:"SELL", netVol:"BEARISH", rsi:42.37, signal:"SELL", price:610.73, stop:650.19 },  // ❌ PRE-CLOSE 09/05/2026 05:33 AEDT
+  { date:"08/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:82.81, signal:"WATCH", price:709.35, stop:630.14 },  // 👀 PRE-CLOSE 09/05/2026 05:33 AEDT
+
+  { date:"08/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BEARISH", rsi:65.96, signal:"WATCH", price:215.2, stop:197.09 },  // 👀 EVENING PREP 11/05/2026 20:02 AEDT
+  { date:"08/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:73.02, signal:"WATCH", price:293.32, stop:276.71 },  // 👀 EVENING PREP 11/05/2026 20:02 AEDT
+  { date:"08/05/2026", ticker:"META", hilo:"SELL", netVol:"BEARISH", rsi:42.05, signal:"SELL", price:609.63, stop:650.19 },  // ❌ EVENING PREP 11/05/2026 20:02 AEDT
+  { date:"08/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:83.15, signal:"WATCH", price:711.23, stop:630.14 },  // 👀 EVENING PREP 11/05/2026 20:02 AEDT
+
+  { date:"11/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BEARISH", rsi:68.47, signal:"WATCH", price:219.22, stop:198.55 },  // 👀 PRE-CLOSE 12/05/2026 05:36 AEDT
+  { date:"11/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:71.14, signal:"WATCH", price:292.11, stop:279.11 },  // 👀 PRE-CLOSE 12/05/2026 05:36 AEDT
+  { date:"11/05/2026", ticker:"META", hilo:"SELL", netVol:"BEARISH", rsi:39.09, signal:"SELL", price:599.1, stop:644.96 },  // ❌ PRE-CLOSE 12/05/2026 05:36 AEDT
+  { date:"11/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:83.34, signal:"WATCH", price:712.15, stop:635.05 },  // 👀 PRE-CLOSE 12/05/2026 05:36 AEDT
+
+  { date:"12/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:69.78, signal:"BUY", price:221.37, stop:200.05 },  // ✅ PRE-CLOSE 13/05/2026 05:36 AEDT
+  { date:"12/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:73.81, signal:"WATCH", price:294.51, stop:281.75 },  // 👀 PRE-CLOSE 13/05/2026 05:36 AEDT
+  { date:"12/05/2026", ticker:"META", hilo:"SELL", netVol:"BEARISH", rsi:40.45, signal:"SELL", price:602.01, stop:640.13 },  // ❌ PRE-CLOSE 13/05/2026 05:36 AEDT
+  { date:"12/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:76.36, signal:"WATCH", price:705.26, stop:639.75 },  // 👀 PRE-CLOSE 13/05/2026 05:36 AEDT
+
+  { date:"12/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:69.51, signal:"BUY", price:220.78, stop:200.05 },  // ✅ EVENING PREP 13/05/2026 18:37 AEDT
+  { date:"12/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:74.1, signal:"WATCH", price:294.8, stop:281.75 },  // 👀 EVENING PREP 13/05/2026 18:37 AEDT
+  { date:"12/05/2026", ticker:"META", hilo:"SELL", netVol:"BEARISH", rsi:40.9, signal:"SELL", price:603.0, stop:640.13 },  // ❌ EVENING PREP 13/05/2026 18:37 AEDT
+  { date:"12/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:78.04, signal:"WATCH", price:707.24, stop:639.75 },  // 👀 EVENING PREP 13/05/2026 18:37 AEDT
+
+  { date:"12/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:69.51, signal:"BUY", price:220.78, stop:200.05 },  // ✅ EVENING PREP 13/05/2026 20:02 AEDT
+  { date:"12/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:74.1, signal:"WATCH", price:294.8, stop:281.75 },  // 👀 EVENING PREP 13/05/2026 20:02 AEDT
+  { date:"12/05/2026", ticker:"META", hilo:"SELL", netVol:"BEARISH", rsi:40.9, signal:"SELL", price:603.0, stop:640.13 },  // ❌ EVENING PREP 13/05/2026 20:02 AEDT
+  { date:"12/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:78.04, signal:"WATCH", price:707.24, stop:639.75 },  // 👀 EVENING PREP 13/05/2026 20:02 AEDT
+
+  { date:"13/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BEARISH", rsi:72.75, signal:"WATCH", price:226.55, stop:201.67 },  // 👀 PRE-CLOSE 14/05/2026 05:34 AEDT
+  { date:"13/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:76.57, signal:"WATCH", price:299.19, stop:284.6 },  // 👀 PRE-CLOSE 14/05/2026 05:34 AEDT
+  { date:"13/05/2026", ticker:"META", hilo:"SELL", netVol:"BEARISH", rsi:46.43, signal:"SELL", price:616.59, stop:636.23 },  // ❌ PRE-CLOSE 14/05/2026 05:34 AEDT
+  { date:"13/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:80.04, signal:"WATCH", price:715.57, stop:644.44 },  // 👀 PRE-CLOSE 14/05/2026 05:34 AEDT
+
+  { date:"13/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BEARISH", rsi:72.37, signal:"WATCH", price:225.83, stop:201.67 },  // 👀 EVENING PREP 14/05/2026 20:02 AEDT
+  { date:"13/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:76.36, signal:"WATCH", price:298.87, stop:284.59 },  // 👀 EVENING PREP 14/05/2026 20:02 AEDT
+  { date:"13/05/2026", ticker:"META", hilo:"SELL", netVol:"BEARISH", rsi:46.44, signal:"SELL", price:616.63, stop:636.23 },  // ❌ EVENING PREP 14/05/2026 20:02 AEDT
+  { date:"13/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:79.86, signal:"WATCH", price:714.71, stop:644.44 },  // 👀 EVENING PREP 14/05/2026 20:02 AEDT
+
+  { date:"14/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:76.96, signal:"WATCH", price:235.74, stop:203.56 },  // 👀 EVENING PREP 15/05/2026 14:50 AEDT
+  { date:"14/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:75.19, signal:"WATCH", price:298.21, stop:286.51 },  // 👀 EVENING PREP 15/05/2026 14:50 AEDT
+  { date:"14/05/2026", ticker:"META", hilo:"SELL", netVol:"BEARISH", rsi:47.15, signal:"SELL", price:618.43, stop:633.18 },  // ❌ EVENING PREP 15/05/2026 14:50 AEDT
+  { date:"14/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:81.0, signal:"WATCH", price:719.79, stop:648.9 },  // 👀 EVENING PREP 15/05/2026 14:50 AEDT
+
+  { date:"14/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:76.96, signal:"WATCH", price:235.74, stop:203.56 },  // 👀 EVENING PREP 15/05/2026 20:02 AEDT
+  { date:"14/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:75.19, signal:"WATCH", price:298.21, stop:286.51 },  // 👀 EVENING PREP 15/05/2026 20:02 AEDT
+  { date:"14/05/2026", ticker:"META", hilo:"SELL", netVol:"BEARISH", rsi:47.15, signal:"SELL", price:618.43, stop:633.18 },  // ❌ EVENING PREP 15/05/2026 20:02 AEDT
+  { date:"14/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:81.0, signal:"WATCH", price:719.79, stop:648.9 },  // 👀 EVENING PREP 15/05/2026 20:02 AEDT
+
+  { date:"15/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:66.86, signal:"BUY", price:227.37, stop:205.02 },  // ✅ PRE-CLOSE 16/05/2026 05:36 AEDT
+  { date:"15/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:76.45, signal:"WATCH", price:300.35, stop:288.95 },  // 👀 PRE-CLOSE 16/05/2026 05:36 AEDT
+  { date:"15/05/2026", ticker:"META", hilo:"SELL", netVol:"BEARISH", rsi:46.07, signal:"SELL", price:615.47, stop:629.21 },  // ❌ PRE-CLOSE 16/05/2026 05:36 AEDT
+  { date:"15/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:73.32, signal:"WATCH", price:711.09, stop:653.35 },  // 👀 PRE-CLOSE 16/05/2026 05:36 AEDT
+
+  { date:"15/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:64.77, signal:"BUY", price:225.32, stop:205.02 },  // ✅ EVENING PREP 18/05/2026 20:02 AEDT
+  { date:"15/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:76.38, signal:"WATCH", price:300.23, stop:288.94 },  // 👀 EVENING PREP 18/05/2026 20:02 AEDT
+  { date:"15/05/2026", ticker:"META", hilo:"SELL", netVol:"BEARISH", rsi:45.64, signal:"SELL", price:614.23, stop:629.21 },  // ❌ EVENING PREP 18/05/2026 20:02 AEDT
+  { date:"15/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:71.63, signal:"WATCH", price:708.93, stop:653.35 },  // 👀 EVENING PREP 18/05/2026 20:02 AEDT
+
+  { date:"18/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:61.73, signal:"BUY", price:222.32, stop:206.0 },  // ✅ EVENING PREP 19/05/2026 20:02 AEDT
+  { date:"18/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:72.03, signal:"WATCH", price:297.84, stop:291.02 },  // 👀 EVENING PREP 19/05/2026 20:02 AEDT
+  { date:"18/05/2026", ticker:"META", hilo:"SELL", netVol:"BEARISH", rsi:44.51, signal:"SELL", price:611.21, stop:624.75 },  // ❌ EVENING PREP 19/05/2026 20:02 AEDT
+  { date:"18/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:69.21, signal:"BUY", price:705.88, stop:657.16 },  // ✅ EVENING PREP 19/05/2026 20:02 AEDT
+
+  { date:"19/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BEARISH", rsi:59.99, signal:"WATCH", price:220.61, stop:206.96 },  // 👀 EVENING PREP 20/05/2026 20:02 AEDT
+  { date:"19/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:72.8, signal:"WATCH", price:298.97, stop:292.74 },  // 👀 EVENING PREP 20/05/2026 20:02 AEDT
+  { date:"19/05/2026", ticker:"META", hilo:"SELL", netVol:"BEARISH", rsi:41.38, signal:"SELL", price:602.61, stop:620.47 },  // ❌ EVENING PREP 20/05/2026 20:02 AEDT
+  { date:"19/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:65.77, signal:"BUY", price:701.53, stop:661.05 },  // ✅ EVENING PREP 20/05/2026 20:02 AEDT
+
+  { date:"20/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BEARISH", rsi:61.7, signal:"WATCH", price:223.15, stop:207.88 },  // 👀 PRE-CLOSE 21/05/2026 05:35 AEDT
+  { date:"20/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:74.97, signal:"WATCH", price:302.14, stop:294.14 },  // 👀 PRE-CLOSE 21/05/2026 05:35 AEDT
+  { date:"20/05/2026", ticker:"META", hilo:"SELL", netVol:"BEARISH", rsi:41.89, signal:"SELL", price:603.63, stop:616.05 },  // ❌ PRE-CLOSE 21/05/2026 05:35 AEDT
+  { date:"20/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:69.64, signal:"BUY", price:711.93, stop:664.44 },  // ✅ PRE-CLOSE 21/05/2026 05:35 AEDT
+
+  { date:"20/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:61.89, signal:"BUY", price:223.47, stop:207.88 },  // ✅ EVENING PREP 21/05/2026 20:01 AEDT
+  { date:"20/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:75.03, signal:"WATCH", price:302.25, stop:294.14 },  // 👀 EVENING PREP 21/05/2026 20:01 AEDT
+  { date:"20/05/2026", ticker:"META", hilo:"SELL", netVol:"BEARISH", rsi:42.67, signal:"SELL", price:605.06, stop:616.05 },  // ❌ EVENING PREP 21/05/2026 20:01 AEDT
+  { date:"20/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:70.09, signal:"WATCH", price:713.15, stop:664.44 },  // 👀 EVENING PREP 21/05/2026 20:01 AEDT
+
+  { date:"21/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:58.51, signal:"BUY", price:220.27, stop:208.76 },  // ✅ PRE-CLOSE 22/05/2026 05:35 AEDT
+  { date:"21/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:76.87, signal:"WATCH", price:305.19, stop:295.33 },  // 👀 PRE-CLOSE 22/05/2026 05:35 AEDT
+  { date:"21/05/2026", ticker:"META", hilo:"SELL", netVol:"BEARISH", rsi:43.7, signal:"SELL", price:607.07, stop:615.3 },  // ❌ PRE-CLOSE 22/05/2026 05:35 AEDT
+  { date:"21/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:70.32, signal:"WATCH", price:713.8, stop:667.9 },  // 👀 PRE-CLOSE 22/05/2026 05:35 AEDT
+
+  { date:"21/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:57.77, signal:"BUY", price:219.51, stop:208.76 },  // ✅ EVENING PREP 22/05/2026 20:01 AEDT
+  { date:"21/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:76.75, signal:"WATCH", price:304.99, stop:295.33 },  // 👀 EVENING PREP 22/05/2026 20:01 AEDT
+  { date:"21/05/2026", ticker:"META", hilo:"SELL", netVol:"BEARISH", rsi:43.86, signal:"SELL", price:607.38, stop:615.3 },  // ❌ EVENING PREP 22/05/2026 20:01 AEDT
+  { date:"21/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:70.56, signal:"WATCH", price:714.51, stop:667.9 },  // 👀 EVENING PREP 22/05/2026 20:01 AEDT
+
+  { date:"22/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BEARISH", rsi:53.88, signal:"WATCH", price:215.54, stop:209.45 },  // 👀 PRE-CLOSE 23/05/2026 05:35 AEDT
+  { date:"22/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:79.05, signal:"WATCH", price:309.04, stop:297.06 },  // 👀 PRE-CLOSE 23/05/2026 05:35 AEDT
+  { date:"22/05/2026", ticker:"META", hilo:"SELL", netVol:"BEARISH", rsi:44.98, signal:"SELL", price:609.49, stop:615.03 },  // ❌ PRE-CLOSE 23/05/2026 05:35 AEDT
+  { date:"22/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:71.7, signal:"WATCH", price:717.83, stop:671.45 },  // 👀 PRE-CLOSE 23/05/2026 05:35 AEDT
+
+  { date:"22/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:53.69, signal:"BUY", price:215.33, stop:209.44 },  // ✅ EVENING PREP 25/05/2026 20:02 AEDT
+  { date:"22/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:78.94, signal:"WATCH", price:308.82, stop:297.06 },  // 👀 EVENING PREP 25/05/2026 20:02 AEDT
+  { date:"22/05/2026", ticker:"META", hilo:"SELL", netVol:"BEARISH", rsi:45.38, signal:"SELL", price:610.26, stop:615.03 },  // ❌ EVENING PREP 25/05/2026 20:02 AEDT
+  { date:"22/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:71.61, signal:"WATCH", price:717.54, stop:671.45 },  // 👀 EVENING PREP 25/05/2026 20:02 AEDT
+
+  { date:"22/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:53.69, signal:"BUY", price:215.33, stop:209.44 },  // ✅ PRE-CLOSE 26/05/2026 05:35 AEDT
+  { date:"22/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:78.94, signal:"WATCH", price:308.82, stop:297.06 },  // 👀 PRE-CLOSE 26/05/2026 05:35 AEDT
+  { date:"22/05/2026", ticker:"META", hilo:"SELL", netVol:"BEARISH", rsi:45.38, signal:"SELL", price:610.26, stop:615.03 },  // ❌ PRE-CLOSE 26/05/2026 05:35 AEDT
+  { date:"22/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:71.61, signal:"WATCH", price:717.54, stop:671.45 },  // 👀 PRE-CLOSE 26/05/2026 05:35 AEDT
+
+  { date:"22/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:53.69, signal:"BUY", price:215.33, stop:209.44 },  // ✅ EVENING PREP 26/05/2026 20:02 AEDT
+  { date:"22/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:78.94, signal:"WATCH", price:308.82, stop:297.06 },  // 👀 EVENING PREP 26/05/2026 20:02 AEDT
+  { date:"22/05/2026", ticker:"META", hilo:"SELL", netVol:"BEARISH", rsi:45.38, signal:"SELL", price:610.26, stop:615.03 },  // ❌ EVENING PREP 26/05/2026 20:02 AEDT
+  { date:"22/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:71.61, signal:"WATCH", price:717.54, stop:671.45 },  // 👀 EVENING PREP 26/05/2026 20:02 AEDT
+
+  { date:"26/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:52.97, signal:"BUY", price:214.5, stop:210.01 },  // ✅ PRE-CLOSE 27/05/2026 05:58 AEDT
+  { date:"26/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:77.41, signal:"WATCH", price:308.08, stop:298.74 },  // 👀 PRE-CLOSE 27/05/2026 05:58 AEDT
+  { date:"26/05/2026", ticker:"META", hilo:"SELL", netVol:"BEARISH", rsi:46.23, signal:"SELL", price:612.03, stop:615.06 },  // ❌ PRE-CLOSE 27/05/2026 05:58 AEDT
+  { date:"26/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:75.54, signal:"WATCH", price:730.08, stop:675.32 },  // 👀 PRE-CLOSE 27/05/2026 05:58 AEDT
+
+  { date:"26/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:53.4, signal:"BUY", price:214.86, stop:210.01 },  // ✅ EVENING PREP 27/05/2026 20:03 AEDT
+  { date:"26/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:78.12, signal:"WATCH", price:308.33, stop:298.74 },  // 👀 EVENING PREP 27/05/2026 20:03 AEDT
+  { date:"26/05/2026", ticker:"META", hilo:"SELL", netVol:"BEARISH", rsi:46.44, signal:"SELL", price:612.34, stop:615.06 },  // ❌ EVENING PREP 27/05/2026 20:03 AEDT
+  { date:"26/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:75.61, signal:"WATCH", price:730.28, stop:675.32 },  // 👀 EVENING PREP 27/05/2026 20:03 AEDT
+
+  { date:"27/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:50.82, signal:"BUY", price:212.25, stop:210.51 },  // ✅ PRE-CLOSE 28/05/2026 05:35 AEDT
+  { date:"27/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:79.06, signal:"WATCH", price:309.92, stop:300.38 },  // 👀 PRE-CLOSE 28/05/2026 05:35 AEDT
+  { date:"27/05/2026", ticker:"META", hilo:"BUY", netVol:"BULLISH", rsi:56.2, signal:"BUY", price:633.17, stop:603.16 },  // ✅ PRE-CLOSE 28/05/2026 05:35 AEDT
+  { date:"27/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:74.79, signal:"WATCH", price:729.35, stop:678.83 },  // 👀 PRE-CLOSE 28/05/2026 05:35 AEDT
+
+  { date:"27/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:51.1, signal:"BUY", price:212.6, stop:210.51 },  // ✅ EVENING PREP 28/05/2026 20:02 AEDT
+  { date:"27/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:79.58, signal:"WATCH", price:310.85, stop:300.38 },  // 👀 EVENING PREP 28/05/2026 20:02 AEDT
+  { date:"27/05/2026", ticker:"META", hilo:"BUY", netVol:"BULLISH", rsi:56.97, signal:"BUY", price:635.26, stop:603.16 },  // ✅ EVENING PREP 28/05/2026 20:02 AEDT
+  { date:"27/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:74.88, signal:"WATCH", price:729.45, stop:678.83 },  // 👀 EVENING PREP 28/05/2026 20:02 AEDT
+
+  { date:"28/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BEARISH", rsi:52.74, signal:"WATCH", price:214.32, stop:211.01 },  // 👀 PRE-CLOSE 29/05/2026 05:48 AEDT
+  { date:"28/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:79.95, signal:"WATCH", price:311.51, stop:301.96 },  // 👀 PRE-CLOSE 29/05/2026 05:48 AEDT
+  { date:"28/05/2026", ticker:"META", hilo:"BUY", netVol:"BULLISH", rsi:56.59, signal:"BUY", price:634.54, stop:605.24 },  // ✅ PRE-CLOSE 29/05/2026 05:48 AEDT
+  { date:"28/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:76.79, signal:"WATCH", price:736.01, stop:682.1 },  // 👀 PRE-CLOSE 29/05/2026 05:48 AEDT
+
+  { date:"28/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:52.67, signal:"BUY", price:214.25, stop:211.01 },  // ✅ EVENING PREP 29/05/2026 20:02 AEDT
+  { date:"28/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:80.5, signal:"WATCH", price:312.51, stop:301.96 },  // 👀 EVENING PREP 29/05/2026 20:02 AEDT
+  { date:"28/05/2026", ticker:"META", hilo:"BUY", netVol:"BULLISH", rsi:56.98, signal:"BUY", price:635.29, stop:605.24 },  // ✅ EVENING PREP 29/05/2026 20:02 AEDT
+  { date:"28/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:76.68, signal:"WATCH", price:735.6, stop:682.1 },  // 👀 EVENING PREP 29/05/2026 20:02 AEDT
+
+  { date:"29/05/2026", ticker:"NVDA", hilo:"BUY", netVol:"BEARISH", rsi:55.22, signal:"WATCH", price:216.97, stop:211.24 },  // 👀 PRE-CLOSE 30/05/2026 05:46 AEDT
+  { date:"29/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:78.49, signal:"WATCH", price:311.64, stop:303.41 },  // 👀 PRE-CLOSE 30/05/2026 05:46 AEDT
+  { date:"29/05/2026", ticker:"META", hilo:"BUY", netVol:"BULLISH", rsi:53.82, signal:"BUY", price:629.39, stop:605.9 },  // ✅ PRE-CLOSE 30/05/2026 05:46 AEDT
+  { date:"29/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:77.65, signal:"WATCH", price:739.05, stop:685.43 },  // 👀 PRE-CLOSE 30/05/2026 05:46 AEDT
+
+  { date:"29/05/2026", ticker:"NVDA", hilo:"SELL", netVol:"BULLISH", rsi:49.44, signal:"WATCH", price:211.14, stop:218.25 },  // 👀 EVENING PREP 01/06/2026 20:02 AEDT
+  { date:"29/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:79.45, signal:"WATCH", price:312.06, stop:303.41 },  // 👀 EVENING PREP 01/06/2026 20:02 AEDT
+  { date:"29/05/2026", ticker:"META", hilo:"BUY", netVol:"BULLISH", rsi:55.44, signal:"BUY", price:632.51, stop:605.9 },  // ✅ EVENING PREP 01/06/2026 20:02 AEDT
+  { date:"29/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:77.45, signal:"WATCH", price:738.31, stop:685.43 },  // 👀 EVENING PREP 01/06/2026 20:02 AEDT
+
+  { date:"29/05/2026", ticker:"NVDA", hilo:"SELL", netVol:"BULLISH", rsi:49.44, signal:"WATCH", price:211.14, stop:218.25 },  // 👀 EVENING PREP 01/06/2026 21:01 AEDT
+  { date:"29/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:79.45, signal:"WATCH", price:312.06, stop:303.41 },  // 👀 EVENING PREP 01/06/2026 21:01 AEDT
+  { date:"29/05/2026", ticker:"META", hilo:"BUY", netVol:"BULLISH", rsi:55.44, signal:"BUY", price:632.51, stop:605.9 },  // ✅ EVENING PREP 01/06/2026 21:01 AEDT
+  { date:"29/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:77.45, signal:"WATCH", price:738.31, stop:685.43 },  // 👀 EVENING PREP 01/06/2026 21:01 AEDT
+
+  { date:"29/05/2026", ticker:"NVDA", hilo:"SELL", netVol:"BULLISH", rsi:49.44, signal:"WATCH", price:211.14, stop:218.25 },  // 👀 EVENING PREP 01/06/2026 21:01 AEDT
+  { date:"29/05/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:79.45, signal:"WATCH", price:312.06, stop:303.41 },  // 👀 EVENING PREP 01/06/2026 21:01 AEDT
+  { date:"29/05/2026", ticker:"META", hilo:"BUY", netVol:"BULLISH", rsi:55.44, signal:"BUY", price:632.51, stop:605.9 },  // ✅ EVENING PREP 01/06/2026 21:01 AEDT
+  { date:"29/05/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:77.45, signal:"WATCH", price:738.31, stop:685.43 },  // 👀 EVENING PREP 01/06/2026 21:01 AEDT
+
+  { date:"01/06/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:59.84, signal:"BUY", price:223.35, stop:211.5 },  // ✅ PRE-CLOSE 02/06/2026 05:36 AEDT
+  { date:"01/06/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:70.3, signal:"WATCH", price:307.87, stop:304.53 },  // 👀 PRE-CLOSE 02/06/2026 05:36 AEDT
+  { date:"01/06/2026", ticker:"META", hilo:"SELL", netVol:"BULLISH", rsi:42.76, signal:"WATCH", price:604.1, stop:620.11 },  // 👀 PRE-CLOSE 02/06/2026 05:36 AEDT
+  { date:"01/06/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:78.79, signal:"WATCH", price:743.1, stop:688.5 },  // 👀 PRE-CLOSE 02/06/2026 05:36 AEDT
+
+  { date:"01/06/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:60.51, signal:"BUY", price:224.36, stop:211.5 },  // ✅ EVENING PREP 02/06/2026 20:01 AEDT
+  { date:"01/06/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:67.41, signal:"BUY", price:306.31, stop:304.53 },  // ✅ EVENING PREP 02/06/2026 20:01 AEDT
+  { date:"01/06/2026", ticker:"META", hilo:"SELL", netVol:"BULLISH", rsi:41.54, signal:"WATCH", price:600.47, stop:620.11 },  // 👀 EVENING PREP 02/06/2026 20:01 AEDT
+  { date:"01/06/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:78.69, signal:"WATCH", price:742.74, stop:688.5 },  // 👀 EVENING PREP 02/06/2026 20:01 AEDT
+
+  { date:"02/06/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:58.56, signal:"BUY", price:222.49, stop:212.12 },  // ✅ PRE-CLOSE 03/06/2026 05:40 AEDT
+  { date:"02/06/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:73.81, signal:"WATCH", price:314.92, stop:305.68 },  // 👀 PRE-CLOSE 03/06/2026 05:40 AEDT
+  { date:"02/06/2026", ticker:"META", hilo:"SELL", netVol:"BULLISH", rsi:41.51, signal:"WATCH", price:600.37, stop:620.37 },  // 👀 PRE-CLOSE 03/06/2026 05:40 AEDT
+  { date:"02/06/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:79.39, signal:"WATCH", price:745.27, stop:691.72 },  // 👀 PRE-CLOSE 03/06/2026 05:40 AEDT
+
+  { date:"02/06/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:58.92, signal:"BUY", price:222.82, stop:212.1 },  // ✅ EVENING PREP 03/06/2026 20:01 AEDT
+  { date:"02/06/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:73.99, signal:"WATCH", price:315.2, stop:305.68 },  // 👀 EVENING PREP 03/06/2026 20:01 AEDT
+  { date:"02/06/2026", ticker:"META", hilo:"SELL", netVol:"BULLISH", rsi:40.56, signal:"WATCH", price:597.63, stop:620.37 },  // 👀 EVENING PREP 03/06/2026 20:01 AEDT
+  { date:"02/06/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:79.68, signal:"WATCH", price:746.16, stop:691.72 },  // 👀 EVENING PREP 03/06/2026 20:01 AEDT
+
+  { date:"03/06/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:51.17, signal:"BUY", price:214.75, stop:212.78 },  // ✅ EVENING PREP 04/06/2026 06:31 AEDT
+  { date:"03/06/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:66.04, signal:"BUY", price:310.26, stop:306.87 },  // ✅ EVENING PREP 04/06/2026 06:31 AEDT
+  { date:"03/06/2026", ticker:"META", hilo:"BUY", netVol:"BULLISH", rsi:51.43, signal:"BUY", price:622.98, stop:605.88 },  // ✅ EVENING PREP 04/06/2026 06:31 AEDT
+  { date:"03/06/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:77.58, signal:"WATCH", price:744.21, stop:695.01 },  // 👀 EVENING PREP 04/06/2026 06:31 AEDT
+
+  { date:"03/06/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:51.17, signal:"BUY", price:214.75, stop:212.78 },  // ✅ EVENING PREP 04/06/2026 20:02 AEDT
+  { date:"03/06/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:66.04, signal:"BUY", price:310.26, stop:306.87 },  // ✅ EVENING PREP 04/06/2026 20:02 AEDT
+  { date:"03/06/2026", ticker:"META", hilo:"BUY", netVol:"BULLISH", rsi:51.43, signal:"BUY", price:622.98, stop:605.88 },  // ✅ EVENING PREP 04/06/2026 20:02 AEDT
+  { date:"03/06/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:77.58, signal:"WATCH", price:744.21, stop:695.01 },  // 👀 EVENING PREP 04/06/2026 20:02 AEDT
+
+  { date:"04/06/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:55.35, signal:"BUY", price:220.1, stop:213.39 },  // ✅ PRE-CLOSE 05/06/2026 05:35 AEDT
+  { date:"04/06/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:66.89, signal:"BUY", price:311.36, stop:307.9 },  // ✅ PRE-CLOSE 05/06/2026 05:35 AEDT
+  { date:"04/06/2026", ticker:"META", hilo:"BUY", netVol:"BULLISH", rsi:51.58, signal:"BUY", price:623.38, stop:607.61 },  // ✅ PRE-CLOSE 05/06/2026 05:35 AEDT
+  { date:"04/06/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:76.37, signal:"WATCH", price:743.12, stop:697.82 },  // 👀 PRE-CLOSE 05/06/2026 05:35 AEDT
+
+  { date:"04/06/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:54.49, signal:"BUY", price:218.66, stop:213.15 },  // ✅ EVENING PREP 05/06/2026 20:01 AEDT
+  { date:"04/06/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:66.83, signal:"BUY", price:311.23, stop:307.9 },  // ✅ EVENING PREP 05/06/2026 20:01 AEDT
+  { date:"03/06/2026", ticker:"META", hilo:"BUY", netVol:"BULLISH", rsi:51.46, signal:"BUY", price:622.98, stop:605.88 },  // ✅ EVENING PREP 05/06/2026 20:01 AEDT
+  { date:"04/06/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:73.76, signal:"WATCH", price:740.61, stop:697.82 },  // 👀 EVENING PREP 05/06/2026 20:01 AEDT
+
+  { date:"05/06/2026", ticker:"NVDA", hilo:"SELL", netVol:"BEARISH", rsi:44.74, signal:"SELL", price:206.28, stop:221.23 },  // ❌ PRE-CLOSE 06/06/2026 05:37 AEDT
+  { date:"05/06/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:62.63, signal:"WATCH", price:308.52, stop:308.05 },  // 👀 PRE-CLOSE 06/06/2026 05:37 AEDT
+  { date:"05/06/2026", ticker:"META", hilo:"SELL", netVol:"BULLISH", rsi:40.81, signal:"WATCH", price:590.35, stop:623.59 },  // 👀 PRE-CLOSE 06/06/2026 05:37 AEDT
+  { date:"05/06/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:49.59, signal:"BUY", price:707.66, stop:699.78 },  // ✅ PRE-CLOSE 06/06/2026 05:37 AEDT
+
+  { date:"05/06/2026", ticker:"NVDA", hilo:"SELL", netVol:"BEARISH", rsi:44.02, signal:"SELL", price:205.1, stop:221.23 },  // ❌ EVENING PREP 08/06/2026 20:02 AEDT
+  { date:"05/06/2026", ticker:"AAPL", hilo:"SELL", netVol:"BEARISH", rsi:61.0, signal:"SELL", price:307.34, stop:313.88 },  // ❌ EVENING PREP 08/06/2026 20:02 AEDT
+  { date:"05/06/2026", ticker:"META", hilo:"SELL", netVol:"BULLISH", rsi:41.53, signal:"WATCH", price:593.0, stop:623.6 },  // 👀 EVENING PREP 08/06/2026 20:02 AEDT
+  { date:"05/06/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:48.38, signal:"BUY", price:705.06, stop:699.78 },  // ✅ EVENING PREP 08/06/2026 20:02 AEDT
+
+  { date:"08/06/2026", ticker:"NVDA", hilo:"SELL", netVol:"BEARISH", rsi:46.39, signal:"SELL", price:208.03, stop:221.68 },  // ❌ PRE-CLOSE 09/06/2026 05:35 AEDT
+  { date:"08/06/2026", ticker:"AAPL", hilo:"SELL", netVol:"BEARISH", rsi:53.96, signal:"SELL", price:301.99, stop:314.5 },  // ❌ PRE-CLOSE 09/06/2026 05:35 AEDT
+  { date:"08/06/2026", ticker:"META", hilo:"SELL", netVol:"BULLISH", rsi:39.96, signal:"WATCH", price:587.27, stop:621.65 },  // 👀 PRE-CLOSE 09/06/2026 05:35 AEDT
+  { date:"08/06/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:53.65, signal:"BUY", price:716.02, stop:701.66 },  // ✅ PRE-CLOSE 09/06/2026 05:35 AEDT
+
+  { date:"08/06/2026", ticker:"NVDA", hilo:"SELL", netVol:"BEARISH", rsi:46.87, signal:"SELL", price:208.64, stop:221.68 },  // ❌ EVENING PREP 09/06/2026 20:02 AEDT
+  { date:"08/06/2026", ticker:"AAPL", hilo:"SELL", netVol:"BULLISH", rsi:53.44, signal:"WATCH", price:301.54, stop:314.5 },  // 👀 EVENING PREP 09/06/2026 20:02 AEDT
+  { date:"08/06/2026", ticker:"META", hilo:"SELL", netVol:"BULLISH", rsi:39.47, signal:"WATCH", price:585.39, stop:621.65 },  // 👀 EVENING PREP 09/06/2026 20:02 AEDT
+  { date:"08/06/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:53.67, signal:"BUY", price:716.07, stop:701.66 },  // ✅ EVENING PREP 09/06/2026 20:02 AEDT
+
+  { date:"09/06/2026", ticker:"NVDA", hilo:"SELL", netVol:"BEARISH", rsi:46.52, signal:"SELL", price:208.19, stop:221.83 },  // ❌ PRE-CLOSE 10/06/2026 07:13 AEDT
+  { date:"09/06/2026", ticker:"AAPL", hilo:"SELL", netVol:"BULLISH", rsi:42.67, signal:"WATCH", price:290.55, stop:313.11 },  // 👀 PRE-CLOSE 10/06/2026 07:13 AEDT
+  { date:"09/06/2026", ticker:"META", hilo:"SELL", netVol:"BULLISH", rsi:39.22, signal:"WATCH", price:584.59, stop:620.45 },  // 👀 PRE-CLOSE 10/06/2026 07:13 AEDT
+  { date:"09/06/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:49.55, signal:"BUY", price:707.83, stop:702.52 },  // ✅ PRE-CLOSE 10/06/2026 07:13 AEDT
+
+  { date:"08/06/2026", ticker:"NVDA", hilo:"SELL", netVol:"BEARISH", rsi:46.85, signal:"SELL", price:208.64, stop:221.68 },  // ❌ EVENING PREP 10/06/2026 20:05 AEDT
+  { date:"08/06/2026", ticker:"AAPL", hilo:"SELL", netVol:"BULLISH", rsi:53.43, signal:"WATCH", price:301.54, stop:314.5 },  // 👀 EVENING PREP 10/06/2026 20:05 AEDT
+  { date:"08/06/2026", ticker:"META", hilo:"SELL", netVol:"BULLISH", rsi:39.44, signal:"WATCH", price:585.39, stop:621.65 },  // 👀 EVENING PREP 10/06/2026 20:05 AEDT
+  { date:"08/06/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:53.67, signal:"BUY", price:716.07, stop:701.66 },  // ✅ EVENING PREP 10/06/2026 20:05 AEDT
+
+  { date:"10/06/2026", ticker:"NVDA", hilo:"SELL", netVol:"BEARISH", rsi:41.29, signal:"SELL", price:200.62, stop:221.53 },  // ❌ PRE-CLOSE 11/06/2026 05:32 AEDT
+  { date:"10/06/2026", ticker:"AAPL", hilo:"SELL", netVol:"BULLISH", rsi:44.31, signal:"WATCH", price:292.05, stop:311.1 },  // 👀 PRE-CLOSE 11/06/2026 05:32 AEDT
+  { date:"10/06/2026", ticker:"META", hilo:"SELL", netVol:"BEARISH", rsi:35.68, signal:"SELL", price:571.35, stop:618.94 },  // ❌ PRE-CLOSE 11/06/2026 05:32 AEDT
+  { date:"10/06/2026", ticker:"QQQ", hilo:"SELL", netVol:"BULLISH", rsi:43.95, signal:"WATCH", price:695.15, stop:714.75 },  // 👀 PRE-CLOSE 11/06/2026 05:32 AEDT
+
+  { date:"10/06/2026", ticker:"NVDA", hilo:"SELL", netVol:"BEARISH", rsi:41.16, signal:"SELL", price:200.42, stop:221.53 },  // ❌ EVENING PREP 11/06/2026 20:02 AEDT
+  { date:"10/06/2026", ticker:"AAPL", hilo:"SELL", netVol:"BULLISH", rsi:43.81, signal:"WATCH", price:291.58, stop:311.1 },  // 👀 EVENING PREP 11/06/2026 20:02 AEDT
+  { date:"10/06/2026", ticker:"META", hilo:"SELL", netVol:"BEARISH", rsi:35.59, signal:"SELL", price:570.98, stop:618.94 },  // ❌ EVENING PREP 11/06/2026 20:02 AEDT
+  { date:"10/06/2026", ticker:"QQQ", hilo:"SELL", netVol:"BULLISH", rsi:43.39, signal:"WATCH", price:693.69, stop:714.75 },  // 👀 EVENING PREP 11/06/2026 20:02 AEDT
+
+  { date:"11/06/2026", ticker:"NVDA", hilo:"SELL", netVol:"BEARISH", rsi:45.08, signal:"SELL", price:204.87, stop:221.02 },  // ❌ PRE-CLOSE 12/06/2026 06:58 AEDT
+  { date:"11/06/2026", ticker:"AAPL", hilo:"SELL", netVol:"BULLISH", rsi:48.23, signal:"WATCH", price:295.63, stop:309.1 },  // 👀 PRE-CLOSE 12/06/2026 06:58 AEDT
+  { date:"11/06/2026", ticker:"META", hilo:"SELL", netVol:"BEARISH", rsi:34.98, signal:"SELL", price:568.43, stop:616.56 },  // ❌ PRE-CLOSE 12/06/2026 06:58 AEDT
+  { date:"11/06/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:53.71, signal:"BUY", price:717.12, stop:705.1 },  // ✅ PRE-CLOSE 12/06/2026 06:58 AEDT
+
+  { date:"11/06/2026", ticker:"NVDA", hilo:"SELL", netVol:"BEARISH", rsi:45.08, signal:"SELL", price:204.87, stop:221.02 },  // ❌ EVENING PREP 12/06/2026 20:02 AEDT
+  { date:"11/06/2026", ticker:"AAPL", hilo:"SELL", netVol:"BULLISH", rsi:48.23, signal:"WATCH", price:295.63, stop:309.1 },  // 👀 EVENING PREP 12/06/2026 20:02 AEDT
+  { date:"11/06/2026", ticker:"META", hilo:"SELL", netVol:"BEARISH", rsi:34.98, signal:"SELL", price:568.43, stop:616.56 },  // ❌ EVENING PREP 12/06/2026 20:02 AEDT
+  { date:"11/06/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:53.71, signal:"BUY", price:717.12, stop:705.1 },  // ✅ EVENING PREP 12/06/2026 20:02 AEDT
+
+  { date:"11/06/2026", ticker:"NVDA", hilo:"SELL", netVol:"BEARISH", rsi:45.08, signal:"SELL", price:204.87, stop:221.02 },  // ❌ EVENING PREP 12/06/2026 20:14 AEDT
+  { date:"11/06/2026", ticker:"AAPL", hilo:"SELL", netVol:"BULLISH", rsi:48.23, signal:"WATCH", price:295.63, stop:309.1 },  // 👀 EVENING PREP 12/06/2026 20:14 AEDT
+  { date:"11/06/2026", ticker:"META", hilo:"SELL", netVol:"BEARISH", rsi:34.98, signal:"SELL", price:568.43, stop:616.56 },  // ❌ EVENING PREP 12/06/2026 20:14 AEDT
+  { date:"11/06/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:53.71, signal:"BUY", price:717.12, stop:705.1 },  // ✅ EVENING PREP 12/06/2026 20:14 AEDT
+
+  { date:"12/06/2026", ticker:"NVDA", hilo:"SELL", netVol:"BEARISH", rsi:44.44, signal:"SELL", price:203.97, stop:220.37 },  // ❌ PRE-CLOSE 13/06/2026 05:35 AEDT
+  { date:"12/06/2026", ticker:"AAPL", hilo:"SELL", netVol:"BULLISH", rsi:43.43, signal:"WATCH", price:290.3, stop:307.57 },  // 👀 PRE-CLOSE 13/06/2026 05:35 AEDT
+  { date:"12/06/2026", ticker:"META", hilo:"SELL", netVol:"BEARISH", rsi:33.87, signal:"SELL", price:564.21, stop:614.32 },  // ❌ PRE-CLOSE 13/06/2026 05:35 AEDT
+  { date:"12/06/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:54.73, signal:"BUY", price:719.82, stop:706.89 },  // ✅ PRE-CLOSE 13/06/2026 05:35 AEDT
+
+  { date:"12/06/2026", ticker:"NVDA", hilo:"SELL", netVol:"BEARISH", rsi:44.41, signal:"SELL", price:203.94, stop:220.37 },  // ❌ PRE-CLOSE 13/06/2026 05:35 AEDT
+  { date:"12/06/2026", ticker:"AAPL", hilo:"SELL", netVol:"BULLISH", rsi:43.43, signal:"WATCH", price:290.3, stop:307.57 },  // 👀 PRE-CLOSE 13/06/2026 05:35 AEDT
+  { date:"12/06/2026", ticker:"META", hilo:"SELL", netVol:"BEARISH", rsi:33.87, signal:"SELL", price:564.21, stop:614.32 },  // ❌ PRE-CLOSE 13/06/2026 05:35 AEDT
+  { date:"12/06/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:54.69, signal:"BUY", price:719.72, stop:706.89 },  // ✅ PRE-CLOSE 13/06/2026 05:35 AEDT
+];
+function computeSignal(a) {
+  const rsiOk = a.rsi >= 30 && a.rsi <= 70;
+  if (a.hiloSignal === "BUY"  && a.netVol === "BULLISH" && rsiOk) return "BUY";
+  if (a.hiloSignal === "SELL" && a.netVol === "BEARISH" && rsiOk) return "SELL";
+  return "WATCH";
+}
+function signalBlockers(a) {
+  const b = [];
+  if (a.hiloSignal === "BUY"  && a.netVol !== "BULLISH") b.push("Net Vol not BULLISH");
+  if (a.hiloSignal === "SELL" && a.netVol !== "BEARISH") b.push("Net Vol not BEARISH");
+  if (a.rsi > 70) b.push("RSI overbought >70");
+  if (a.rsi > 65 && a.rsi <= 70) b.push("RSI near overbought (" + a.rsi.toFixed(2) + ")");
+  if (a.rsi < 30) b.push("RSI oversold <30");
+  if (a.hiloSignal === "NEUTRAL") b.push("Hilo is NEUTRAL");
+  return b;
+}
+function capital()  { return parseFloat(document.getElementById("capitalInput").value) || 0; }
+function riskPct()  { return parseFloat(document.getElementById("riskSelect").value) / 100; }
+function riskAmt()  { return capital() * riskPct(); }
+function fmt(n,d)   { d=d==null?2:d; return n != null ? n.toFixed(d) : "—"; }
+function fmtUSD(n)  { return n != null ? "$" + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,",") : "—"; }
+function fmtAUD(n)  { return n != null ? "A$" + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,",") : "—"; }
+function todayStr() { const d = new Date(); return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear(); }
+function daysBetween(d1,d2) { const p=s=>{const[dd,mm,yy]=s.split('/');return new Date(yy,mm-1,dd);}; return Math.round((p(d2)-p(d1))/86400000); }
+function updateClock() {
+  try {
+    const now = new Date();
+    const nyTimeStr = now.toLocaleString('en-US',{timeZone:'America/New_York',hour12:true,hour:'numeric',minute:'2-digit',second:'2-digit'});
+    const nyDate = new Date(now.toLocaleString('en-US',{timeZone:'America/New_York'}));
+    const day=nyDate.getDay(), h=nyDate.getHours(), m=nyDate.getMinutes(), mins=h*60+m;
+    const openMins=9*60+30, closeMins=16*60, isWeekday=day>=1&&day<=5;
+    const isOpen=isWeekday&&mins>=openMins&&mins<closeMins;
+    let statusHtml,ctdHtml;
+    if(isOpen){const left=closeMins-mins;statusHtml='<span class="market-open">🟢 NYSE OPEN</span>';ctdHtml='<span class="market-countdown">closes in '+Math.floor(left/60)+'h '+left%60+'m</span>';}
+    else if(isWeekday&&mins>=4*60&&mins<openMins){const left=openMins-mins;statusHtml='<span class="market-pre">🟡 Pre-Market</span>';ctdHtml='<span class="market-countdown">opens in '+Math.floor(left/60)+'h '+left%60+'m</span>';}
+    else if(isWeekday&&mins>=closeMins&&mins<20*60){statusHtml='<span class="market-after">🟡 After-Hours</span>';ctdHtml='<span class="market-countdown">next open tomorrow 9:30 AM</span>';}
+    else{let extraDays=0;if(day===5&&mins>=closeMins)extraDays=3;else if(day===6)extraDays=2;else if(day===0)extraDays=1;else extraDays=1;const minsToMidnight=(24*60)-mins;const minsToOpen=minsToMidnight+(extraDays-1)*24*60+openMins;const hh=Math.floor(minsToOpen/60);const mm2=minsToOpen%60;const label=hh>=24?'in '+Math.floor(hh/24)+'d '+hh%24+'h':'in '+hh+'h '+mm2+'m';statusHtml='<span class="market-closed">🔴 NYSE CLOSED</span>';ctdHtml='<span class="market-countdown">opens '+label+'</span>';}
+    document.getElementById('nyClock').innerHTML='🕐 NY: <strong>'+nyTimeStr+'</strong> &nbsp;'+statusHtml+'&nbsp;'+ctdHtml;
+  } catch(e){document.getElementById('nyClock').textContent='🕐 NY time unavailable';}
+}
+setInterval(updateClock,1000); updateClock();
+function switchTab(name,btn){document.querySelectorAll(".tab-panel").forEach(p=>p.classList.remove("active"));document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));document.getElementById("panel-"+name).classList.add("active");btn.classList.add("active");if(name==='trades')renderTrades();}
+function refresh(){const ra=riskAmt();document.getElementById("riskAmount").textContent=fmtUSD(ra);renderSummary();renderDashboard();renderPlanner();renderLog();}
+function renderSummary(){const counts={BUY:0,SELL:0,WATCH:0};Object.values(ASSETS).forEach(a=>counts[computeSignal(a)]++);document.getElementById("summaryBar").innerHTML='<div class="sum-card buy"><div class="slabel">✅ BUY Signals</div><div class="svalue">'+counts.BUY+'</div></div><div class="sum-card sell"><div class="slabel">❌ SELL Signals</div><div class="svalue">'+counts.SELL+'</div></div><div class="sum-card watch"><div class="slabel">👀 WATCH</div><div class="svalue">'+counts.WATCH+'</div></div><div class="sum-card all"><div class="slabel">Assets Tracked</div><div class="svalue">'+Object.keys(ASSETS).length+'</div></div>';}
+function rsiColClass(rsi){if(rsi>70||rsi<30)return"sell";if(rsi>65||rsi<35)return"warn";return"";}
+function renderDashboard(){const ra=riskAmt();document.getElementById("assetGrid").innerHTML=Object.entries(ASSETS).map(([tk,a])=>{const sig=computeSignal(a);const bl=sig==="WATCH"?signalBlockers(a):[];const stopDist=((a.price-a.hiloVal)/a.price*100).toFixed(1);const shares=ra>0&&(a.price-a.hiloVal)>0?(ra/(a.price-a.hiloVal)).toFixed(1):"—";const flagsHtml=bl.length?'<div class="flags">'+bl.map(b=>'<span class="flag warn">⚠️ '+b+'</span>').join("")+'</div>':'<div class="flags"><span class="flag ok">✅ All 3 indicators aligned</span></div>';return'<div class="card"><div class="card-header"><div><div class="c-ticker">'+tk+'</div><div class="c-name">'+a.name+'</div></div><div><div class="c-price">'+fmtUSD(a.price)+'</div><div class="c-plabel">Last Close</div></div></div><div class="card-body"><div class="indicators"><div class="ind"><div class="ind-label">Hilo (P='+a.period+')</div><div class="ind-val '+a.hiloSignal.toLowerCase()+'">'+a.hiloSignal+'</div></div><div class="ind"><div class="ind-label">Net Volume</div><div class="ind-val '+a.netVol.toLowerCase()+'">'+a.netVol+'</div></div><div class="ind"><div class="ind-label">RSI (14)</div><div class="ind-val '+rsiColClass(a.rsi)+'">'+fmt(a.rsi)+'</div></div><div class="ind"><div class="ind-label">Stop Loss</div><div class="ind-val">'+fmtUSD(a.hiloVal)+'</div></div></div><div class="signal-block '+sig+'"><div><div class="sig-label">Final Signal</div><div class="sig-text '+sig+'">'+(sig==="BUY"?"✅ BUY":sig==="SELL"?"❌ SELL":"👀 WATCH")+'</div></div><div class="sig-meta">Stop distance: <strong>'+stopDist+'%</strong><br/>Risk: <strong>'+fmtUSD(ra)+'</strong> → <strong>'+shares+' shares</strong></div></div>'+flagsHtml+'</div></div>';}).join("");}
+function renderPlanner(){const cap=capital(),ra=riskAmt();document.getElementById("plannerGrid").innerHTML=Object.entries(ASSETS).map(([tk,a])=>{const sig=computeSignal(a);const risk=a.price-a.hiloVal;const shares=risk>0?ra/risk:0;const posVal=shares*a.price;const pctOfCap=cap>0?(posVal/cap*100):0;const maxLoss=shares*risk;const bl=sig==="WATCH"?signalBlockers(a):[];const pillsHtml=bl.length?'<div class="blockers">'+bl.map(b=>'<span class="blocker-pill">⚠️ '+b+'</span>').join("")+'</div>':"";const noteHtml=sig!=="BUY"?'<div class="plan-note">👀 Signal is WATCH — no entry recommended. Blockers: '+( bl.join(", ")||"none")+'</div>':'<div class="plan-note">✅ All 3 indicators aligned — entry valid if confirmed at open.</div>';return'<div class="plan-card"><div class="plan-header"><div class="plan-ticker">'+tk+' <span style="font-size:.75rem;color:#8b949e;font-weight:400">'+a.name+'</span></div><div class="plan-sig '+sig+'">'+sig+'</div></div><div class="plan-body"><div class="plan-row"><span class="pkey">Entry Price</span><span class="pval">'+fmtUSD(a.price)+'</span></div><div class="plan-row"><span class="pkey">Stop Loss</span><span class="pval red">'+fmtUSD(a.hiloVal)+'</span></div><div class="plan-row"><span class="pkey">Risk per share</span><span class="pval amber">'+fmtUSD(risk)+'</span></div><div class="plan-row"><span class="pkey">Your capital</span><span class="pval blue">'+fmtUSD(cap)+'</span></div><div class="plan-row"><span class="pkey">Risk amount</span><span class="pval amber">'+fmtUSD(ra)+'</span></div><div class="plan-row"><span class="pkey">Shares to buy</span><span class="pval green">'+(risk>0?fmt(shares,1):"—")+'</span></div><div class="plan-row"><span class="pkey">Position value</span><span class="pval">'+(risk>0?fmtUSD(posVal):"—")+'</span></div><div class="plan-row"><span class="pkey">% of capital</span><span class="pval">'+(risk>0?fmt(pctOfCap,1)+"%":"—")+'</span></div><div class="plan-row"><span class="pkey">Max loss (if stopped)</span><span class="pval red">'+(risk>0?fmtUSD(maxLoss):"—")+'</span></div>'+pillsHtml+noteHtml+'</div></div>';}).join("");}
+function renderLog(){function sc(s){return s==="BUY"?"buy":s==="SELL"?"sell":"warn";}document.getElementById("logBody").innerHTML=LOG.map((row,i)=>'<tr><td>'+(i+1)+'</td><td>'+row.date+'</td><td><strong>'+row.ticker+'</strong></td><td class="'+row.hilo.toLowerCase()+'">'+row.hilo+'</td><td class="'+row.netVol.toLowerCase()+'">'+row.netVol+'</td><td class="'+rsiColClass(row.rsi)+'">'+row.rsi.toFixed(2)+'</td><td class="'+sc(row.signal)+'" style="font-weight:700">'+(row.signal==="BUY"?"✅ BUY":row.signal==="SELL"?"❌ SELL":"👀 WATCH")+'</td><td>'+fmtUSD(row.price)+'</td><td>'+fmtUSD(row.stop)+'</td></tr>').join("");}
+const TRADES_KEY='tf_trades_v1';
+function loadTrades(){try{return JSON.parse(localStorage.getItem(TRADES_KEY))||[];}catch(e){return[];}}
+function saveTrades(trades){localStorage.setItem(TRADES_KEY,JSON.stringify(trades));}
+let _audLiveCache=null;
+async function _fetchAudRate(dateStr){
+  const today=new Date();today.setHours(0,0,0,0);
+  let isToday=true,targetISO=null;
+  if(dateStr&&/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)){const[dd,mm,yyyy]=dateStr.split('/');const d=new Date(yyyy+'-'+mm+'-'+dd);if(d<today){isToday=false;targetISO=yyyy+'-'+mm+'-'+dd;}}
+  if(isToday&&_audLiveCache)return _audLiveCache;
+  const dateTag=targetISO||'latest';
+  try{const url='https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@'+dateTag+'/v1/currencies/aud.json';const res=await fetch(url);if(!res.ok)throw new Error();const data=await res.json();const rate=data?.aud?.usd;if(!rate)throw new Error();const result={rate,date:data.date||dateTag,source:'Live'};if(isToday)_audLiveCache=result;return result;}catch(_){}
+  try{const url='https://'+dateTag+'.currency-api.pages.dev/v1/currencies/aud.json';const res=await fetch(url);if(!res.ok)throw new Error();const data=await res.json();const rate=data?.aud?.usd;if(!rate)throw new Error();const result={rate,date:data.date||dateTag,source:'Live'};if(isToday)_audLiveCache=result;return result;}catch(_){}
+  try{const res=await fetch('https://open.er-api.com/v6/latest/AUD');if(!res.ok)throw new Error();const data=await res.json();const rate=data?.rates?.USD;if(!rate)throw new Error();const result={rate,date:new Date().toISOString().slice(0,10),source:'Live'};if(isToday)_audLiveCache=result;return result;}catch(_){}
+  throw new Error('All rate sources failed — enter manually');
+}
+async function fetchAndFillRate(){const dateStr=document.getElementById('fDateOpen').value.trim();const hint=document.getElementById('audRateHint');const input=document.getElementById('fAudUsdEntry');input.placeholder='Fetching…';input.value='';hint.textContent='Fetching rate…';hint.style.color='#e3b341';try{const{rate,date,source}=await _fetchAudRate(dateStr);input.value=rate.toFixed(4);hint.textContent='✅ '+source+' — '+date+' — 1 AUD = '+rate.toFixed(4)+' USD';hint.style.color='#3fb950';updateCostBasePreview();}catch(e){hint.textContent='⚠️ Could not fetch — enter manually ('+e.message+')';hint.style.color='#f85149';input.placeholder='e.g. 0.6300';}}
+function autoFillForm(){const tk=document.getElementById('fTicker').value;const a=ASSETS[tk];if(!a)return;document.getElementById('fEntryPrice').value=a.price.toFixed(2);document.getElementById('fStopLoss').value=a.hiloVal.toFixed(2);const stopDist=a.price-a.hiloVal;document.getElementById('fTarget').value=(a.price+2*stopDist).toFixed(2);calcLinkedFields('price');updateCostBasePreview();}
+function calcLinkedFields(source){const price=parseFloat(document.getElementById('fEntryPrice').value)||0;if(!price)return;if(source==='usd'){const usd=parseFloat(document.getElementById('fUSD').value);if(!isNaN(usd))document.getElementById('fShares').value=(usd/price).toFixed(2);}else if(source==='shares'){const sh=parseFloat(document.getElementById('fShares').value);if(!isNaN(sh))document.getElementById('fUSD').value=(sh*price).toFixed(2);}else if(source==='price'){const sh=parseFloat(document.getElementById('fShares').value);const usd=parseFloat(document.getElementById('fUSD').value);if(!isNaN(sh)&&sh>0)document.getElementById('fUSD').value=(sh*price).toFixed(2);else if(!isNaN(usd)&&usd>0)document.getElementById('fShares').value=(usd/price).toFixed(2);}updateCostBasePreview();}
+function updateCostBasePreview(){const price=parseFloat(document.getElementById('fEntryPrice').value)||0;const shares=parseFloat(document.getElementById('fShares').value)||0;const brok=parseFloat(document.getElementById('fBrokerageEntry').value)||0;const audUsd=parseFloat(document.getElementById('fAudUsdEntry').value)||0;if(!price||!shares){document.getElementById('costBasePreview').textContent='Fill in the fields above to see cost base preview.';return;}const entryVal=price*shares;const costUSD=entryVal+brok;const costAUD=audUsd>0?costUSD/audUsd:null;document.getElementById('costBasePreview').innerHTML='<strong style="color:#e6edf3;">Cost Base Preview:</strong> &nbsp;'+shares.toFixed(2)+' shares @ '+fmtUSD(price)+' = '+fmtUSD(entryVal)+' + '+fmtUSD(brok)+' brokerage = <strong style="color:#ffa657;">'+fmtUSD(costUSD)+' USD</strong>'+(costAUD?' &nbsp;/&nbsp; <strong style="color:#3fb950;">'+fmtAUD(costAUD)+' AUD</strong> (at '+audUsd+' AUD/USD)':'');}
+function toggleTradeForm(){const wrap=document.getElementById('tradeFormWrap');const visible=wrap.classList.toggle('visible');if(visible){document.getElementById('fDateOpen').value=todayStr();autoFillForm();fetchAndFillRate();}}
+function saveTrade(){const ticker=document.getElementById('fTicker').value;const dateOpen=document.getElementById('fDateOpen').value.trim();const price=parseFloat(document.getElementById('fEntryPrice').value);const shares=parseFloat(document.getElementById('fShares').value);const brok=parseFloat(document.getElementById('fBrokerageEntry').value)||0;const audUsd=parseFloat(document.getElementById('fAudUsdEntry').value)||0;const stop=parseFloat(document.getElementById('fStopLoss').value)||0;const target=parseFloat(document.getElementById('fTarget').value)||0;const notes=document.getElementById('fNotes').value.trim();if(!dateOpen||!price||!shares){alert('Please fill in Date, Entry Price, and Shares/USD Amount.');return;}const entryValueUSD=price*shares;const costBaseUSD=entryValueUSD+brok;const costBaseAUD=audUsd>0?costBaseUSD/audUsd:null;const trade={id:Date.now().toString(),status:'OPEN',ticker,dateOpen,shares,notes,entryPriceUSD:price,entryValueUSD:Math.round(entryValueUSD*100)/100,brokerageEntryUSD:brok,costBaseUSD:Math.round(costBaseUSD*100)/100,audUsdEntry:audUsd,costBaseAUD:costBaseAUD?Math.round(costBaseAUD*100)/100:null,stopLoss:stop,target:target,dateClosed:null,exitPriceUSD:null,exitValueUSD:null,brokerageExitUSD:null,proceedsUSD:null,audUsdExit:null,proceedsAUD:null,gainLossUSD:null,gainLossAUD:null,holdingDays:null,cgtEligible:null,netGainAUD:null};const trades=loadTrades();trades.push(trade);saveTrades(trades);document.getElementById('fShares').value='';document.getElementById('fUSD').value='';document.getElementById('fNotes').value='';document.getElementById('tradeFormWrap').classList.remove('visible');renderTrades();}
+function toggleCloseForm(id){const el=document.getElementById('closeForm_'+id);if(!el)return;const nowVisible=el.classList.toggle('visible');if(nowVisible)fetchAndFillCloseRate(id);}
+async function fetchAndFillCloseRate(id){const dateEl=document.getElementById('cf_date_'+id);const input=document.getElementById('cf_aud_'+id);const hint=document.getElementById('cf_aud_hint_'+id);if(!input||!hint)return;const dateStr=dateEl?.value?.trim()||'';input.value='';input.placeholder='Fetching…';hint.textContent='Fetching rate…';hint.style.color='#e3b341';try{const{rate,date,source}=await _fetchAudRate(dateStr);input.value=rate.toFixed(4);hint.textContent='✅ '+source+' — '+date+' — 1 AUD = '+rate.toFixed(4)+' USD';hint.style.color='#3fb950';}catch(e){hint.textContent='⚠️ Could not fetch — enter manually';hint.style.color='#f85149';input.placeholder='e.g. 0.6300';}}
+function confirmClose(id){const exitDate=document.getElementById('cf_date_'+id).value.trim();const exitPrice=parseFloat(document.getElementById('cf_price_'+id).value);const brokExit=parseFloat(document.getElementById('cf_brok_'+id).value)||0;const audUsdExit=parseFloat(document.getElementById('cf_aud_'+id).value)||0;if(!exitDate||!exitPrice){alert('Please enter Exit Date and Exit Price.');return;}const trades=loadTrades();const t=trades.find(x=>x.id===id);if(!t)return;const exitValueUSD=exitPrice*t.shares;const proceedsUSD=exitValueUSD-brokExit;const proceedsAUD=audUsdExit>0?proceedsUSD/audUsdExit:null;const gainLossUSD=proceedsUSD-t.costBaseUSD;const gainLossAUD=(proceedsAUD&&t.costBaseAUD)?proceedsAUD-t.costBaseAUD:null;const holdingDays=daysBetween(t.dateOpen,exitDate);const cgtEligible=holdingDays>=365;const netGainAUD=gainLossAUD!=null?(gainLossAUD>0&&cgtEligible?gainLossAUD*0.5:gainLossAUD):null;Object.assign(t,{status:'CLOSED',dateClosed:exitDate,exitPriceUSD:exitPrice,exitValueUSD:Math.round(exitValueUSD*100)/100,brokerageExitUSD:brokExit,proceedsUSD:Math.round(proceedsUSD*100)/100,audUsdExit,proceedsAUD:proceedsAUD?Math.round(proceedsAUD*100)/100:null,gainLossUSD:Math.round(gainLossUSD*100)/100,gainLossAUD:gainLossAUD?Math.round(gainLossAUD*100)/100:null,holdingDays,cgtEligible,netGainAUD:netGainAUD?Math.round(netGainAUD*100)/100:null});saveTrades(trades);renderTrades();}
+function deleteTrade(id){if(!confirm('Delete this trade record? This cannot be undone.'))return;const trades=loadTrades().filter(t=>t.id!==id);saveTrades(trades);renderTrades();}
+function renderTrades(){const trades=loadTrades();const open=trades.filter(t=>t.status==='OPEN');const closed=trades.filter(t=>t.status==='CLOSED');const totalCostUSD=open.reduce((s,t)=>s+t.costBaseUSD,0);const totalRealizedAUD=closed.reduce((s,t)=>s+(t.netGainAUD||0),0);const totalRealizedUSD=closed.reduce((s,t)=>s+(t.gainLossUSD||0),0);document.getElementById('pnlStrip').innerHTML='<div class="pnl-card"><div class="pl">Open Positions</div><div class="pv blue">'+open.length+'</div></div><div class="pnl-card"><div class="pl">Capital at Risk (USD)</div><div class="pv amber">'+(open.length?fmtUSD(totalCostUSD):'—')+'</div></div><div class="pnl-card"><div class="pl">Realised P&L (USD)</div><div class="pv '+(totalRealizedUSD>=0?'green':'red')+'">'+(closed.length?fmtUSD(totalRealizedUSD):'—')+'</div></div><div class="pnl-card"><div class="pl">Net CGT Gain (AUD)</div><div class="pv '+(totalRealizedAUD>=0?'green':'red')+'">'+(closed.length?fmtAUD(totalRealizedAUD):'—')+'</div></div><div class="pnl-card"><div class="pl">Closed Trades</div><div class="pv blue">'+closed.length+'</div></div>';
+document.getElementById('openCount').textContent=open.length+' position'+(open.length!==1?'s':'');
+document.getElementById('closedCount').textContent=closed.length+' trade'+(closed.length!==1?'s':'');
+document.getElementById('openTradesList').innerHTML=open.length?open.map(t=>{const a=ASSETS[t.ticker];const curPrice=a?a.price:null;const unrealPnL=curPrice?(curPrice-t.entryPriceUSD)*t.shares:null;return'<div class="trade-card open-trade"><div class="trade-card-header"><div class="trade-card-title"><div class="trade-ticker">'+t.ticker+'</div><div class="trade-date">Opened '+t.dateOpen+'</div>'+(t.notes?'<div style="font-size:.7rem;color:#8b949e;font-style:italic">'+t.notes+'</div>':'')+'</div><span class="trade-status-badge open">🟢 OPEN</span></div><div class="trade-card-body"><div class="trade-metrics"><div class="trade-metric"><div class="tm-label">Shares</div><div class="tm-val">'+t.shares+'</div></div><div class="trade-metric"><div class="tm-label">Entry Price</div><div class="tm-val">'+fmtUSD(t.entryPriceUSD)+'</div></div><div class="trade-metric"><div class="tm-label">Cost Base (USD)</div><div class="tm-val amber">'+fmtUSD(t.costBaseUSD)+'</div></div><div class="trade-metric"><div class="tm-label">Cost Base (AUD)</div><div class="tm-val amber">'+(t.costBaseAUD?fmtAUD(t.costBaseAUD):'—')+'</div></div><div class="trade-metric"><div class="tm-label">Stop Loss</div><div class="tm-val red">'+fmtUSD(t.stopLoss)+'</div></div><div class="trade-metric"><div class="tm-label">Target (2:1)</div><div class="tm-val green">'+fmtUSD(t.target)+'</div></div>'+(curPrice?'<div class="trade-metric"><div class="tm-label">Current Price</div><div class="tm-val blue">'+fmtUSD(curPrice)+'</div></div>':'')+(unrealPnL!=null?'<div class="trade-metric"><div class="tm-label">Unreal. P&L (USD)</div><div class="tm-val '+(unrealPnL>=0?'green':'red')+'">'+fmtUSD(unrealPnL)+'</div></div>':'')+'</div><div class="trade-card-actions"><button class="btn btn-warning btn-sm" onclick="toggleCloseForm(\''+t.id+'\')">📤 Close Trade</button><button class="btn btn-outline btn-sm" onclick="deleteTrade(\''+t.id+'\')">🗑 Delete</button></div><div class="close-form" id="closeForm_'+t.id+'"><h4>📤 Close Position — '+t.ticker+'</h4><div class="close-form-grid"><div class="form-group"><label class="form-label">Exit Date</label><input class="form-input" type="text" id="cf_date_'+t.id+'" value="'+todayStr()+'" placeholder="DD/MM/YYYY"/></div><div class="form-group"><label class="form-label">Exit Price (USD)</label><input class="form-input" type="number" id="cf_price_'+t.id+'" step="0.01" placeholder="e.g. 720.00"/></div><div class="form-group"><label class="form-label">Brokerage Exit (USD)</label><input class="form-input" type="number" id="cf_brok_'+t.id+'" value="3" step="0.01"/></div><div class="form-group"><label class="form-label">AUD/USD Rate (Exit)</label><input class="form-input auto-fill" type="number" id="cf_aud_'+t.id+'" step="0.0001" placeholder="Fetching…"/><span class="form-hint" id="cf_aud_hint_'+t.id+'" style="font-size:.68rem;color:#8b949e;">Auto-fetched for exit date</span></div></div><div class="form-actions" style="margin-top:12px;"><button class="btn btn-danger btn-sm" onclick="confirmClose(\''+t.id+'\')">✅ Confirm Close</button><button class="btn btn-outline btn-sm" onclick="toggleCloseForm(\''+t.id+'\')">Cancel</button></div></div></div></div>';}).join(''):'<div class="empty-state"><div class="es-icon">📭</div><p>No open positions yet.<br/>Click <strong>+ Add Trade</strong> to record your first entry.</p></div>';
+document.getElementById('closedTradesList').innerHTML=closed.length?closed.map(t=>{const gain=t.gainLossUSD||0;const cardClass=gain>=0?'profit':'loss';return'<div class="trade-card closed-trade '+cardClass+'"><div class="trade-card-header"><div class="trade-card-title"><div class="trade-ticker">'+t.ticker+'</div><div class="trade-date">'+t.dateOpen+' → '+t.dateClosed+' ('+t.holdingDays+'d)</div>'+(t.notes?'<div style="font-size:.7rem;color:#8b949e;font-style:italic">'+t.notes+'</div>':'')+'</div><div style="display:flex;gap:8px;align-items:center;"><strong style="color:'+(gain>=0?'#3fb950':'#f85149')+';;font-size:.95rem;">'+fmtUSD(gain)+'</strong><span class="trade-status-badge closed">CLOSED</span></div></div><div class="trade-card-body"><div class="trade-metrics"><div class="trade-metric"><div class="tm-label">Shares</div><div class="tm-val">'+t.shares+'</div></div><div class="trade-metric"><div class="tm-label">Entry → Exit</div><div class="tm-val">'+fmtUSD(t.entryPriceUSD)+' → '+fmtUSD(t.exitPriceUSD)+'</div></div><div class="trade-metric"><div class="tm-label">Cost Base (AUD)</div><div class="tm-val">'+(t.costBaseAUD?fmtAUD(t.costBaseAUD):'—')+'</div></div><div class="trade-metric"><div class="tm-label">Proceeds (AUD)</div><div class="tm-val">'+(t.proceedsAUD?fmtAUD(t.proceedsAUD):'—')+'</div></div><div class="trade-metric"><div class="tm-label">Gain/Loss (USD)</div><div class="tm-val '+(gain>=0?'green':'red')+'">'+fmtUSD(gain)+'</div></div><div class="trade-metric"><div class="tm-label">Gain/Loss (AUD)</div><div class="tm-val '+((t.gainLossAUD||0)>=0?'green':'red')+'">'+(t.gainLossAUD!=null?fmtAUD(t.gainLossAUD):'—')+'</div></div><div class="trade-metric"><div class="tm-label">CGT 50% Discount</div><div class="tm-val '+(t.cgtEligible?'green':'amber')+'">'+(t.cgtEligible?'✅ Eligible':'❌ < 12 months')+'</div></div><div class="trade-metric"><div class="tm-label">Net CGT Gain (AUD)</div><div class="tm-val '+((t.netGainAUD||0)>=0?'green':'red')+'">'+(t.netGainAUD!=null?fmtAUD(t.netGainAUD):'—')+'</div></div></div><div class="trade-card-actions"><button class="btn btn-outline btn-sm" onclick="deleteTrade(\''+t.id+'\')">🗑 Delete</button></div></div></div>';}).join(''):'<div class="empty-state"><div class="es-icon">📁</div><p>No closed trades yet.</p></div>';}
+function exportATO(){const trades=loadTrades();if(!trades.length){alert('No trades to export yet. Add your first trade first.');return;}const wb=XLSX.utils.book_new();const jH=['#','Status','Ticker','Date Opened','Date Closed','Holding (days)','Shares','Entry Price (USD)','Entry Value (USD)','Brokerage Entry (USD)','Cost Base (USD)','AUD/USD (Entry)','Cost Base (AUD)','Exit Price (USD)','Exit Value (USD)','Brokerage Exit (USD)','Proceeds (USD)','AUD/USD (Exit)','Proceeds (AUD)','Gain/Loss (USD)','Gain/Loss (AUD)','CGT 50% Discount Eligible','Net CGT Gain/Loss (AUD)','Stop Loss','Target','Notes'];const jR=trades.map((t,i)=>[i+1,t.status,t.ticker,t.dateOpen,t.dateClosed||'OPEN',t.holdingDays||'',t.shares,t.entryPriceUSD,t.entryValueUSD,t.brokerageEntryUSD,t.costBaseUSD,t.audUsdEntry,t.costBaseAUD||'',t.exitPriceUSD||'',t.exitValueUSD||'',t.brokerageExitUSD||'',t.proceedsUSD||'',t.audUsdExit||'',t.proceedsAUD||'',t.gainLossUSD||'',t.gainLossAUD||'',t.cgtEligible===null?'':(t.cgtEligible?'YES (50% discount)':'NO (<12 months)'),t.netGainAUD||'',t.stopLoss,t.target,t.notes||'']);const wsJ=XLSX.utils.aoa_to_sheet([jH,...jR]);wsJ['!cols']=jH.map(h=>({wch:Math.max(h.length,12)}));const rng=XLSX.utils.decode_range(wsJ['!ref']);for(let C=rng.s.c;C<=rng.e.c;C++){const addr=XLSX.utils.encode_cell({r:0,c:C});if(!wsJ[addr])continue;wsJ[addr].s={font:{bold:true,color:{rgb:"FFFFFF"}},fill:{fgColor:{rgb:"0F3460"}},alignment:{horizontal:"center"}};}XLSX.utils.book_append_sheet(wb,wsJ,'Trade Journal');const closed=trades.filter(t=>t.status==='CLOSED');const aH=['CGT Event #','Ticker','Date of Acquisition','Date of Disposal','Holding Period (days)','CGT 50% Discount','Cost Base (AUD)','Capital Proceeds (AUD)','Capital Gain / (Loss) AUD','Net Taxable Gain (AUD)','Notes'];const aR=closed.map((t,i)=>[i+1,t.ticker,t.dateOpen,t.dateClosed||'',t.holdingDays||'',t.cgtEligible?'YES — 50% discount applies':'NO — held < 12 months',t.costBaseAUD||'',t.proceedsAUD||'',t.gainLossAUD||'',t.netGainAUD||'',t.notes||'']);if(closed.length){const tCA=closed.reduce((s,t)=>s+(t.costBaseAUD||0),0);const tPA=closed.reduce((s,t)=>s+(t.proceedsAUD||0),0);const tGA=closed.reduce((s,t)=>s+(t.gainLossAUD||0),0);const tNA=closed.reduce((s,t)=>s+(t.netGainAUD||0),0);aR.push(['TOTAL','','','','','',Math.round(tCA*100)/100,Math.round(tPA*100)/100,Math.round(tGA*100)/100,Math.round(tNA*100)/100,'']);}const wsA=XLSX.utils.aoa_to_sheet([aH,...aR]);wsA['!cols']=aH.map(h=>({wch:Math.max(h.length+2,14)}));const aRng=XLSX.utils.decode_range(wsA['!ref']);for(let C=aRng.s.c;C<=aRng.e.c;C++){const addr=XLSX.utils.encode_cell({r:0,c:C});if(!wsA[addr])continue;wsA[addr].s={font:{bold:true,color:{rgb:"FFFFFF"}},fill:{fgColor:{rgb:"1e6b2e"}},alignment:{horizontal:"center"}};}XLSX.utils.book_append_sheet(wb,wsA,'ATO CGT Summary');const nD=[['AUSTRALIAN TAX OFFICE — CGT REPORTING NOTES'],[''],['Generated by:','Trend Following Dashboard — Shark Strategy'],['Export date:',new Date().toLocaleDateString('en-AU')],['Platform:','Stake (AU-based US stock broker, long-only)'],[''],['KEY ATO RULES APPLIED:'],['CGT 50% Discount:','Applies to assets held 12+ months by Australian residents (individuals). Reduces net capital gain by 50%.'],['Cost Base:','Purchase price + brokerage commissions (entry). See ATO s110-25.'],['Capital Proceeds:','Sale price - brokerage commissions (exit). See ATO s116-20.'],['Foreign Currency:','All USD amounts converted to AUD at the exchange rate on the date of the transaction (ATO TR 2014/6).'],['CGT Event A1:','Disposal of a CGT asset (shares). Report in the year of disposal.'],[''],['DISCLAIMER:','This spreadsheet is a record-keeping aid only. Consult a registered tax agent for ATO compliance advice.'],['ATO Reference:','ato.gov.au/individuals-and-families/investments-and-assets/capital-gains-tax']];const wsN=XLSX.utils.aoa_to_sheet(nD);wsN['!cols']=[{wch:22},{wch:80}];wsN['!merges']=[{s:{r:0,c:0},e:{r:0,c:1}}];XLSX.utils.book_append_sheet(wb,wsN,'ATO Notes');const today=new Date().toISOString().slice(0,10);XLSX.writeFile(wb,'TrendFollowing_ATO_'+today+'.xlsx');}
+refresh();
+_fetchAudRate('').catch(()=>{});
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+</script>
+</body>
+</html>
