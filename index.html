@@ -228,7 +228,7 @@ body { background: #0d1117; color: #e6edf3; font-family: 'Segoe UI', Arial, sans
     <div>
       <h1>📈 Trend Following <span>Dashboard</span></h1>
       <div class="hero-meta">
-        <span class="badge prep">🟡 PRE-CLOSE</span>
+        <span class="badge prep">🌙 EVENING PREP</span>
         <span class="badge date">📅 24/06/2026</span>
         <span>Strategy: <strong>Shark</strong></span>
         <span>Platform: <strong>Stake</strong> (Long Only)</span>
@@ -399,10 +399,10 @@ body { background: #0d1117; color: #e6edf3; font-family: 'Segoe UI', Arial, sans
 </div>
 <script>
 const ASSETS = {
-  NVDA: { name:"NVIDIA Corporation", price:201.25, hiloVal:215.59, hiHigh:215.59, hiLow:208.78, rsi:43.35, hiloSignal:"SELL", netVol:"BEARISH", period:23 },
-  AAPL: { name:"Apple Inc.", price:296.27, hiloVal:299.32, hiHigh:299.32, hiLow:292.69, rsi:49.19, hiloSignal:"SELL", netVol:"BEARISH", period:9 },
-  META: { name:"Meta Platforms Inc.", price:562.65, hiloVal:597.19, hiHigh:597.19, hiLow:577.84, rsi:39.24, hiloSignal:"SELL", netVol:"BULLISH", period:15 },
-  QQQ: { name:"Nasdaq 100 ETF", price:715.47, hiloVal:715.29, hiHigh:727.46, hiLow:715.29, rsi:49.7, hiloSignal:"BUY", netVol:"BEARISH", period:30 }
+  NVDA: { name:"NVIDIA Corporation", price:200.04, hiloVal:215.59, hiHigh:215.59, hiLow:208.78, rsi:42.57, hiloSignal:"SELL", netVol:"BULLISH", period:23 },
+  AAPL: { name:"Apple Inc.", price:294.3, hiloVal:299.32, hiHigh:299.32, hiLow:292.58, rsi:47.15, hiloSignal:"SELL", netVol:"BULLISH", period:9 },
+  META: { name:"Meta Platforms Inc.", price:562.2, hiloVal:597.19, hiHigh:597.19, hiLow:577.84, rsi:39.15, hiloSignal:"SELL", netVol:"BULLISH", period:15 },
+  QQQ: { name:"Nasdaq 100 ETF", price:713.65, hiloVal:727.46, hiHigh:727.46, hiLow:715.29, rsi:49.12, hiloSignal:"SELL", netVol:"BEARISH", period:30 }
 };
 const LOG = [
   { date:"13/04/2026", ticker:"NVDA", hilo:"BUY",     netVol:"BEARISH", rsi:68.17, signal:"WATCH", price:188.63, stop:176.30 },
@@ -980,6 +980,16 @@ const LOG = [
   { date:"23/06/2026", ticker:"AAPL", hilo:"SELL", netVol:"BEARISH", rsi:49.19, signal:"SELL", price:296.27, stop:299.32 },  // ❌ PRE-CLOSE 24/06/2026 05:37 AEDT
   { date:"23/06/2026", ticker:"META", hilo:"SELL", netVol:"BULLISH", rsi:39.24, signal:"WATCH", price:562.65, stop:597.19 },  // 👀 PRE-CLOSE 24/06/2026 05:37 AEDT
   { date:"23/06/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:49.7, signal:"WATCH", price:715.47, stop:715.29 },  // 👀 PRE-CLOSE 24/06/2026 05:37 AEDT
+
+  { date:"23/06/2026", ticker:"NVDA", hilo:"SELL", netVol:"BULLISH", rsi:42.57, signal:"WATCH", price:200.04, stop:215.59 },  // 👀 EVENING PREP 24/06/2026 20:02 AEDT
+  { date:"23/06/2026", ticker:"AAPL", hilo:"SELL", netVol:"BULLISH", rsi:47.15, signal:"WATCH", price:294.3, stop:299.32 },  // 👀 EVENING PREP 24/06/2026 20:02 AEDT
+  { date:"23/06/2026", ticker:"META", hilo:"SELL", netVol:"BULLISH", rsi:39.15, signal:"WATCH", price:562.2, stop:597.19 },  // 👀 EVENING PREP 24/06/2026 20:02 AEDT
+  { date:"23/06/2026", ticker:"QQQ", hilo:"SELL", netVol:"BEARISH", rsi:49.12, signal:"SELL", price:713.65, stop:727.46 },  // ❌ EVENING PREP 24/06/2026 20:02 AEDT
+
+  { date:"23/06/2026", ticker:"NVDA", hilo:"SELL", netVol:"BULLISH", rsi:42.57, signal:"WATCH", price:200.04, stop:215.59 },  // 👀 EVENING PREP 24/06/2026 20:02 AEDT
+  { date:"23/06/2026", ticker:"AAPL", hilo:"SELL", netVol:"BULLISH", rsi:47.15, signal:"WATCH", price:294.3, stop:299.32 },  // 👀 EVENING PREP 24/06/2026 20:02 AEDT
+  { date:"23/06/2026", ticker:"META", hilo:"SELL", netVol:"BULLISH", rsi:39.15, signal:"WATCH", price:562.2, stop:597.19 },  // 👀 EVENING PREP 24/06/2026 20:02 AEDT
+  { date:"23/06/2026", ticker:"QQQ", hilo:"SELL", netVol:"BEARISH", rsi:49.12, signal:"SELL", price:713.65, stop:727.46 },  // ❌ EVENING PREP 24/06/2026 20:02 AEDT
 ];
 function computeSignal(a) {
   const rsiOk = a.rsi >= 30 && a.rsi <= 70;
