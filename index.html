@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<meta name="theme-color" content="#0d1117"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="theme-color" content="#0a0e14"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="Trend"/>
@@ -12,237 +12,286 @@
 <title>Trend Following Dashboard</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: #0d1117; color: #e6edf3; font-family: 'Segoe UI', Arial, sans-serif; min-height: 100vh; }
-.hero { background: linear-gradient(135deg,#1a1a2e 0%,#16213e 55%,#0f3460 100%); padding: 22px 32px 16px; border-bottom: 2px solid #e94560; }
-.hero-top { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:14px; }
-.hero h1 { font-size:1.55rem; font-weight:700; color:#fff; letter-spacing:.03em; }
-.hero h1 span { color:#e94560; }
-.hero-meta { margin-top:8px; font-size:.8rem; color:#8b949e; display:flex; gap:20px; flex-wrap:wrap; align-items:center; }
-.badge { background:#21262d; border:1px solid #30363d; padding:3px 10px; border-radius:20px; font-size:.75rem; }
-.badge.weekend { background:#2d2d0d; color:#e3b341; border-color:#9e6a03; }
-.badge.date { color:#ffa657; }
-.ny-clock { background:#161b22; border:1px solid #30363d; border-radius:20px; padding:4px 12px; font-size:.75rem; color:#e6edf3; display:inline-flex; align-items:center; gap:8px; white-space:nowrap; }
-.market-open { color:#3fb950; font-weight:700; }
-.market-pre { color:#e3b341; font-weight:700; }
-.market-after { color:#e3b341; font-weight:700; }
-.market-closed { color:#f85149; font-weight:700; }
-.market-countdown { color:#8b949e; font-size:.72rem; }
-.capital-widget { background:#161b22; border:1px solid #30363d; border-radius:10px; padding:12px 18px; display:flex; gap:18px; align-items:center; flex-wrap:wrap; min-width:280px; }
-.cap-field { display:flex; flex-direction:column; gap:3px; }
-.cap-label { font-size:.67rem; color:#8b949e; text-transform:uppercase; letter-spacing:.06em; }
-.cap-input { background:#0d1117; border:1px solid #30363d; border-radius:6px; color:#ffa657; font-size:1.05rem; font-weight:700; padding:5px 10px; width:130px; outline:none; transition: border-color .2s; }
-.cap-input:focus { border-color:#e94560; }
-.risk-select { background:#0d1117; border:1px solid #30363d; border-radius:6px; color:#79c0ff; font-size:.9rem; font-weight:700; padding:5px 8px; outline:none; cursor:pointer; }
-.cap-derived { font-size:.78rem; color:#8b949e; }
-.cap-derived strong { color:#3fb950; }
-.tab-nav { display:flex; gap:0; background:#161b22; border-bottom:1px solid #30363d; padding:0 20px; overflow-x:auto; }
-.tab-btn { padding:12px 20px; font-size:.85rem; font-weight:600; color:#8b949e; border:none; background:transparent; border-bottom:2px solid transparent; cursor:pointer; white-space:nowrap; transition:color .15s, border-color .15s; }
-.tab-btn:hover { color:#e6edf3; }
-.tab-btn.active { color:#e94560; border-bottom-color:#e94560; }
-.container { max-width:1120px; margin:0 auto; padding:28px 20px 50px; }
-.tab-panel { display:none; }
-.tab-panel.active { display:block; }
-.summary-bar { display:flex; gap:14px; margin-bottom:26px; flex-wrap:wrap; }
-.sum-card { flex:1 1 170px; background:#161b22; border:1px solid #30363d; border-radius:10px; padding:14px 18px; text-align:center; }
-.sum-card .slabel { font-size:.68rem; color:#8b949e; text-transform:uppercase; letter-spacing:.06em; }
-.sum-card .svalue { font-size:1.85rem; font-weight:700; margin-top:4px; }
-.sum-card.buy .svalue { color:#3fb950; }
-.sum-card.sell .svalue { color:#f85149; }
-.sum-card.watch .svalue { color:#e3b341; }
-.sum-card.all .svalue { color:#79c0ff; }
-.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(460px,1fr)); gap:18px; }
-.card { background:#161b22; border:1px solid #30363d; border-radius:12px; overflow:hidden; }
-.card-header { display:flex; justify-content:space-between; align-items:center; padding:13px 18px; border-bottom:1px solid #21262d; }
-.c-ticker { font-size:1.2rem; font-weight:700; color:#fff; }
-.c-name { font-size:.75rem; color:#8b949e; margin-top:2px; }
-.c-price { font-size:1.3rem; font-weight:700; text-align:right; }
-.c-plabel { font-size:.68rem; color:#8b949e; text-align:right; }
-.card-body { padding:14px 18px; }
-.indicators { display:flex; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
-.ind { flex:1 1 90px; background:#0d1117; border:1px solid #21262d; border-radius:8px; padding:9px 10px; text-align:center; }
-.ind-label { font-size:.65rem; color:#8b949e; text-transform:uppercase; letter-spacing:.06em; margin-bottom:3px; }
-.ind-val { font-size:.95rem; font-weight:700; }
-.buy { color:#3fb950; }
-.sell { color:#f85149; }
-.neutral { color:#8b949e; }
-.bullish { color:#3fb950; }
-.bearish { color:#f85149; }
-.warn { color:#e3b341; }
-.signal-block { border-radius:8px; padding:11px 14px; display:flex; justify-content:space-between; align-items:center; gap:12px; }
-.signal-block.BUY { background:#0d2b1f; border:1px solid #238636; }
-.signal-block.SELL { background:#2b0d0d; border:1px solid #da3633; }
-.signal-block.WATCH { background:#2b1d0d; border:1px solid #9e6a03; }
-.sig-label { font-size:.7rem; color:#8b949e; text-transform:uppercase; }
-.sig-text { font-size:1.4rem; font-weight:800; letter-spacing:.04em; }
-.sig-text.BUY { color:#3fb950; }
-.sig-text.SELL { color:#f85149; }
-.sig-text.WATCH { color:#e3b341; }
-.sig-meta { font-size:.72rem; color:#8b949e; text-align:right; line-height:1.7; }
-.sig-meta strong { color:#e6edf3; }
-.flags { margin-top:9px; }
-.flag { display:inline-block; font-size:.7rem; padding:2px 8px; border-radius:12px; margin:2px 3px 2px 0; }
-.flag.warn { background:#2d1e00; color:#e3b341; border:1px solid #9e6a03; }
-.flag.info { background:#051d38; color:#79c0ff; border:1px solid #1f6feb; }
-.flag.ok { background:#0d2b1f; color:#3fb950; border:1px solid #238636; }
-.planner-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:18px; }
-.plan-card { background:#161b22; border:1px solid #30363d; border-radius:12px; overflow:hidden; }
-.plan-header { padding:12px 16px; border-bottom:1px solid #21262d; display:flex; justify-content:space-between; align-items:center; }
-.plan-ticker { font-size:1.05rem; font-weight:700; color:#fff; }
-.plan-sig { font-size:.78rem; font-weight:700; padding:3px 10px; border-radius:12px; }
-.plan-sig.BUY { background:#0d2b1f; color:#3fb950; }
-.plan-sig.SELL { background:#2b0d0d; color:#f85149; }
-.plan-sig.WATCH { background:#2b1d0d; color:#e3b341; }
-.plan-body { padding:14px 16px; }
-.plan-row { display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid #21262d; font-size:.82rem; }
-.plan-row:last-child { border-bottom:none; }
-.plan-row .pkey { color:#8b949e; }
-.plan-row .pval { font-weight:600; color:#e6edf3; }
-.plan-row .pval.green { color:#3fb950; }
-.plan-row .pval.red { color:#f85149; }
-.plan-row .pval.amber { color:#e3b341; }
-.plan-row .pval.blue { color:#79c0ff; }
-.plan-note { margin-top:10px; padding:8px 12px; background:#0d1117; border-radius:6px; border:1px solid #21262d; font-size:.72rem; color:#8b949e; line-height:1.5; }
-.blockers { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
-.blocker-pill { font-size:.68px; padding:2px 8px; border-radius:10px; background:#2d1e00; color:#e3b341; border:1px solid #9e6a03; font-size:.68rem; }
-.log-table { width:100%; border-collapse:collapse; font-size:.82rem; }
-.log-table th { background:#0f3460; color:#e6edf3; padding:10px 14px; text-align:left; font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; border-bottom:2px solid #30363d; }
-.log-table td { padding:9px 14px; border-bottom:1px solid #21262d; }
-.log-table tr:hover td { background:#161b22; }
-.log-table tr:nth-child(even) td { background:#0d1117; }
-.trades-toolbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px; }
-.btn { padding:9px 18px; border-radius:8px; font-size:.83rem; font-weight:600; border:none; cursor:pointer; transition:opacity .15s; }
-.btn:hover { opacity:.85; }
-.btn-primary { background:#e94560; color:#fff; }
-.btn-success { background:#238636; color:#fff; }
-.btn-warning { background:#9e6a03; color:#fff; }
-.btn-danger { background:#da3633; color:#fff; }
-.btn-outline { background:transparent; border:1px solid #30363d; color:#8b949e; }
-.btn-excel { background:#1e6b2e; color:#fff; display:flex; align-items:center; gap:6px; }
-.btn-sm { padding:5px 12px; font-size:.75rem; }
-.trade-form-wrap { background:#161b22; border:1px solid #30363d; border-radius:12px; padding:20px; margin-bottom:24px; display:none; }
-.trade-form-wrap.visible { display:block; }
-.trade-form-wrap h3 { font-size:.88rem; color:#79c0ff; text-transform:uppercase; letter-spacing:.06em; margin-bottom:16px; }
-.form-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:14px; }
-.form-group { display:flex; flex-direction:column; gap:5px; }
-.form-label { font-size:.68rem; color:#8b949e; text-transform:uppercase; letter-spacing:.05em; }
-.form-input, .form-select { background:#0d1117; border:1px solid #30363d; border-radius:6px; color:#e6edf3; font-size:.88rem; padding:8px 10px; outline:none; transition:border-color .2s; }
-.form-input:focus, .form-select:focus { border-color:#e94560; }
-.form-input.auto-fill { color:#79c0ff; }
-.form-row-linked { display:flex; gap:10px; align-items:center; }
-.form-row-linked .form-group { flex:1; }
-.linked-sep { color:#30363d; font-size:1.1rem; padding-top:18px; }
-.form-actions { display:flex; gap:10px; margin-top:18px; }
-.form-hint { font-size:.68rem; color:#8b949e; margin-top:3px; }
-.trades-section-title { font-size:.75rem; color:#8b949e; text-transform:uppercase; letter-spacing:.07em; margin:20px 0 12px; padding-bottom:6px; border-bottom:1px solid #21262d; display:flex; justify-content:space-between; align-items:center; }
-.trade-cards { display:flex; flex-direction:column; gap:12px; }
-.trade-card { background:#161b22; border:1px solid #30363d; border-radius:10px; overflow:hidden; }
-.trade-card.open-trade { border-left:3px solid #238636; }
-.trade-card.closed-trade { border-left:3px solid #30363d; }
-.trade-card.profit { border-left-color:#3fb950; }
-.trade-card.loss { border-left-color:#f85149; }
-.trade-card-header { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:1px solid #21262d; flex-wrap:wrap; gap:8px; }
-.trade-card-title { display:flex; align-items:center; gap:10px; }
-.trade-ticker { font-size:1rem; font-weight:700; color:#fff; }
-.trade-date { font-size:.72rem; color:#8b949e; }
-.trade-status-badge { font-size:.72rem; font-weight:700; padding:3px 10px; border-radius:12px; }
-.trade-status-badge.open { background:#0d2b1f; color:#3fb950; border:1px solid #238636; }
-.trade-status-badge.closed { background:#21262d; color:#8b949e; border:1px solid #30363d; }
-.trade-card-body { padding:12px 16px; }
-.trade-metrics { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:8px; margin-bottom:12px; }
-.trade-metric { background:#0d1117; border-radius:6px; padding:8px 10px; }
-.tm-label { font-size:.62rem; color:#8b949e; text-transform:uppercase; letter-spacing:.05em; }
-.tm-val { font-size:.88rem; font-weight:700; color:#e6edf3; margin-top:2px; }
-.tm-val.green { color:#3fb950; }
-.tm-val.red { color:#f85149; }
-.tm-val.amber { color:#e3b341; }
-.tm-val.blue { color:#79c0ff; }
-.trade-card-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
-.close-form { background:#0d1117; border:1px solid #30363d; border-radius:8px; padding:14px; margin-top:12px; display:none; }
-.close-form.visible { display:block; }
-.close-form h4 { font-size:.75rem; color:#e3b341; margin-bottom:12px; }
-.close-form-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:10px; }
-.empty-state { text-align:center; padding:40px 20px; color:#484f58; background:#161b22; border:1px dashed #30363d; border-radius:10px; }
-.empty-state .es-icon { font-size:2.5rem; margin-bottom:10px; }
-.empty-state p { font-size:.85rem; }
-.pnl-strip { display:flex; gap:14px; flex-wrap:wrap; margin-bottom:20px; }
-.pnl-card { flex:1 1 150px; background:#161b22; border:1px solid #30363d; border-radius:8px; padding:12px 16px; }
-.pnl-card .pl { font-size:.65rem; color:#8b949e; text-transform:uppercase; letter-spacing:.05em; }
-.pnl-card .pv { font-size:1.3rem; font-weight:700; margin-top:3px; }
-.pnl-card .pv.green { color:#3fb950; }
-.pnl-card .pv.red { color:#f85149; }
-.pnl-card .pv.blue { color:#79c0ff; }
-.pnl-card .pv.amber { color:#e3b341; }
-.rules-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
-@media(max-width:680px){ .rules-grid { grid-template-columns:1fr; } }
-.rule-card { background:#161b22; border:1px solid #30363d; border-radius:10px; padding:18px 20px; }
-.rule-card h3 { font-size:.85rem; color:#79c0ff; text-transform:uppercase; letter-spacing:.06em; margin-bottom:12px; }
-.rule-item { padding:7px 0; border-bottom:1px solid #21262d; font-size:.82rem; }
-.rule-item:last-child { border-bottom:none; }
-.rule-item .rkey { color:#8b949e; font-size:.73rem; text-transform:uppercase; letter-spacing:.04em; }
-.rule-item .rval { color:#e6edf3; margin-top:2px; }
-.rule-item .rval.accent { color:#ffa657; font-weight:700; }
-.section-title { font-size:.78rem; color:#8b949e; text-transform:uppercase; letter-spacing:.07em; margin-bottom:14px; padding-bottom:6px; border-bottom:1px solid #21262d; }
-.log-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
-@media(max-width:600px){
-  .hero { padding:14px 14px 10px; }
-  .hero h1 { font-size:1.15rem; }
-  .hero-meta { gap:8px; font-size:.72rem; }
-  .capital-widget { width:100%; padding:10px 14px; gap:12px; }
-  .cap-input { width:110px; font-size:1rem; }
-  .grid, .planner-grid { grid-template-columns:1fr; gap:12px; }
-  .form-grid { grid-template-columns:1fr; }
-  .trade-metrics { grid-template-columns:1fr 1fr; }
-  .container { padding:16px 12px 70px; }
-  .tab-nav { padding:0 4px; position:sticky; top:0; z-index:50; }
-  .tab-btn { padding:14px 12px; font-size:.78rem; flex:1; }
-  .summary-bar { gap:8px; margin-bottom:16px; display:grid; grid-template-columns:1fr 1fr; }
-  .sum-card { padding:10px 12px; }
-  .sum-card .svalue { font-size:1.4rem; }
-  .indicators { gap:6px; }
-  .ind { padding:7px 6px; flex:1 1 30%; }
-  .card-header { padding:11px 13px; }
-  .card-body { padding:11px 13px; }
-  .c-ticker { font-size:1.05rem; }
-  .c-price { font-size:1.1rem; }
-  .sig-text { font-size:1.15rem; }
-  .signal-block { flex-direction:column; align-items:flex-start; gap:6px; }
-  .sig-meta { text-align:left; }
-  .log-table { font-size:.72rem; min-width:640px; }
-  .log-table th, .log-table td { padding:7px 8px; white-space:nowrap; }
-  .btn { padding:12px 16px; }
-  .trades-toolbar { flex-direction:column; align-items:stretch; }
-  .trades-toolbar > div { width:100%; }
-  .trades-toolbar .btn { flex:1; }
-  .pnl-strip { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-  .pnl-card { padding:10px 12px; }
-  .pnl-card .pv { font-size:1.05rem; }
+:root {
+  --bg: #0a0e14;
+  --bg-raised: #10161f;
+  --bg-inset: #070a0f;
+  --border: #1d2531;
+  --border-hi: #2b3646;
+  --text: #e8edf4;
+  --text-dim: #8b98a9;
+  --text-faint: #55606f;
+  --accent: #ff5c7a;
+  --accent-soft: rgba(255,92,122,.12);
+  --green: #34d399;
+  --green-soft: rgba(52,211,153,.12);
+  --red: #f87171;
+  --red-soft: rgba(248,113,113,.12);
+  --amber: #fbbf24;
+  --amber-soft: rgba(251,191,36,.12);
+  --blue: #60a5fa;
+  --blue-soft: rgba(96,165,250,.12);
+  --orange: #fb923c;
+  --radius: 14px;
+  --radius-sm: 9px;
+  --shadow: 0 8px 28px rgba(0,0,0,.35);
+  --font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
 }
-.footer { margin-top:36px; text-align:center; font-size:.72rem; color:#484f58; }
-.footer strong { color:#8b949e; }
+* { box-sizing:border-box; margin:0; padding:0; }
+html { -webkit-text-size-adjust:100%; }
+body { background:var(--bg); color:var(--text); font-family:var(--font); min-height:100vh; font-feature-settings:"tnum"; }
+strong { font-weight:650; }
+
+/* ── Hero ─────────────────────────────────────────── */
+.hero { position:relative; padding:26px 30px 20px; border-bottom:1px solid var(--border); background:
+  radial-gradient(1200px 400px at 15% -50%, rgba(255,92,122,.14), transparent 60%),
+  radial-gradient(900px 380px at 85% -40%, rgba(96,165,250,.12), transparent 60%),
+  linear-gradient(180deg, #0e1420 0%, var(--bg) 100%); }
+.hero-top { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px; max-width:1240px; margin:0 auto; }
+.hero h1 { font-size:1.5rem; font-weight:750; letter-spacing:-.01em; color:#fff; display:flex; align-items:center; gap:10px; }
+.hero h1 .logo { width:34px; height:34px; border-radius:9px; background:linear-gradient(135deg,var(--accent),#a855f7); display:inline-flex; align-items:center; justify-content:center; font-size:1.05rem; box-shadow:0 4px 14px rgba(255,92,122,.35); }
+.hero h1 span.accent { color:var(--accent); }
+.hero-meta { margin-top:10px; font-size:.78rem; color:var(--text-dim); display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+.badge { background:var(--bg-raised); border:1px solid var(--border); padding:4px 11px; border-radius:20px; font-size:.73rem; color:var(--text-dim); }
+.badge.prep, .badge.weekend { background:var(--amber-soft); color:var(--amber); border-color:rgba(251,191,36,.3); }
+.badge.date { color:var(--orange); }
+.ny-clock { background:var(--bg-raised); border:1px solid var(--border); border-radius:20px; padding:4px 12px; font-size:.73rem; color:var(--text); display:inline-flex; align-items:center; gap:8px; white-space:nowrap; }
+.market-open { color:var(--green); font-weight:700; }
+.market-pre, .market-after { color:var(--amber); font-weight:700; }
+.market-closed { color:var(--red); font-weight:700; }
+.market-countdown { color:var(--text-faint); font-size:.7rem; }
+
+.capital-widget { background:rgba(16,22,31,.85); backdrop-filter:blur(8px); border:1px solid var(--border-hi); border-radius:var(--radius); padding:14px 18px; display:flex; gap:20px; align-items:center; flex-wrap:wrap; box-shadow:var(--shadow); }
+.cap-field { display:flex; flex-direction:column; gap:4px; }
+.cap-label { font-size:.64rem; color:var(--text-faint); text-transform:uppercase; letter-spacing:.08em; font-weight:600; }
+.cap-input { background:var(--bg-inset); border:1px solid var(--border); border-radius:8px; color:var(--orange); font-size:1.05rem; font-weight:700; padding:6px 11px; width:130px; outline:none; transition:border-color .18s, box-shadow .18s; }
+.cap-input:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+.risk-select { background:var(--bg-inset); border:1px solid var(--border); border-radius:8px; color:var(--blue); font-size:.92rem; font-weight:700; padding:6px 9px; outline:none; cursor:pointer; }
+.cap-derived { font-size:.76rem; color:var(--text-dim); line-height:1.5; }
+.cap-derived strong { color:var(--green); font-size:.95rem; }
+
+/* ── Tabs ─────────────────────────────────────────── */
+.tab-nav { position:sticky; top:0; z-index:50; display:flex; background:rgba(10,14,20,.92); backdrop-filter:blur(10px); border-bottom:1px solid var(--border); padding:0 18px; overflow-x:auto; scrollbar-width:none; }
+.tab-nav::-webkit-scrollbar { display:none; }
+.tab-btn { padding:13px 16px; font-size:.83rem; font-weight:600; color:var(--text-dim); border:none; background:transparent; border-bottom:2px solid transparent; cursor:pointer; white-space:nowrap; transition:color .15s, border-color .15s; font-family:var(--font); }
+.tab-btn:hover { color:var(--text); }
+.tab-btn.active { color:var(--accent); border-bottom-color:var(--accent); }
+.container { max-width:1240px; margin:0 auto; padding:26px 20px 60px; }
+.tab-panel { display:none; animation:fadeIn .25s ease; }
+.tab-panel.active { display:block; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(4px);} to { opacity:1; transform:none;} }
+.section-title { font-size:.85rem; color:var(--text-dim); margin-bottom:18px; }
+
+/* ── KPI / summary cards ──────────────────────────── */
+.summary-bar { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:24px; }
+.sum-card { background:var(--bg-raised); border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px; transition:border-color .2s; }
+.sum-card:hover { border-color:var(--border-hi); }
+.sum-card .slabel { font-size:.64rem; color:var(--text-faint); text-transform:uppercase; letter-spacing:.08em; font-weight:600; }
+.sum-card .svalue { font-size:1.7rem; font-weight:750; margin-top:4px; letter-spacing:-.02em; }
+.sum-card .ssub { font-size:.68rem; color:var(--text-faint); margin-top:2px; }
+.sum-card.buy .svalue { color:var(--green); }
+.sum-card.sell .svalue { color:var(--red); }
+.sum-card.watch .svalue { color:var(--amber); }
+.sum-card.all .svalue { color:var(--blue); }
+.sum-card.pos .svalue { color:var(--green); }
+.sum-card.neg .svalue { color:var(--red); }
+
+/* ── Asset cards ──────────────────────────────────── */
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(430px,1fr)); gap:16px; }
+.card { background:var(--bg-raised); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; transition:border-color .2s, transform .15s; }
+.card:hover { border-color:var(--border-hi); }
+.card-header { display:flex; justify-content:space-between; align-items:center; padding:14px 18px 10px; gap:12px; }
+.c-ticker { font-size:1.15rem; font-weight:750; color:#fff; letter-spacing:-.01em; }
+.c-name { font-size:.72rem; color:var(--text-faint); margin-top:1px; }
+.c-price { font-size:1.3rem; font-weight:750; text-align:right; letter-spacing:-.02em; }
+.c-plabel { font-size:.64rem; color:var(--text-faint); text-align:right; text-transform:uppercase; letter-spacing:.06em; }
+.spark-wrap { padding:0 18px; height:44px; }
+.spark-wrap svg { display:block; width:100%; height:44px; }
+.card-body { padding:12px 18px 16px; }
+.indicators { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:12px; }
+.ind { background:var(--bg-inset); border:1px solid var(--border); border-radius:var(--radius-sm); padding:8px 6px; text-align:center; }
+.ind-label { font-size:.58rem; color:var(--text-faint); text-transform:uppercase; letter-spacing:.06em; margin-bottom:3px; font-weight:600; }
+.ind-val { font-size:.9rem; font-weight:700; }
+.buy, .bullish { color:var(--green); }
+.sell, .bearish { color:var(--red); }
+.neutral { color:var(--text-dim); }
+.warn { color:var(--amber); }
+.stop-gauge { margin:0 0 12px; }
+.sg-track { position:relative; height:7px; border-radius:4px; background:linear-gradient(90deg,var(--red) 0%, var(--amber) 45%, var(--green) 100%); opacity:.9; }
+.sg-marker { position:absolute; top:-4px; width:3px; height:15px; border-radius:2px; background:#fff; box-shadow:0 0 6px rgba(255,255,255,.6); }
+.sg-labels { display:flex; justify-content:space-between; font-size:.62rem; color:var(--text-faint); margin-top:5px; }
+.signal-block { border-radius:var(--radius-sm); padding:11px 14px; display:flex; justify-content:space-between; align-items:center; gap:12px; }
+.signal-block.BUY { background:var(--green-soft); border:1px solid rgba(52,211,153,.35); }
+.signal-block.SELL { background:var(--red-soft); border:1px solid rgba(248,113,113,.35); }
+.signal-block.WATCH { background:var(--amber-soft); border:1px solid rgba(251,191,36,.3); }
+.sig-label { font-size:.62rem; color:var(--text-faint); text-transform:uppercase; letter-spacing:.08em; font-weight:600; }
+.sig-text { font-size:1.3rem; font-weight:800; letter-spacing:.02em; }
+.sig-text.BUY { color:var(--green); }
+.sig-text.SELL { color:var(--red); }
+.sig-text.WATCH { color:var(--amber); }
+.sig-meta { font-size:.7rem; color:var(--text-dim); text-align:right; line-height:1.7; }
+.sig-meta strong { color:var(--text); }
+.flags { margin-top:9px; }
+.flag { display:inline-block; font-size:.68rem; padding:3px 9px; border-radius:12px; margin:2px 3px 2px 0; }
+.flag.warn { background:var(--amber-soft); color:var(--amber); border:1px solid rgba(251,191,36,.3); }
+.flag.info { background:var(--blue-soft); color:var(--blue); border:1px solid rgba(96,165,250,.3); }
+.flag.ok { background:var(--green-soft); color:var(--green); border:1px solid rgba(52,211,153,.3); }
+
+/* ── Planner ──────────────────────────────────────── */
+.planner-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; }
+.plan-card { background:var(--bg-raised); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
+.plan-header { padding:12px 16px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+.plan-ticker { font-size:1.02rem; font-weight:750; color:#fff; }
+.plan-sig { font-size:.75rem; font-weight:700; padding:3px 11px; border-radius:12px; }
+.plan-sig.BUY { background:var(--green-soft); color:var(--green); }
+.plan-sig.SELL { background:var(--red-soft); color:var(--red); }
+.plan-sig.WATCH { background:var(--amber-soft); color:var(--amber); }
+.plan-body { padding:12px 16px; }
+.plan-row { display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid var(--border); font-size:.8rem; }
+.plan-row:last-child { border-bottom:none; }
+.plan-row .pkey { color:var(--text-dim); }
+.plan-row .pval { font-weight:650; color:var(--text); }
+.pval.green { color:var(--green); } .pval.red { color:var(--red); } .pval.amber { color:var(--amber); } .pval.blue { color:var(--blue); }
+.blockers { margin-top:8px; }
+.blocker-pill { display:inline-block; font-size:.66rem; padding:2px 8px; border-radius:10px; background:var(--amber-soft); color:var(--amber); border:1px solid rgba(251,191,36,.3); margin:2px 3px 2px 0; }
+.plan-note { margin-top:9px; font-size:.72rem; color:var(--text-dim); background:var(--bg-inset); border:1px solid var(--border); border-radius:var(--radius-sm); padding:8px 11px; line-height:1.5; }
+
+/* ── Positions tab ────────────────────────────────── */
+.pos-card { background:var(--bg-raised); border:1px solid var(--border); border-radius:var(--radius); margin-bottom:16px; overflow:hidden; }
+.pos-card.danger { border-color:rgba(248,113,113,.5); }
+.pos-header { display:flex; justify-content:space-between; align-items:center; padding:14px 18px; border-bottom:1px solid var(--border); flex-wrap:wrap; gap:8px; }
+.pos-pnl { font-size:1.25rem; font-weight:800; letter-spacing:-.01em; }
+.pos-body { padding:14px 18px; }
+.pos-metrics { display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr)); gap:10px; margin-bottom:14px; }
+.pm { background:var(--bg-inset); border:1px solid var(--border); border-radius:var(--radius-sm); padding:8px 10px; }
+.pm-label { font-size:.58rem; color:var(--text-faint); text-transform:uppercase; letter-spacing:.06em; font-weight:600; margin-bottom:2px; }
+.pm-val { font-size:.92rem; font-weight:700; }
+.pos-range { margin-top:4px; }
+.pr-track { position:relative; height:8px; border-radius:5px; background:var(--bg-inset); border:1px solid var(--border); }
+.pr-fill { position:absolute; top:0; bottom:0; border-radius:5px; }
+.pr-dot { position:absolute; top:-5px; width:16px; height:16px; border-radius:50%; background:#fff; border:3px solid var(--blue); transform:translateX(-8px); box-shadow:0 0 8px rgba(96,165,250,.7); }
+.pr-tick { position:absolute; top:-3px; width:2px; height:13px; background:var(--text-faint); transform:translateX(-1px); }
+.pr-labels { display:flex; justify-content:space-between; font-size:.64rem; color:var(--text-faint); margin-top:8px; }
+.pos-alert { margin-top:12px; font-size:.75rem; border-radius:var(--radius-sm); padding:9px 12px; font-weight:600; }
+.pos-alert.bad { background:var(--red-soft); color:var(--red); border:1px solid rgba(248,113,113,.4); }
+.pos-alert.warn { background:var(--amber-soft); color:var(--amber); border:1px solid rgba(251,191,36,.3); }
+.pos-alert.ok { background:var(--green-soft); color:var(--green); border:1px solid rgba(52,211,153,.3); }
+.empty-state { text-align:center; padding:60px 20px; color:var(--text-faint); font-size:.9rem; background:var(--bg-raised); border:1px dashed var(--border-hi); border-radius:var(--radius); }
+.empty-state .big { font-size:2.2rem; margin-bottom:10px; }
+
+/* ── Performance tab ──────────────────────────────── */
+.perf-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:24px; }
+.chart-card { background:var(--bg-raised); border:1px solid var(--border); border-radius:var(--radius); padding:18px; margin-bottom:18px; }
+.chart-card h3 { font-size:.85rem; font-weight:700; color:var(--text); margin-bottom:14px; }
+.chart-card svg { display:block; width:100%; }
+
+/* ── Trades tab ───────────────────────────────────── */
+.pnl-strip { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:20px; }
+.pnl-card { background:var(--bg-raised); border:1px solid var(--border); border-radius:var(--radius); padding:12px 15px; }
+.pnl-card .pl { font-size:.62rem; color:var(--text-faint); text-transform:uppercase; letter-spacing:.07em; font-weight:600; }
+.pnl-card .pv { font-size:1.3rem; font-weight:750; margin-top:3px; }
+.pv.green { color:var(--green); } .pv.red { color:var(--red); } .pv.amber { color:var(--amber); } .pv.blue { color:var(--blue); }
+.trades-toolbar { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:18px; }
+.btn { border:none; border-radius:var(--radius-sm); padding:9px 16px; font-size:.82rem; font-weight:650; cursor:pointer; transition:filter .15s, transform .1s; font-family:var(--font); }
+.btn:hover { filter:brightness(1.12); }
+.btn:active { transform:scale(.98); }
+.btn-primary { background:var(--accent); color:#fff; }
+.btn-excel { background:#1e6b2e; color:#fff; }
+.btn-success { background:#1f8a4c; color:#fff; }
+.btn-warning { background:#8a6d1f; color:#fff; }
+.btn-outline { background:transparent; color:var(--text-dim); border:1px solid var(--border-hi); }
+.btn-sm { padding:6px 12px; font-size:.74rem; }
+.trade-form-wrap { display:none; background:var(--bg-raised); border:1px solid var(--border-hi); border-radius:var(--radius); padding:20px; margin-bottom:22px; }
+.trade-form-wrap.visible { display:block; }
+.trade-form-wrap h3 { font-size:.95rem; margin-bottom:14px; }
+.form-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; }
+.form-group { display:flex; flex-direction:column; gap:5px; }
+.form-label { font-size:.66rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:.06em; font-weight:600; }
+.form-input, .form-select { background:var(--bg-inset); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:.88rem; padding:8px 11px; outline:none; transition:border-color .15s; font-family:var(--font); }
+.form-input:focus, .form-select:focus { border-color:var(--accent); }
+.form-input.auto-fill { color:var(--orange); }
+.form-hint { font-size:.64rem; color:var(--text-faint); }
+.form-row-linked { display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap; }
+.form-row-linked .form-group { flex:1; min-width:140px; }
+.linked-sep { color:var(--text-faint); padding-bottom:10px; }
+.form-actions { margin-top:16px; display:flex; gap:10px; }
+.trades-section-title { display:flex; justify-content:space-between; align-items:center; font-size:.85rem; font-weight:700; margin-bottom:12px; color:var(--text); }
+.trade-cards { display:flex; flex-direction:column; gap:14px; }
+.trade-card { background:var(--bg-raised); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
+.trade-card.closed-trade.profit { border-left:3px solid var(--green); }
+.trade-card.closed-trade.loss { border-left:3px solid var(--red); }
+.trade-card-header { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:1px solid var(--border); gap:10px; flex-wrap:wrap; }
+.trade-ticker { font-size:1rem; font-weight:750; color:#fff; }
+.trade-date { font-size:.7rem; color:var(--text-faint); }
+.trade-status-badge { font-size:.68rem; font-weight:700; padding:3px 10px; border-radius:12px; }
+.trade-status-badge.open { background:var(--green-soft); color:var(--green); }
+.trade-status-badge.closed { background:var(--bg-inset); color:var(--text-dim); border:1px solid var(--border); }
+.trade-card-body { padding:13px 16px; }
+.trade-metrics { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:9px; margin-bottom:12px; }
+.trade-metric { background:var(--bg-inset); border:1px solid var(--border); border-radius:var(--radius-sm); padding:7px 9px; }
+.tm-label { font-size:.56rem; color:var(--text-faint); text-transform:uppercase; letter-spacing:.05em; font-weight:600; }
+.tm-val { font-size:.85rem; font-weight:700; margin-top:2px; }
+.tm-val.green { color:var(--green); } .tm-val.red { color:var(--red); } .tm-val.amber { color:var(--amber); } .tm-val.blue { color:var(--blue); }
+.trade-card-actions { display:flex; gap:8px; }
+.close-form { display:none; margin-top:12px; background:var(--bg-inset); border:1px solid var(--border-hi); border-radius:var(--radius-sm); padding:14px; }
+.close-form.visible { display:block; }
+.close-form h4 { font-size:.8rem; margin-bottom:10px; }
+
+/* ── Log ──────────────────────────────────────────── */
+.log-filters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+.filter-chip { background:var(--bg-raised); border:1px solid var(--border); color:var(--text-dim); font-size:.74rem; font-weight:600; padding:5px 13px; border-radius:16px; cursor:pointer; transition:all .15s; font-family:var(--font); }
+.filter-chip:hover { color:var(--text); border-color:var(--border-hi); }
+.filter-chip.active { background:var(--accent-soft); color:var(--accent); border-color:rgba(255,92,122,.4); }
+.log-scroll { overflow-x:auto; border:1px solid var(--border); border-radius:var(--radius); }
+.log-table { width:100%; border-collapse:collapse; font-size:.78rem; min-width:760px; }
+.log-table th { background:var(--bg-raised); color:var(--text-faint); text-transform:uppercase; font-size:.62rem; letter-spacing:.06em; padding:10px 12px; text-align:left; position:sticky; top:0; }
+.log-table td { padding:8px 12px; border-top:1px solid var(--border); }
+.log-table tbody tr:hover { background:rgba(255,255,255,.02); }
+
+/* ── Rules ────────────────────────────────────────── */
+.rules-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px; }
+.rule-card { background:var(--bg-raised); border:1px solid var(--border); border-radius:var(--radius); padding:18px; }
+.rule-card h3 { font-size:.9rem; margin-bottom:12px; color:#fff; }
+.rule-item { padding:9px 0; border-bottom:1px solid var(--border); }
+.rule-item:last-child { border-bottom:none; }
+.rkey { font-size:.72rem; font-weight:700; color:var(--blue); margin-bottom:3px; }
+.rval { font-size:.76rem; color:var(--text-dim); line-height:1.55; }
+.rval.accent { color:var(--green); font-weight:650; }
+
+.footer { text-align:center; padding:22px; font-size:.68rem; color:var(--text-faint); border-top:1px solid var(--border); margin-top:30px; }
+
+@media (max-width:640px) {
+  .hero { padding:18px 16px 14px; }
+  .hero h1 { font-size:1.2rem; }
+  .capital-widget { width:100%; }
+  .grid { grid-template-columns:1fr; }
+  .container { padding:18px 12px 50px; }
+  .tab-btn { padding:12px 11px; font-size:.75rem; }
+  .indicators { grid-template-columns:repeat(2,1fr); }
+}
 </style>
 </head>
 <body>
 <div class="hero">
   <div class="hero-top">
     <div>
-      <h1>📈 Trend Following <span>Dashboard</span></h1>
+      <h1><span class="logo">📈</span> Trend Following <span class="accent">Dashboard</span></h1>
       <div class="hero-meta">
-        <span class="badge prep">🌙 EVENING PREP</span>
-        <span class="badge date">📅 02/07/2026</span>
-        <span>Strategy: <strong>Shark</strong></span>
-        <span>Platform: <strong>Stake</strong> (Long Only)</span>
+        <span class="badge prep">🟡 PRE-CLOSE</span>
+        <span class="badge date">📅 03/07/2026</span>
+        <span class="badge">Strategy: <strong>Shark</strong></span>
+        <span class="badge">Platform: <strong>Stake</strong> · Long Only</span>
         <span class="ny-clock" id="nyClock">🕐 Loading NY time...</span>
       </div>
     </div>
     <div class="capital-widget">
       <div class="cap-field">
         <span class="cap-label">💰 Capital</span>
-        <input class="cap-input" id="capitalInput" type="number" value="0" min="0" step="500" oninput="refresh()"/>
+        <input class="cap-input" id="capitalInput" type="number" value="0" min="0" step="500" oninput="persistSettings();refresh()"/>
       </div>
       <div class="cap-field">
         <span class="cap-label">⚠️ Risk %</span>
-        <select class="risk-select" id="riskSelect" onchange="refresh()">
+        <select class="risk-select" id="riskSelect" onchange="persistSettings();refresh()">
           <option value="1">1%</option>
           <option value="2" selected>2%</option>
           <option value="3">3%</option>
@@ -255,20 +304,31 @@ body { background: #0d1117; color: #e6edf3; font-family: 'Segoe UI', Arial, sans
 </div>
 <div class="tab-nav">
   <button class="tab-btn active" onclick="switchTab('dashboard',this)">📊 Dashboard</button>
+  <button class="tab-btn" onclick="switchTab('positions',this)">🎯 Positions</button>
   <button class="tab-btn" onclick="switchTab('planner',this)">💰 Trade Planner</button>
   <button class="tab-btn" onclick="switchTab('trades',this)">📒 My Trades</button>
+  <button class="tab-btn" onclick="switchTab('performance',this)">🏆 Performance</button>
   <button class="tab-btn" onclick="switchTab('log',this)">📅 Daily Log</button>
   <button class="tab-btn" onclick="switchTab('rules',this)">📐 Strategy Rules</button>
 </div>
 <div class="container">
+
   <div class="tab-panel active" id="panel-dashboard">
     <div class="summary-bar" id="summaryBar"></div>
     <div class="grid" id="assetGrid"></div>
   </div>
+
+  <div class="tab-panel" id="panel-positions">
+    <p class="section-title">Open Position Tracker — live P&amp;L vs latest close, trailing Hilo stop, and exit alerts</p>
+    <div class="pnl-strip" id="posStrip"></div>
+    <div id="posList"></div>
+  </div>
+
   <div class="tab-panel" id="panel-planner">
     <p class="section-title">Position Sizing — based on your capital &amp; risk settings above</p>
     <div class="planner-grid" id="plannerGrid"></div>
   </div>
+
   <div class="tab-panel" id="panel-trades">
     <div class="pnl-strip" id="pnlStrip"></div>
     <div class="trades-toolbar">
@@ -276,19 +336,14 @@ body { background: #0d1117; color: #e6edf3; font-family: 'Segoe UI', Arial, sans
         <button class="btn btn-primary" onclick="toggleTradeForm()">＋ Add Trade</button>
         <button class="btn btn-excel" onclick="exportATO()">📊 Export ATO Excel</button>
       </div>
-      <span style="font-size:.72rem;color:#484f58;">Data saved in browser · ATO = Australian Tax Office CGT format</span>
+      <span style="font-size:.7rem;color:var(--text-faint);">Data saved in browser · ATO = Australian Tax Office CGT format</span>
     </div>
     <div class="trade-form-wrap" id="tradeFormWrap">
       <h3>📝 Record New Trade (BUY Entry)</h3>
       <div class="form-grid">
         <div class="form-group">
           <label class="form-label">Ticker</label>
-          <select class="form-select" id="fTicker" onchange="autoFillForm()">
-            <option value="NVDA">NVDA — NVIDIA</option>
-            <option value="AAPL">AAPL — Apple</option>
-            <option value="META" selected>META — Meta</option>
-            <option value="QQQ">QQQ — Nasdaq ETF</option>
-          </select>
+          <select class="form-select" id="fTicker" onchange="autoFillForm()"></select>
         </div>
         <div class="form-group">
           <label class="form-label">Date Opened</label>
@@ -338,7 +393,7 @@ body { background: #0d1117; color: #e6edf3; font-family: 'Segoe UI', Arial, sans
           <input class="form-input" type="text" id="fNotes" placeholder="e.g. Evening prep signal"/>
         </div>
       </div>
-      <div style="margin-top:14px;padding:10px 14px;background:#0d1117;border-radius:8px;border:1px solid #21262d;font-size:.78rem;color:#8b949e;" id="costBasePreview">Fill in the fields above to see cost base preview.</div>
+      <div style="margin-top:14px;padding:10px 14px;background:var(--bg-inset);border-radius:8px;border:1px solid var(--border);font-size:.76rem;color:var(--text-dim);" id="costBasePreview">Fill in the fields above to see cost base preview.</div>
       <div class="form-actions">
         <button class="btn btn-success" onclick="saveTrade()">💾 Save Trade</button>
         <button class="btn btn-outline" onclick="toggleTradeForm()">Cancel</button>
@@ -346,17 +401,24 @@ body { background: #0d1117; color: #e6edf3; font-family: 'Segoe UI', Arial, sans
     </div>
     <div class="trades-section-title">
       <span>🟢 Open Positions</span>
-      <span id="openCount" style="color:#3fb950;"></span>
+      <span id="openCount" style="color:var(--green);"></span>
     </div>
     <div class="trade-cards" id="openTradesList"></div>
     <div class="trades-section-title" style="margin-top:28px;">
       <span>📁 Closed Trades</span>
-      <span id="closedCount" style="color:#8b949e;"></span>
+      <span id="closedCount" style="color:var(--text-dim);"></span>
     </div>
     <div class="trade-cards" id="closedTradesList"></div>
   </div>
+
+  <div class="tab-panel" id="panel-performance">
+    <p class="section-title">Strategy Performance — computed from your closed trades</p>
+    <div id="perfContent"></div>
+  </div>
+
   <div class="tab-panel" id="panel-log">
-    <p class="section-title">Daily Signal Log</p>
+    <p class="section-title">Daily Signal Log — newest first</p>
+    <div class="log-filters" id="logFilters"></div>
     <div class="log-scroll">
     <table class="log-table" id="logTable">
       <thead><tr><th>#</th><th>Date</th><th>Ticker</th><th>Hilo</th><th>Net Vol</th><th>RSI</th><th>Final Signal</th><th>Price</th><th>Stop Loss</th></tr></thead>
@@ -364,6 +426,7 @@ body { background: #0d1117; color: #e6edf3; font-family: 'Segoe UI', Arial, sans
     </table>
     </div>
   </div>
+
   <div class="tab-panel" id="panel-rules">
     <p class="section-title">Shark — Trend Following System</p>
     <div class="rules-grid">
@@ -384,6 +447,7 @@ body { background: #0d1117; color: #e6edf3; font-family: 'Segoe UI', Arial, sans
         <div class="rule-item"><div class="rkey">Risk per trade</div><div class="rval">Configurable % of capital (default 2%)</div></div>
         <div class="rule-item"><div class="rkey">Stop Loss</div><div class="rval">= Hilo Value (HiloLow when BUY, HiloHigh when SELL)</div></div>
         <div class="rule-item"><div class="rkey">Position Size</div><div class="rval">Risk $ ÷ (Entry − Stop) = number of shares</div></div>
+        <div class="rule-item"><div class="rkey">Trailing Stop</div><div class="rval">Hilo value rises with the trend — raise your stop to the latest Hilo each session (see Positions tab)</div></div>
         <div class="rule-item"><div class="rkey">Platform note</div><div class="rval">Stake is long-only. SELL = close trade, not short.</div></div>
       </div>
       <div class="rule-card">
@@ -395,14 +459,16 @@ body { background: #0d1117; color: #e6edf3; font-family: 'Segoe UI', Arial, sans
       </div>
     </div>
   </div>
+
   <div class="footer"><strong>Trend Following System</strong> — Shark Strategy · Stake Platform · All signals for educational purposes only.</div>
 </div>
 <script>
+// ─── Live Data (PRE-CLOSE 03/07/2026 05:37 AEDT) ── ✅ AUTO via yfinance ──
 const ASSETS = {
-  NVDA: { name:"NVIDIA Corporation", price:197.58, hiloVal:210.1, hiHigh:210.1, hiLow:203.32, rsi:43.27, hiloSignal:"SELL", netVol:"BEARISH", period:23 },
-  AAPL: { name:"Apple Inc.", price:294.38, hiloVal:294.89, hiHigh:294.89, hiLow:286.36, rsi:50.99, hiloSignal:"SELL", netVol:"BULLISH", period:9 },
-  META: { name:"Meta Platforms Inc.", price:612.91, hiloVal:563.27, hiHigh:580.93, hiLow:563.27, rsi:58.7, hiloSignal:"BUY", netVol:"BULLISH", period:15 },
-  QQQ: { name:"Nasdaq 100 ETF", price:725.17, hiloVal:716.69, hiHigh:729.81, hiLow:716.69, rsi:52.64, hiloSignal:"BUY", netVol:"BEARISH", period:30 }
+  NVDA: { name:"NVIDIA Corporation", price:193.46, hiloVal:209.34, hiHigh:209.34, hiLow:202.52, rsi:40.18, hiloSignal:"SELL", netVol:"BEARISH", period:23 },
+  AAPL: { name:"Apple Inc.", price:308.27, hiloVal:286.14, hiHigh:295.77, hiLow:286.14, rsi:60.13, hiloSignal:"BUY", netVol:"BULLISH", period:9 },
+  META: { name:"Meta Platforms Inc.", price:585.01, hiloVal:563.96, hiHigh:582.22, hiLow:563.96, rsi:50.27, hiloSignal:"BUY", netVol:"BULLISH", period:15 },
+  QQQ: { name:"Nasdaq 100 ETF", price:710.31, hiloVal:730.64, hiHigh:730.64, hiLow:717.12, rsi:47.54, hiloSignal:"SELL", netVol:"BEARISH", period:30 }
 };
 const LOG = [
   { date:"13/04/2026", ticker:"NVDA", hilo:"BUY",     netVol:"BEARISH", rsi:68.17, signal:"WATCH", price:188.63, stop:176.30 },
@@ -1115,7 +1181,19 @@ const LOG = [
   { date:"01/07/2026", ticker:"AAPL", hilo:"SELL", netVol:"BULLISH", rsi:50.99, signal:"WATCH", price:294.38, stop:294.89 },  // 👀 EVENING PREP 02/07/2026 20:03 AEDT
   { date:"01/07/2026", ticker:"META", hilo:"BUY", netVol:"BULLISH", rsi:58.7, signal:"BUY", price:612.91, stop:563.27 },  // ✅ EVENING PREP 02/07/2026 20:03 AEDT
   { date:"01/07/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:52.64, signal:"WATCH", price:725.17, stop:716.69 },  // 👀 EVENING PREP 02/07/2026 20:03 AEDT
+
+  { date:"02/07/2026", ticker:"NVDA", hilo:"SELL", netVol:"BEARISH", rsi:40.26, signal:"SELL", price:193.58, stop:209.34 },  // ❌ PRE-CLOSE 03/07/2026 05:35 AEDT
+  { date:"02/07/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:60.05, signal:"BUY", price:308.11, stop:286.14 },  // ✅ PRE-CLOSE 03/07/2026 05:35 AEDT
+  { date:"02/07/2026", ticker:"META", hilo:"BUY", netVol:"BULLISH", rsi:50.31, signal:"BUY", price:585.15, stop:563.96 },  // ✅ PRE-CLOSE 03/07/2026 05:35 AEDT
+  { date:"02/07/2026", ticker:"QQQ", hilo:"SELL", netVol:"BEARISH", rsi:47.74, signal:"SELL", price:710.93, stop:730.64 },  // ❌ PRE-CLOSE 03/07/2026 05:35 AEDT
+
+  { date:"02/07/2026", ticker:"NVDA", hilo:"SELL", netVol:"BEARISH", rsi:40.18, signal:"SELL", price:193.46, stop:209.34 },  // ❌ PRE-CLOSE 03/07/2026 05:37 AEDT
+  { date:"02/07/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:60.13, signal:"BUY", price:308.27, stop:286.14 },  // ✅ PRE-CLOSE 03/07/2026 05:37 AEDT
+  { date:"02/07/2026", ticker:"META", hilo:"BUY", netVol:"BULLISH", rsi:50.27, signal:"BUY", price:585.01, stop:563.96 },  // ✅ PRE-CLOSE 03/07/2026 05:37 AEDT
+  { date:"02/07/2026", ticker:"QQQ", hilo:"SELL", netVol:"BEARISH", rsi:47.54, signal:"SELL", price:710.31, stop:730.64 },  // ❌ PRE-CLOSE 03/07/2026 05:37 AEDT
 ];
+
+// ─── Signal engine (unchanged from v1) ─────────────────────────────
 function computeSignal(a) {
   const rsiOk = a.rsi >= 30 && a.rsi <= 70;
   if (a.hiloSignal === "BUY"  && a.netVol === "BULLISH" && rsiOk) return "BUY";
@@ -1132,14 +1210,25 @@ function signalBlockers(a) {
   if (a.hiloSignal === "NEUTRAL") b.push("Hilo is NEUTRAL");
   return b;
 }
+
+// ─── Helpers ───────────────────────────────────────────────────────
 function capital()  { return parseFloat(document.getElementById("capitalInput").value) || 0; }
 function riskPct()  { return parseFloat(document.getElementById("riskSelect").value) / 100; }
 function riskAmt()  { return capital() * riskPct(); }
 function fmt(n,d)   { d=d==null?2:d; return n != null ? n.toFixed(d) : "—"; }
-function fmtUSD(n)  { return n != null ? "$" + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,",") : "—"; }
-function fmtAUD(n)  { return n != null ? "A$" + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,",") : "—"; }
+function fmtUSD(n)  { return n != null ? (n<0?"-$":"$") + Math.abs(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,",") : "—"; }
+function fmtAUD(n)  { return n != null ? (n<0?"-A$":"A$") + Math.abs(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,",") : "—"; }
+function fmtPct(n)  { return n != null ? (n>=0?"+":"") + n.toFixed(2) + "%" : "—"; }
 function todayStr() { const d = new Date(); return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear(); }
-function daysBetween(d1,d2) { const p=s=>{const[dd,mm,yy]=s.split('/');return new Date(yy,mm-1,dd);}; return Math.round((p(d2)-p(d1))/86400000); }
+function parseDMY(s){ const [dd,mm,yy]=s.split('/'); return new Date(yy,mm-1,dd); }
+function daysBetween(d1,d2) { return Math.round((parseDMY(d2)-parseDMY(d1))/86400000); }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+const SETTINGS_KEY = 'tf_settings_v2';
+function persistSettings(){ try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify({cap:capital(), risk:document.getElementById('riskSelect').value})); }catch(e){} }
+function loadSettings(){ try{ const s=JSON.parse(localStorage.getItem(SETTINGS_KEY)); if(!s)return; if(s.cap) document.getElementById('capitalInput').value=s.cap; if(s.risk) document.getElementById('riskSelect').value=s.risk; }catch(e){} }
+
+// ─── Clock ─────────────────────────────────────────────────────────
 function updateClock() {
   try {
     const now = new Date();
@@ -1157,13 +1246,305 @@ function updateClock() {
   } catch(e){document.getElementById('nyClock').textContent='🕐 NY time unavailable';}
 }
 setInterval(updateClock,1000); updateClock();
-function switchTab(name,btn){document.querySelectorAll(".tab-panel").forEach(p=>p.classList.remove("active"));document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));document.getElementById("panel-"+name).classList.add("active");btn.classList.add("active");if(name==='trades')renderTrades();}
-function refresh(){const ra=riskAmt();document.getElementById("riskAmount").textContent=fmtUSD(ra);renderSummary();renderDashboard();renderPlanner();renderLog();}
-function renderSummary(){const counts={BUY:0,SELL:0,WATCH:0};Object.values(ASSETS).forEach(a=>counts[computeSignal(a)]++);document.getElementById("summaryBar").innerHTML='<div class="sum-card buy"><div class="slabel">✅ BUY Signals</div><div class="svalue">'+counts.BUY+'</div></div><div class="sum-card sell"><div class="slabel">❌ SELL Signals</div><div class="svalue">'+counts.SELL+'</div></div><div class="sum-card watch"><div class="slabel">👀 WATCH</div><div class="svalue">'+counts.WATCH+'</div></div><div class="sum-card all"><div class="slabel">Assets Tracked</div><div class="svalue">'+Object.keys(ASSETS).length+'</div></div>';}
+
+// ─── Tabs & refresh ────────────────────────────────────────────────
+function switchTab(name,btn){
+  document.querySelectorAll(".tab-panel").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+  document.getElementById("panel-"+name).classList.add("active");
+  btn.classList.add("active");
+  if(name==='trades')renderTrades();
+  if(name==='positions')renderPositions();
+  if(name==='performance')renderPerformance();
+}
+function refresh(){
+  const ra=riskAmt();
+  document.getElementById("riskAmount").textContent=fmtUSD(ra);
+  renderSummary();renderDashboard();renderPlanner();renderLog();renderPositions();renderPerformance();
+}
+
+// ─── Sparklines from LOG history ───────────────────────────────────
+function tickerHistory(tk){
+  const seen={}; const rows=[];
+  LOG.forEach(r=>{ if(r.ticker!==tk)return; seen[r.date]=r; });
+  Object.keys(seen).sort((a,b)=>parseDMY(a)-parseDMY(b)).forEach(d=>rows.push(seen[d]));
+  return rows.slice(-40);
+}
+function sparklineSVG(rows, curPrice){
+  if(rows.length<2) return '';
+  const prices=rows.map(r=>r.price).concat(curPrice!=null?[curPrice]:[]);
+  const stops=rows.map(r=>r.stop);
+  const all=prices.concat(stops);
+  const min=Math.min.apply(null,all), max=Math.max.apply(null,all);
+  const range=(max-min)||1, W=380, H=44, n=prices.length;
+  const x=i=>i/(n-1)*W, y=v=>H-3-((v-min)/range)*(H-8);
+  const pPath=prices.map((v,i)=>(i?'L':'M')+x(i).toFixed(1)+' '+y(v).toFixed(1)).join(' ');
+  const sPath=stops.map((v,i)=>(i?'L':'M')+(i/(stops.length-1)*W).toFixed(1)+' '+y(v).toFixed(1)).join(' ');
+  const up=prices[n-1]>=prices[0];
+  const col=up?'var(--green)':'var(--red)';
+  return '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none">'
+    +'<path d="'+sPath+'" fill="none" stroke="var(--amber)" stroke-width="1" stroke-dasharray="3 3" opacity=".65"/>'
+    +'<path d="'+pPath+'" fill="none" stroke="'+col+'" stroke-width="1.8" stroke-linejoin="round"/>'
+    +'<circle cx="'+W+'" cy="'+y(prices[n-1]).toFixed(1)+'" r="2.6" fill="'+col+'"/></svg>';
+}
+
+// ─── Dashboard ─────────────────────────────────────────────────────
+function renderSummary(){
+  const counts={BUY:0,SELL:0,WATCH:0};
+  Object.values(ASSETS).forEach(a=>counts[computeSignal(a)]++);
+  document.getElementById("summaryBar").innerHTML=
+    '<div class="sum-card buy"><div class="slabel">✅ BUY Signals</div><div class="svalue">'+counts.BUY+'</div></div>'
+    +'<div class="sum-card sell"><div class="slabel">❌ SELL Signals</div><div class="svalue">'+counts.SELL+'</div></div>'
+    +'<div class="sum-card watch"><div class="slabel">👀 Watch</div><div class="svalue">'+counts.WATCH+'</div></div>'
+    +'<div class="sum-card all"><div class="slabel">Assets Tracked</div><div class="svalue">'+Object.keys(ASSETS).length+'</div></div>';
+}
 function rsiColClass(rsi){if(rsi>70||rsi<30)return"sell";if(rsi>65||rsi<35)return"warn";return"";}
-function renderDashboard(){const ra=riskAmt();document.getElementById("assetGrid").innerHTML=Object.entries(ASSETS).map(([tk,a])=>{const sig=computeSignal(a);const bl=sig==="WATCH"?signalBlockers(a):[];const stopDist=((a.price-a.hiloVal)/a.price*100).toFixed(1);const shares=ra>0&&(a.price-a.hiloVal)>0?(ra/(a.price-a.hiloVal)).toFixed(1):"—";const flagsHtml=bl.length?'<div class="flags">'+bl.map(b=>'<span class="flag warn">⚠️ '+b+'</span>').join("")+'</div>':'<div class="flags"><span class="flag ok">✅ All 3 indicators aligned</span></div>';return'<div class="card"><div class="card-header"><div><div class="c-ticker">'+tk+'</div><div class="c-name">'+a.name+'</div></div><div><div class="c-price">'+fmtUSD(a.price)+'</div><div class="c-plabel">Last Close</div></div></div><div class="card-body"><div class="indicators"><div class="ind"><div class="ind-label">Hilo (P='+a.period+')</div><div class="ind-val '+a.hiloSignal.toLowerCase()+'">'+a.hiloSignal+'</div></div><div class="ind"><div class="ind-label">Net Volume</div><div class="ind-val '+a.netVol.toLowerCase()+'">'+a.netVol+'</div></div><div class="ind"><div class="ind-label">RSI (14)</div><div class="ind-val '+rsiColClass(a.rsi)+'">'+fmt(a.rsi)+'</div></div><div class="ind"><div class="ind-label">Stop Loss</div><div class="ind-val">'+fmtUSD(a.hiloVal)+'</div></div></div><div class="signal-block '+sig+'"><div><div class="sig-label">Final Signal</div><div class="sig-text '+sig+'">'+(sig==="BUY"?"✅ BUY":sig==="SELL"?"❌ SELL":"👀 WATCH")+'</div></div><div class="sig-meta">Stop distance: <strong>'+stopDist+'%</strong><br/>Risk: <strong>'+fmtUSD(ra)+'</strong> → <strong>'+shares+' shares</strong></div></div>'+flagsHtml+'</div></div>';}).join("");}
-function renderPlanner(){const cap=capital(),ra=riskAmt();document.getElementById("plannerGrid").innerHTML=Object.entries(ASSETS).map(([tk,a])=>{const sig=computeSignal(a);const risk=a.price-a.hiloVal;const shares=risk>0?ra/risk:0;const posVal=shares*a.price;const pctOfCap=cap>0?(posVal/cap*100):0;const maxLoss=shares*risk;const bl=sig==="WATCH"?signalBlockers(a):[];const pillsHtml=bl.length?'<div class="blockers">'+bl.map(b=>'<span class="blocker-pill">⚠️ '+b+'</span>').join("")+'</div>':"";const noteHtml=sig!=="BUY"?'<div class="plan-note">👀 Signal is WATCH — no entry recommended. Blockers: '+( bl.join(", ")||"none")+'</div>':'<div class="plan-note">✅ All 3 indicators aligned — entry valid if confirmed at open.</div>';return'<div class="plan-card"><div class="plan-header"><div class="plan-ticker">'+tk+' <span style="font-size:.75rem;color:#8b949e;font-weight:400">'+a.name+'</span></div><div class="plan-sig '+sig+'">'+sig+'</div></div><div class="plan-body"><div class="plan-row"><span class="pkey">Entry Price</span><span class="pval">'+fmtUSD(a.price)+'</span></div><div class="plan-row"><span class="pkey">Stop Loss</span><span class="pval red">'+fmtUSD(a.hiloVal)+'</span></div><div class="plan-row"><span class="pkey">Risk per share</span><span class="pval amber">'+fmtUSD(risk)+'</span></div><div class="plan-row"><span class="pkey">Your capital</span><span class="pval blue">'+fmtUSD(cap)+'</span></div><div class="plan-row"><span class="pkey">Risk amount</span><span class="pval amber">'+fmtUSD(ra)+'</span></div><div class="plan-row"><span class="pkey">Shares to buy</span><span class="pval green">'+(risk>0?fmt(shares,1):"—")+'</span></div><div class="plan-row"><span class="pkey">Position value</span><span class="pval">'+(risk>0?fmtUSD(posVal):"—")+'</span></div><div class="plan-row"><span class="pkey">% of capital</span><span class="pval">'+(risk>0?fmt(pctOfCap,1)+"%":"—")+'</span></div><div class="plan-row"><span class="pkey">Max loss (if stopped)</span><span class="pval red">'+(risk>0?fmtUSD(maxLoss):"—")+'</span></div>'+pillsHtml+noteHtml+'</div></div>';}).join("");}
-function renderLog(){function sc(s){return s==="BUY"?"buy":s==="SELL"?"sell":"warn";}document.getElementById("logBody").innerHTML=LOG.map((row,i)=>'<tr><td>'+(i+1)+'</td><td>'+row.date+'</td><td><strong>'+row.ticker+'</strong></td><td class="'+row.hilo.toLowerCase()+'">'+row.hilo+'</td><td class="'+row.netVol.toLowerCase()+'">'+row.netVol+'</td><td class="'+rsiColClass(row.rsi)+'">'+row.rsi.toFixed(2)+'</td><td class="'+sc(row.signal)+'" style="font-weight:700">'+(row.signal==="BUY"?"✅ BUY":row.signal==="SELL"?"❌ SELL":"👀 WATCH")+'</td><td>'+fmtUSD(row.price)+'</td><td>'+fmtUSD(row.stop)+'</td></tr>').join("");}
+function renderDashboard(){
+  const ra=riskAmt();
+  document.getElementById("assetGrid").innerHTML=Object.entries(ASSETS).map(([tk,a])=>{
+    const sig=computeSignal(a);
+    const bl=sig==="WATCH"?signalBlockers(a):[];
+    const stopDistPct=(a.price-a.hiloVal)/a.price*100;
+    const shares=ra>0&&(a.price-a.hiloVal)>0?(ra/(a.price-a.hiloVal)).toFixed(1):"—";
+    const hist=tickerHistory(tk);
+    const spark=sparklineSVG(hist,a.price);
+    // gauge: clamp stop distance to 0..15% scale
+    const gaugePos=Math.max(0,Math.min(1,stopDistPct/15));
+    const flagsHtml=bl.length
+      ?'<div class="flags">'+bl.map(b=>'<span class="flag warn">⚠️ '+b+'</span>').join("")+'</div>'
+      :'<div class="flags"><span class="flag ok">✅ All 3 indicators aligned</span></div>';
+    return '<div class="card">'
+      +'<div class="card-header"><div><div class="c-ticker">'+tk+'</div><div class="c-name">'+a.name+'</div></div>'
+      +'<div><div class="c-price">'+fmtUSD(a.price)+'</div><div class="c-plabel">Last Close</div></div></div>'
+      +(spark?'<div class="spark-wrap">'+spark+'</div>':'')
+      +'<div class="card-body">'
+      +'<div class="indicators">'
+      +'<div class="ind"><div class="ind-label">Hilo (P='+a.period+')</div><div class="ind-val '+a.hiloSignal.toLowerCase()+'">'+a.hiloSignal+'</div></div>'
+      +'<div class="ind"><div class="ind-label">Net Volume</div><div class="ind-val '+a.netVol.toLowerCase()+'">'+a.netVol+'</div></div>'
+      +'<div class="ind"><div class="ind-label">RSI (14)</div><div class="ind-val '+rsiColClass(a.rsi)+'">'+fmt(a.rsi)+'</div></div>'
+      +'<div class="ind"><div class="ind-label">Stop Loss</div><div class="ind-val">'+fmtUSD(a.hiloVal)+'</div></div>'
+      +'</div>'
+      +'<div class="stop-gauge"><div class="sg-track"><div class="sg-marker" style="left:'+(gaugePos*100).toFixed(1)+'%"></div></div>'
+      +'<div class="sg-labels"><span>At stop</span><span>Stop distance: '+stopDistPct.toFixed(1)+'%</span><span>15%+</span></div></div>'
+      +'<div class="signal-block '+sig+'"><div><div class="sig-label">Final Signal</div><div class="sig-text '+sig+'">'+(sig==="BUY"?"✅ BUY":sig==="SELL"?"❌ SELL":"👀 WATCH")+'</div></div>'
+      +'<div class="sig-meta">Risk: <strong>'+fmtUSD(ra)+'</strong> → <strong>'+shares+' shares</strong></div></div>'
+      +flagsHtml+'</div></div>';
+  }).join("");
+}
+
+// ─── Planner ───────────────────────────────────────────────────────
+function renderPlanner(){
+  const cap=capital(),ra=riskAmt();
+  document.getElementById("plannerGrid").innerHTML=Object.entries(ASSETS).map(([tk,a])=>{
+    const sig=computeSignal(a);
+    const risk=a.price-a.hiloVal;
+    const shares=risk>0?ra/risk:0;
+    const posVal=shares*a.price;
+    const pctOfCap=cap>0?(posVal/cap*100):0;
+    const maxLoss=shares*risk;
+    const bl=sig==="WATCH"?signalBlockers(a):[];
+    const pillsHtml=bl.length?'<div class="blockers">'+bl.map(b=>'<span class="blocker-pill">⚠️ '+b+'</span>').join("")+'</div>':"";
+    const noteHtml=sig!=="BUY"
+      ?'<div class="plan-note">👀 Signal is '+sig+' — no entry recommended.'+(bl.length?' Blockers: '+bl.join(", "):'')+'</div>'
+      :'<div class="plan-note">✅ All 3 indicators aligned — entry valid if confirmed at open.</div>';
+    return '<div class="plan-card"><div class="plan-header"><div class="plan-ticker">'+tk+' <span style="font-size:.72rem;color:var(--text-faint);font-weight:400">'+a.name+'</span></div><div class="plan-sig '+sig+'">'+sig+'</div></div><div class="plan-body">'
+      +'<div class="plan-row"><span class="pkey">Entry Price</span><span class="pval">'+fmtUSD(a.price)+'</span></div>'
+      +'<div class="plan-row"><span class="pkey">Stop Loss</span><span class="pval red">'+fmtUSD(a.hiloVal)+'</span></div>'
+      +'<div class="plan-row"><span class="pkey">Risk per share</span><span class="pval amber">'+fmtUSD(risk)+'</span></div>'
+      +'<div class="plan-row"><span class="pkey">Your capital</span><span class="pval blue">'+fmtUSD(cap)+'</span></div>'
+      +'<div class="plan-row"><span class="pkey">Risk amount</span><span class="pval amber">'+fmtUSD(ra)+'</span></div>'
+      +'<div class="plan-row"><span class="pkey">Shares to buy</span><span class="pval green">'+(risk>0?fmt(shares,1):"—")+'</span></div>'
+      +'<div class="plan-row"><span class="pkey">Position value</span><span class="pval">'+(risk>0?fmtUSD(posVal):"—")+'</span></div>'
+      +'<div class="plan-row"><span class="pkey">% of capital</span><span class="pval">'+(risk>0?fmt(pctOfCap,1)+"%":"—")+'</span></div>'
+      +'<div class="plan-row"><span class="pkey">Max loss (if stopped)</span><span class="pval red">'+(risk>0?fmtUSD(maxLoss):"—")+'</span></div>'
+      +pillsHtml+noteHtml+'</div></div>';
+  }).join("");
+}
+
+// ─── Positions tab (NEW) ───────────────────────────────────────────
+function renderPositions(){
+  const trades=loadTrades().filter(t=>t.status==='OPEN');
+  const strip=document.getElementById('posStrip'), list=document.getElementById('posList');
+  if(!trades.length){
+    strip.innerHTML='';
+    list.innerHTML='<div class="empty-state"><div class="big">🎯</div>No open positions.<br/>Record a trade in <strong>My Trades</strong> and it will be tracked here with live P&amp;L, trailing stop and exit alerts.</div>';
+    return;
+  }
+  let totCost=0, totVal=0, totPnl=0;
+  const cards=trades.map(t=>{
+    const a=ASSETS[t.ticker];
+    const cur=a?a.price:null;
+    const entryVal=t.entryPriceUSD*t.shares;
+    const curVal=cur!=null?cur*t.shares:null;
+    const pnl=cur!=null?(cur-t.entryPriceUSD)*t.shares:null;
+    const pnlPct=cur!=null?((cur/t.entryPriceUSD)-1)*100:null;
+    const rMult=(cur!=null&&(t.entryPriceUSD-t.stopLoss)>0)?(cur-t.entryPriceUSD)/(t.entryPriceUSD-t.stopLoss):null;
+    const trailStop=a?a.hiloVal:null;
+    const bestStop=trailStop!=null?Math.max(t.stopLoss,trailStop):t.stopLoss;
+    const sig=a?computeSignal(a):null;
+    totCost+=t.costBaseUSD; if(curVal!=null){totVal+=curVal; totPnl+=pnl;}
+    // range bar: stop → target scale
+    const lo=Math.min(bestStop,t.entryPriceUSD,cur!=null?cur:t.entryPriceUSD);
+    const hi=Math.max(t.target||t.entryPriceUSD*1.1,t.entryPriceUSD,cur!=null?cur:t.entryPriceUSD);
+    const span=(hi-lo)||1;
+    const px=v=>Math.max(0,Math.min(100,(v-lo)/span*100));
+    // alert logic
+    let alertHtml='';
+    if(cur!=null&&cur<=bestStop) alertHtml='<div class="pos-alert bad">🛑 Price at/below stop ('+fmtUSD(bestStop)+') — exit rule triggered. Close the position.</div>';
+    else if(sig==='SELL') alertHtml='<div class="pos-alert bad">❌ System signal for '+t.ticker+' flipped to SELL — trend over, close the position.</div>';
+    else if(trailStop!=null&&trailStop>t.stopLoss) alertHtml='<div class="pos-alert warn">📈 Hilo trailing stop has risen to <strong>'+fmtUSD(trailStop)+'</strong> (your recorded stop: '+fmtUSD(t.stopLoss)+'). Raise your stop to lock in gains.</div>';
+    else alertHtml='<div class="pos-alert ok">✅ Trend intact — hold. Stop unchanged at '+fmtUSD(bestStop)+'.</div>';
+    const danger=cur!=null&&(cur<=bestStop||sig==='SELL');
+    return '<div class="pos-card'+(danger?' danger':'')+'">'
+      +'<div class="pos-header"><div><span class="trade-ticker">'+t.ticker+'</span> <span class="trade-date">'+t.shares+' shares · opened '+t.dateOpen+'</span></div>'
+      +'<div class="pos-pnl" style="color:'+(pnl!=null&&pnl>=0?'var(--green)':'var(--red)')+'">'+(pnl!=null?fmtUSD(pnl)+' ('+fmtPct(pnlPct)+')':'—')+'</div></div>'
+      +'<div class="pos-body"><div class="pos-metrics">'
+      +'<div class="pm"><div class="pm-label">Entry</div><div class="pm-val">'+fmtUSD(t.entryPriceUSD)+'</div></div>'
+      +'<div class="pm"><div class="pm-label">Current</div><div class="pm-val blue" style="color:var(--blue)">'+(cur!=null?fmtUSD(cur):'—')+'</div></div>'
+      +'<div class="pm"><div class="pm-label">Your Stop</div><div class="pm-val" style="color:var(--red)">'+fmtUSD(t.stopLoss)+'</div></div>'
+      +'<div class="pm"><div class="pm-label">Hilo Trail Stop</div><div class="pm-val" style="color:var(--amber)">'+(trailStop!=null?fmtUSD(trailStop):'—')+'</div></div>'
+      +'<div class="pm"><div class="pm-label">Target</div><div class="pm-val" style="color:var(--green)">'+(t.target?fmtUSD(t.target):'—')+'</div></div>'
+      +'<div class="pm"><div class="pm-label">R Multiple</div><div class="pm-val" style="color:'+(rMult!=null&&rMult>=0?'var(--green)':'var(--red)')+'">'+(rMult!=null?(rMult>=0?'+':'')+rMult.toFixed(2)+'R':'—')+'</div></div>'
+      +'<div class="pm"><div class="pm-label">Position Value</div><div class="pm-val">'+(curVal!=null?fmtUSD(curVal):'—')+'</div></div>'
+      +'</div>'
+      +'<div class="pos-range"><div class="pr-track">'
+      +(cur!=null?'<div class="pr-fill" style="left:'+px(Math.min(t.entryPriceUSD,cur))+'%;width:'+Math.abs(px(cur)-px(t.entryPriceUSD))+'%;background:'+(cur>=t.entryPriceUSD?'var(--green-soft)':'var(--red-soft)')+';border:1px solid '+(cur>=t.entryPriceUSD?'rgba(52,211,153,.4)':'rgba(248,113,113,.4)')+'"></div>':'')
+      +'<div class="pr-tick" style="left:'+px(bestStop)+'%"></div>'
+      +'<div class="pr-tick" style="left:'+px(t.entryPriceUSD)+'%"></div>'
+      +(t.target?'<div class="pr-tick" style="left:'+px(t.target)+'%"></div>':'')
+      +(cur!=null?'<div class="pr-dot" style="left:'+px(cur)+'%"></div>':'')
+      +'</div><div class="pr-labels"><span>🛑 Stop '+fmtUSD(bestStop)+'</span><span>Entry '+fmtUSD(t.entryPriceUSD)+'</span><span>🎯 '+(t.target?fmtUSD(t.target):'—')+'</span></div></div>'
+      +alertHtml+'</div></div>';
+  }).join('');
+  const totPct=totCost>0?(totPnl/totCost*100):null;
+  strip.innerHTML=
+    '<div class="pnl-card"><div class="pl">Open Positions</div><div class="pv blue">'+trades.length+'</div></div>'
+    +'<div class="pnl-card"><div class="pl">Cost Base (USD)</div><div class="pv amber">'+fmtUSD(totCost)+'</div></div>'
+    +'<div class="pnl-card"><div class="pl">Market Value (USD)</div><div class="pv blue">'+fmtUSD(totVal)+'</div></div>'
+    +'<div class="pnl-card"><div class="pl">Unrealised P&L</div><div class="pv '+(totPnl>=0?'green':'red')+'">'+fmtUSD(totPnl)+'</div></div>'
+    +'<div class="pnl-card"><div class="pl">Return</div><div class="pv '+(totPnl>=0?'green':'red')+'">'+(totPct!=null?fmtPct(totPct):'—')+'</div></div>';
+  list.innerHTML=cards;
+}
+
+// ─── Performance tab (NEW) ─────────────────────────────────────────
+function renderPerformance(){
+  const el=document.getElementById('perfContent');
+  const closed=loadTrades().filter(t=>t.status==='CLOSED'&&t.gainLossUSD!=null)
+    .sort((a,b)=>parseDMY(a.dateClosed)-parseDMY(b.dateClosed));
+  if(!closed.length){
+    el.innerHTML='<div class="empty-state"><div class="big">🏆</div>No closed trades yet.<br/>Once you close trades in <strong>My Trades</strong>, win rate, profit factor, expectancy and your equity curve will appear here.</div>';
+    return;
+  }
+  const wins=closed.filter(t=>t.gainLossUSD>0), losses=closed.filter(t=>t.gainLossUSD<=0);
+  const winRate=wins.length/closed.length*100;
+  const grossWin=wins.reduce((s,t)=>s+t.gainLossUSD,0);
+  const grossLoss=Math.abs(losses.reduce((s,t)=>s+t.gainLossUSD,0));
+  const profitFactor=grossLoss>0?grossWin/grossLoss:(grossWin>0?Infinity:0);
+  const avgWin=wins.length?grossWin/wins.length:0;
+  const avgLoss=losses.length?grossLoss/losses.length:0;
+  const expectancy=(winRate/100)*avgWin-(1-winRate/100)*avgLoss;
+  const totalUSD=closed.reduce((s,t)=>s+t.gainLossUSD,0);
+  const totalNetAUD=closed.reduce((s,t)=>s+(t.netGainAUD||0),0);
+  const avgHold=closed.reduce((s,t)=>s+(t.holdingDays||0),0)/closed.length;
+  const rMults=closed.filter(t=>t.stopLoss&&(t.entryPriceUSD-t.stopLoss)>0)
+    .map(t=>(t.exitPriceUSD-t.entryPriceUSD)/(t.entryPriceUSD-t.stopLoss));
+  const avgR=rMults.length?rMults.reduce((s,r)=>s+r,0)/rMults.length:null;
+  const best=closed.reduce((m,t)=>t.gainLossUSD>m.gainLossUSD?t:m,closed[0]);
+  const worst=closed.reduce((m,t)=>t.gainLossUSD<m.gainLossUSD?t:m,closed[0]);
+  const kpi=(label,val,cls,sub)=>'<div class="sum-card '+(cls||'')+'"><div class="slabel">'+label+'</div><div class="svalue" style="font-size:1.35rem">'+val+'</div>'+(sub?'<div class="ssub">'+sub+'</div>':'')+'</div>';
+  let html='<div class="perf-grid">'
+    +kpi('Closed Trades',closed.length,'all')
+    +kpi('Win Rate',winRate.toFixed(0)+'%',winRate>=50?'pos':'neg',wins.length+'W / '+losses.length+'L')
+    +kpi('Profit Factor',profitFactor===Infinity?'∞':profitFactor.toFixed(2),profitFactor>=1.5?'pos':(profitFactor>=1?'watch':'neg'),'gross win ÷ gross loss')
+    +kpi('Total P&L (USD)',fmtUSD(totalUSD),totalUSD>=0?'pos':'neg')
+    +kpi('Net CGT Gain (AUD)',fmtAUD(totalNetAUD),totalNetAUD>=0?'pos':'neg','after 50% discount')
+    +kpi('Expectancy / trade',fmtUSD(expectancy),expectancy>=0?'pos':'neg')
+    +kpi('Avg Win',fmtUSD(avgWin),'pos')
+    +kpi('Avg Loss',fmtUSD(-avgLoss),'neg')
+    +kpi('Avg R Multiple',avgR!=null?(avgR>=0?'+':'')+avgR.toFixed(2)+'R':'—',avgR!=null&&avgR>=0?'pos':'neg')
+    +kpi('Avg Holding',avgHold.toFixed(0)+' days','all')
+    +kpi('Best Trade',best.ticker+' '+fmtUSD(best.gainLossUSD),'pos',best.dateClosed)
+    +kpi('Worst Trade',worst.ticker+' '+fmtUSD(worst.gainLossUSD),'neg',worst.dateClosed)
+    +'</div>';
+  html+='<div class="chart-card"><h3>📈 Equity Curve — cumulative realised P&amp;L (USD)</h3>'+equityCurveSVG(closed)+'</div>';
+  html+='<div class="chart-card"><h3>📊 P&amp;L by Trade (USD)</h3>'+tradeBarsSVG(closed)+'</div>';
+  el.innerHTML=html;
+}
+function equityCurveSVG(closed){
+  const W=760,H=220,P=38;
+  let cum=0; const pts=[{x:0,y:0}];
+  closed.forEach((t,i)=>{cum+=t.gainLossUSD;pts.push({x:i+1,y:cum});});
+  const ys=pts.map(p=>p.y);
+  const minY=Math.min(0,Math.min.apply(null,ys)), maxY=Math.max(0,Math.max.apply(null,ys));
+  const rangeY=(maxY-minY)||1;
+  const px=i=>P+i/(pts.length-1)*(W-P*2);
+  const py=v=>H-P/1.5-((v-minY)/rangeY)*(H-P*2);
+  const path=pts.map((p,i)=>(i?'L':'M')+px(p.x).toFixed(1)+' '+py(p.y).toFixed(1)).join(' ');
+  const area=path+' L'+px(pts.length-1).toFixed(1)+' '+py(0).toFixed(1)+' L'+px(0).toFixed(1)+' '+py(0).toFixed(1)+' Z';
+  const zeroY=py(0);
+  const lastCol=cum>=0?'var(--green)':'var(--red)';
+  return '<svg viewBox="0 0 '+W+' '+H+'">'
+    +'<line x1="'+P+'" y1="'+zeroY.toFixed(1)+'" x2="'+(W-P)+'" y2="'+zeroY.toFixed(1)+'" stroke="var(--border-hi)" stroke-dasharray="4 4"/>'
+    +'<path d="'+area+'" fill="'+(cum>=0?'rgba(52,211,153,.12)':'rgba(248,113,113,.12)')+'"/>'
+    +'<path d="'+path+'" fill="none" stroke="'+lastCol+'" stroke-width="2.2" stroke-linejoin="round"/>'
+    +pts.slice(1).map((p,i)=>'<circle cx="'+px(p.x).toFixed(1)+'" cy="'+py(p.y).toFixed(1)+'" r="3" fill="'+(closed[i].gainLossUSD>=0?'var(--green)':'var(--red)')+'"><title>'+closed[i].ticker+' '+closed[i].dateClosed+': '+fmtUSD(closed[i].gainLossUSD)+'</title></circle>').join('')
+    +'<text x="'+(W-P)+'" y="'+(py(cum)-8)+'" text-anchor="end" fill="'+lastCol+'" font-size="12" font-weight="700">'+fmtUSD(cum)+'</text>'
+    +'<text x="'+P+'" y="'+(zeroY-6)+'" fill="var(--text-faint)" font-size="10">$0</text>'
+    +'</svg>';
+}
+function tradeBarsSVG(closed){
+  const W=760,H=190,P=38;
+  const vals=closed.map(t=>t.gainLossUSD);
+  const maxAbs=Math.max.apply(null,vals.map(Math.abs))||1;
+  const zeroY=H/2;
+  const bw=Math.min(46,(W-P*2)/closed.length*.7);
+  const step=(W-P*2)/closed.length;
+  return '<svg viewBox="0 0 '+W+' '+H+'">'
+    +'<line x1="'+P+'" y1="'+zeroY+'" x2="'+(W-P)+'" y2="'+zeroY+'" stroke="var(--border-hi)"/>'
+    +closed.map((t,i)=>{
+      const h=Math.abs(t.gainLossUSD)/maxAbs*(H/2-P/2);
+      const x=P+i*step+(step-bw)/2;
+      const y=t.gainLossUSD>=0?zeroY-h:zeroY;
+      const col=t.gainLossUSD>=0?'var(--green)':'var(--red)';
+      return '<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+Math.max(h,1).toFixed(1)+'" rx="3" fill="'+col+'" opacity=".85"><title>'+t.ticker+' '+t.dateClosed+': '+fmtUSD(t.gainLossUSD)+'</title></rect>'
+        +'<text x="'+(x+bw/2).toFixed(1)+'" y="'+(H-6)+'" text-anchor="middle" fill="var(--text-faint)" font-size="9">'+t.ticker+'</text>';
+    }).join('')
+    +'</svg>';
+}
+
+// ─── Daily log (with filters, newest first) ────────────────────────
+let logTickerFilter='ALL', logSignalFilter='ALL';
+function setLogFilter(kind,val,btn){
+  if(kind==='ticker')logTickerFilter=val; else logSignalFilter=val;
+  document.querySelectorAll('#logFilters .filter-chip[data-kind="'+kind+'"]').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderLog();
+}
+function renderLogFilters(){
+  const tks=Object.keys(ASSETS);
+  const chip=(kind,val,label,active)=>'<button class="filter-chip'+(active?' active':'')+'" data-kind="'+kind+'" onclick="setLogFilter(\''+kind+'\',\''+val+'\',this)">'+label+'</button>';
+  document.getElementById('logFilters').innerHTML=
+    chip('ticker','ALL','All tickers',true)+tks.map(tk=>chip('ticker',tk,tk,false)).join('')
+    +'<span style="width:14px"></span>'
+    +chip('signal','ALL','All signals',true)+chip('signal','BUY','✅ BUY',false)+chip('signal','SELL','❌ SELL',false)+chip('signal','WATCH','👀 WATCH',false);
+}
+function renderLog(){
+  function sc(s){return s==="BUY"?"buy":s==="SELL"?"sell":"warn";}
+  let rows=LOG.map((r,i)=>({r,i})).filter(({r})=>
+    (logTickerFilter==='ALL'||r.ticker===logTickerFilter)
+    &&(logSignalFilter==='ALL'||r.signal.indexOf(logSignalFilter)===0));
+  rows.reverse();
+  rows=rows.slice(0,300);
+  document.getElementById("logBody").innerHTML=rows.map(({r,i})=>
+    '<tr><td style="color:var(--text-faint)">'+(i+1)+'</td><td>'+r.date+'</td><td><strong>'+r.ticker+'</strong></td>'
+    +'<td class="'+r.hilo.toLowerCase()+'">'+r.hilo+'</td>'
+    +'<td class="'+r.netVol.toLowerCase()+'">'+r.netVol+'</td>'
+    +'<td class="'+rsiColClass(r.rsi)+'">'+r.rsi.toFixed(2)+'</td>'
+    +'<td class="'+sc(r.signal)+'" style="font-weight:700">'+(r.signal==="BUY"?"✅ BUY":r.signal==="SELL"?"❌ SELL":"👀 "+r.signal)+'</td>'
+    +'<td>'+fmtUSD(r.price)+'</td><td>'+fmtUSD(r.stop)+'</td></tr>').join("");
+}
+
+// ─── Trades (localStorage — same key & schema as v1) ───────────────
 const TRADES_KEY='tf_trades_v1';
 function loadTrades(){try{return JSON.parse(localStorage.getItem(TRADES_KEY))||[];}catch(e){return[];}}
 function saveTrades(trades){localStorage.setItem(TRADES_KEY,JSON.stringify(trades));}
@@ -1179,23 +1560,83 @@ async function _fetchAudRate(dateStr){
   try{const res=await fetch('https://open.er-api.com/v6/latest/AUD');if(!res.ok)throw new Error();const data=await res.json();const rate=data?.rates?.USD;if(!rate)throw new Error();const result={rate,date:new Date().toISOString().slice(0,10),source:'Live'};if(isToday)_audLiveCache=result;return result;}catch(_){}
   throw new Error('All rate sources failed — enter manually');
 }
-async function fetchAndFillRate(){const dateStr=document.getElementById('fDateOpen').value.trim();const hint=document.getElementById('audRateHint');const input=document.getElementById('fAudUsdEntry');input.placeholder='Fetching…';input.value='';hint.textContent='Fetching rate…';hint.style.color='#e3b341';try{const{rate,date,source}=await _fetchAudRate(dateStr);input.value=rate.toFixed(4);hint.textContent='✅ '+source+' — '+date+' — 1 AUD = '+rate.toFixed(4)+' USD';hint.style.color='#3fb950';updateCostBasePreview();}catch(e){hint.textContent='⚠️ Could not fetch — enter manually ('+e.message+')';hint.style.color='#f85149';input.placeholder='e.g. 0.6300';}}
+async function fetchAndFillRate(){const dateStr=document.getElementById('fDateOpen').value.trim();const hint=document.getElementById('audRateHint');const input=document.getElementById('fAudUsdEntry');input.placeholder='Fetching…';input.value='';hint.textContent='Fetching rate…';hint.style.color='var(--amber)';try{const{rate,date,source}=await _fetchAudRate(dateStr);input.value=rate.toFixed(4);hint.textContent='✅ '+source+' — '+date+' — 1 AUD = '+rate.toFixed(4)+' USD';hint.style.color='var(--green)';updateCostBasePreview();}catch(e){hint.textContent='⚠️ Could not fetch — enter manually ('+e.message+')';hint.style.color='var(--red)';input.placeholder='e.g. 0.6300';}}
+function populateTickerSelect(){
+  const sel=document.getElementById('fTicker');
+  sel.innerHTML=Object.entries(ASSETS).map(([tk,a])=>'<option value="'+tk+'">'+tk+' — '+a.name.split(' ')[0]+'</option>').join('');
+}
 function autoFillForm(){const tk=document.getElementById('fTicker').value;const a=ASSETS[tk];if(!a)return;document.getElementById('fEntryPrice').value=a.price.toFixed(2);document.getElementById('fStopLoss').value=a.hiloVal.toFixed(2);const stopDist=a.price-a.hiloVal;document.getElementById('fTarget').value=(a.price+2*stopDist).toFixed(2);calcLinkedFields('price');updateCostBasePreview();}
 function calcLinkedFields(source){const price=parseFloat(document.getElementById('fEntryPrice').value)||0;if(!price)return;if(source==='usd'){const usd=parseFloat(document.getElementById('fUSD').value);if(!isNaN(usd))document.getElementById('fShares').value=(usd/price).toFixed(2);}else if(source==='shares'){const sh=parseFloat(document.getElementById('fShares').value);if(!isNaN(sh))document.getElementById('fUSD').value=(sh*price).toFixed(2);}else if(source==='price'){const sh=parseFloat(document.getElementById('fShares').value);const usd=parseFloat(document.getElementById('fUSD').value);if(!isNaN(sh)&&sh>0)document.getElementById('fUSD').value=(sh*price).toFixed(2);else if(!isNaN(usd)&&usd>0)document.getElementById('fShares').value=(usd/price).toFixed(2);}updateCostBasePreview();}
-function updateCostBasePreview(){const price=parseFloat(document.getElementById('fEntryPrice').value)||0;const shares=parseFloat(document.getElementById('fShares').value)||0;const brok=parseFloat(document.getElementById('fBrokerageEntry').value)||0;const audUsd=parseFloat(document.getElementById('fAudUsdEntry').value)||0;if(!price||!shares){document.getElementById('costBasePreview').textContent='Fill in the fields above to see cost base preview.';return;}const entryVal=price*shares;const costUSD=entryVal+brok;const costAUD=audUsd>0?costUSD/audUsd:null;document.getElementById('costBasePreview').innerHTML='<strong style="color:#e6edf3;">Cost Base Preview:</strong> &nbsp;'+shares.toFixed(2)+' shares @ '+fmtUSD(price)+' = '+fmtUSD(entryVal)+' + '+fmtUSD(brok)+' brokerage = <strong style="color:#ffa657;">'+fmtUSD(costUSD)+' USD</strong>'+(costAUD?' &nbsp;/&nbsp; <strong style="color:#3fb950;">'+fmtAUD(costAUD)+' AUD</strong> (at '+audUsd+' AUD/USD)':'');}
+function updateCostBasePreview(){const price=parseFloat(document.getElementById('fEntryPrice').value)||0;const shares=parseFloat(document.getElementById('fShares').value)||0;const brok=parseFloat(document.getElementById('fBrokerageEntry').value)||0;const audUsd=parseFloat(document.getElementById('fAudUsdEntry').value)||0;if(!price||!shares){document.getElementById('costBasePreview').textContent='Fill in the fields above to see cost base preview.';return;}const entryVal=price*shares;const costUSD=entryVal+brok;const costAUD=audUsd>0?costUSD/audUsd:null;document.getElementById('costBasePreview').innerHTML='<strong style="color:var(--text);">Cost Base Preview:</strong> &nbsp;'+shares.toFixed(2)+' shares @ '+fmtUSD(price)+' = '+fmtUSD(entryVal)+' + '+fmtUSD(brok)+' brokerage = <strong style="color:var(--orange);">'+fmtUSD(costUSD)+' USD</strong>'+(costAUD?' &nbsp;/&nbsp; <strong style="color:var(--green);">'+fmtAUD(costAUD)+' AUD</strong> (at '+audUsd+' AUD/USD)':'');}
 function toggleTradeForm(){const wrap=document.getElementById('tradeFormWrap');const visible=wrap.classList.toggle('visible');if(visible){document.getElementById('fDateOpen').value=todayStr();autoFillForm();fetchAndFillRate();}}
-function saveTrade(){const ticker=document.getElementById('fTicker').value;const dateOpen=document.getElementById('fDateOpen').value.trim();const price=parseFloat(document.getElementById('fEntryPrice').value);const shares=parseFloat(document.getElementById('fShares').value);const brok=parseFloat(document.getElementById('fBrokerageEntry').value)||0;const audUsd=parseFloat(document.getElementById('fAudUsdEntry').value)||0;const stop=parseFloat(document.getElementById('fStopLoss').value)||0;const target=parseFloat(document.getElementById('fTarget').value)||0;const notes=document.getElementById('fNotes').value.trim();if(!dateOpen||!price||!shares){alert('Please fill in Date, Entry Price, and Shares/USD Amount.');return;}const entryValueUSD=price*shares;const costBaseUSD=entryValueUSD+brok;const costBaseAUD=audUsd>0?costBaseUSD/audUsd:null;const trade={id:Date.now().toString(),status:'OPEN',ticker,dateOpen,shares,notes,entryPriceUSD:price,entryValueUSD:Math.round(entryValueUSD*100)/100,brokerageEntryUSD:brok,costBaseUSD:Math.round(costBaseUSD*100)/100,audUsdEntry:audUsd,costBaseAUD:costBaseAUD?Math.round(costBaseAUD*100)/100:null,stopLoss:stop,target:target,dateClosed:null,exitPriceUSD:null,exitValueUSD:null,brokerageExitUSD:null,proceedsUSD:null,audUsdExit:null,proceedsAUD:null,gainLossUSD:null,gainLossAUD:null,holdingDays:null,cgtEligible:null,netGainAUD:null};const trades=loadTrades();trades.push(trade);saveTrades(trades);document.getElementById('fShares').value='';document.getElementById('fUSD').value='';document.getElementById('fNotes').value='';document.getElementById('tradeFormWrap').classList.remove('visible');renderTrades();}
+function saveTrade(){const ticker=document.getElementById('fTicker').value;const dateOpen=document.getElementById('fDateOpen').value.trim();const price=parseFloat(document.getElementById('fEntryPrice').value);const shares=parseFloat(document.getElementById('fShares').value);const brok=parseFloat(document.getElementById('fBrokerageEntry').value)||0;const audUsd=parseFloat(document.getElementById('fAudUsdEntry').value)||0;const stop=parseFloat(document.getElementById('fStopLoss').value)||0;const target=parseFloat(document.getElementById('fTarget').value)||0;const notes=document.getElementById('fNotes').value.trim();if(!dateOpen||!price||!shares){alert('Please fill in Date, Entry Price, and Shares/USD Amount.');return;}const entryValueUSD=price*shares;const costBaseUSD=entryValueUSD+brok;const costBaseAUD=audUsd>0?costBaseUSD/audUsd:null;const trade={id:Date.now().toString(),status:'OPEN',ticker,dateOpen,shares,notes,entryPriceUSD:price,entryValueUSD:Math.round(entryValueUSD*100)/100,brokerageEntryUSD:brok,costBaseUSD:Math.round(costBaseUSD*100)/100,audUsdEntry:audUsd,costBaseAUD:costBaseAUD?Math.round(costBaseAUD*100)/100:null,stopLoss:stop,target:target,dateClosed:null,exitPriceUSD:null,exitValueUSD:null,brokerageExitUSD:null,proceedsUSD:null,audUsdExit:null,proceedsAUD:null,gainLossUSD:null,gainLossAUD:null,holdingDays:null,cgtEligible:null,netGainAUD:null};const trades=loadTrades();trades.push(trade);saveTrades(trades);document.getElementById('fShares').value='';document.getElementById('fUSD').value='';document.getElementById('fNotes').value='';document.getElementById('tradeFormWrap').classList.remove('visible');renderTrades();renderPositions();}
 function toggleCloseForm(id){const el=document.getElementById('closeForm_'+id);if(!el)return;const nowVisible=el.classList.toggle('visible');if(nowVisible)fetchAndFillCloseRate(id);}
-async function fetchAndFillCloseRate(id){const dateEl=document.getElementById('cf_date_'+id);const input=document.getElementById('cf_aud_'+id);const hint=document.getElementById('cf_aud_hint_'+id);if(!input||!hint)return;const dateStr=dateEl?.value?.trim()||'';input.value='';input.placeholder='Fetching…';hint.textContent='Fetching rate…';hint.style.color='#e3b341';try{const{rate,date,source}=await _fetchAudRate(dateStr);input.value=rate.toFixed(4);hint.textContent='✅ '+source+' — '+date+' — 1 AUD = '+rate.toFixed(4)+' USD';hint.style.color='#3fb950';}catch(e){hint.textContent='⚠️ Could not fetch — enter manually';hint.style.color='#f85149';input.placeholder='e.g. 0.6300';}}
-function confirmClose(id){const exitDate=document.getElementById('cf_date_'+id).value.trim();const exitPrice=parseFloat(document.getElementById('cf_price_'+id).value);const brokExit=parseFloat(document.getElementById('cf_brok_'+id).value)||0;const audUsdExit=parseFloat(document.getElementById('cf_aud_'+id).value)||0;if(!exitDate||!exitPrice){alert('Please enter Exit Date and Exit Price.');return;}const trades=loadTrades();const t=trades.find(x=>x.id===id);if(!t)return;const exitValueUSD=exitPrice*t.shares;const proceedsUSD=exitValueUSD-brokExit;const proceedsAUD=audUsdExit>0?proceedsUSD/audUsdExit:null;const gainLossUSD=proceedsUSD-t.costBaseUSD;const gainLossAUD=(proceedsAUD&&t.costBaseAUD)?proceedsAUD-t.costBaseAUD:null;const holdingDays=daysBetween(t.dateOpen,exitDate);const cgtEligible=holdingDays>=365;const netGainAUD=gainLossAUD!=null?(gainLossAUD>0&&cgtEligible?gainLossAUD*0.5:gainLossAUD):null;Object.assign(t,{status:'CLOSED',dateClosed:exitDate,exitPriceUSD:exitPrice,exitValueUSD:Math.round(exitValueUSD*100)/100,brokerageExitUSD:brokExit,proceedsUSD:Math.round(proceedsUSD*100)/100,audUsdExit,proceedsAUD:proceedsAUD?Math.round(proceedsAUD*100)/100:null,gainLossUSD:Math.round(gainLossUSD*100)/100,gainLossAUD:gainLossAUD?Math.round(gainLossAUD*100)/100:null,holdingDays,cgtEligible,netGainAUD:netGainAUD?Math.round(netGainAUD*100)/100:null});saveTrades(trades);renderTrades();}
-function deleteTrade(id){if(!confirm('Delete this trade record? This cannot be undone.'))return;const trades=loadTrades().filter(t=>t.id!==id);saveTrades(trades);renderTrades();}
-function renderTrades(){const trades=loadTrades();const open=trades.filter(t=>t.status==='OPEN');const closed=trades.filter(t=>t.status==='CLOSED');const totalCostUSD=open.reduce((s,t)=>s+t.costBaseUSD,0);const totalRealizedAUD=closed.reduce((s,t)=>s+(t.netGainAUD||0),0);const totalRealizedUSD=closed.reduce((s,t)=>s+(t.gainLossUSD||0),0);document.getElementById('pnlStrip').innerHTML='<div class="pnl-card"><div class="pl">Open Positions</div><div class="pv blue">'+open.length+'</div></div><div class="pnl-card"><div class="pl">Capital at Risk (USD)</div><div class="pv amber">'+(open.length?fmtUSD(totalCostUSD):'—')+'</div></div><div class="pnl-card"><div class="pl">Realised P&L (USD)</div><div class="pv '+(totalRealizedUSD>=0?'green':'red')+'">'+(closed.length?fmtUSD(totalRealizedUSD):'—')+'</div></div><div class="pnl-card"><div class="pl">Net CGT Gain (AUD)</div><div class="pv '+(totalRealizedAUD>=0?'green':'red')+'">'+(closed.length?fmtAUD(totalRealizedAUD):'—')+'</div></div><div class="pnl-card"><div class="pl">Closed Trades</div><div class="pv blue">'+closed.length+'</div></div>';
-document.getElementById('openCount').textContent=open.length+' position'+(open.length!==1?'s':'');
-document.getElementById('closedCount').textContent=closed.length+' trade'+(closed.length!==1?'s':'');
-document.getElementById('openTradesList').innerHTML=open.length?open.map(t=>{const a=ASSETS[t.ticker];const curPrice=a?a.price:null;const unrealPnL=curPrice?(curPrice-t.entryPriceUSD)*t.shares:null;return'<div class="trade-card open-trade"><div class="trade-card-header"><div class="trade-card-title"><div class="trade-ticker">'+t.ticker+'</div><div class="trade-date">Opened '+t.dateOpen+'</div>'+(t.notes?'<div style="font-size:.7rem;color:#8b949e;font-style:italic">'+t.notes+'</div>':'')+'</div><span class="trade-status-badge open">🟢 OPEN</span></div><div class="trade-card-body"><div class="trade-metrics"><div class="trade-metric"><div class="tm-label">Shares</div><div class="tm-val">'+t.shares+'</div></div><div class="trade-metric"><div class="tm-label">Entry Price</div><div class="tm-val">'+fmtUSD(t.entryPriceUSD)+'</div></div><div class="trade-metric"><div class="tm-label">Cost Base (USD)</div><div class="tm-val amber">'+fmtUSD(t.costBaseUSD)+'</div></div><div class="trade-metric"><div class="tm-label">Cost Base (AUD)</div><div class="tm-val amber">'+(t.costBaseAUD?fmtAUD(t.costBaseAUD):'—')+'</div></div><div class="trade-metric"><div class="tm-label">Stop Loss</div><div class="tm-val red">'+fmtUSD(t.stopLoss)+'</div></div><div class="trade-metric"><div class="tm-label">Target (2:1)</div><div class="tm-val green">'+fmtUSD(t.target)+'</div></div>'+(curPrice?'<div class="trade-metric"><div class="tm-label">Current Price</div><div class="tm-val blue">'+fmtUSD(curPrice)+'</div></div>':'')+(unrealPnL!=null?'<div class="trade-metric"><div class="tm-label">Unreal. P&L (USD)</div><div class="tm-val '+(unrealPnL>=0?'green':'red')+'">'+fmtUSD(unrealPnL)+'</div></div>':'')+'</div><div class="trade-card-actions"><button class="btn btn-warning btn-sm" onclick="toggleCloseForm(\''+t.id+'\')">📤 Close Trade</button><button class="btn btn-outline btn-sm" onclick="deleteTrade(\''+t.id+'\')">🗑 Delete</button></div><div class="close-form" id="closeForm_'+t.id+'"><h4>📤 Close Position — '+t.ticker+'</h4><div class="close-form-grid"><div class="form-group"><label class="form-label">Exit Date</label><input class="form-input" type="text" id="cf_date_'+t.id+'" value="'+todayStr()+'" placeholder="DD/MM/YYYY"/></div><div class="form-group"><label class="form-label">Exit Price (USD)</label><input class="form-input" type="number" id="cf_price_'+t.id+'" step="0.01" placeholder="e.g. 720.00"/></div><div class="form-group"><label class="form-label">Brokerage Exit (USD)</label><input class="form-input" type="number" id="cf_brok_'+t.id+'" value="3" step="0.01"/></div><div class="form-group"><label class="form-label">AUD/USD Rate (Exit)</label><input class="form-input auto-fill" type="number" id="cf_aud_'+t.id+'" step="0.0001" placeholder="Fetching…"/><span class="form-hint" id="cf_aud_hint_'+t.id+'" style="font-size:.68rem;color:#8b949e;">Auto-fetched for exit date</span></div></div><div class="form-actions" style="margin-top:12px;"><button class="btn btn-danger btn-sm" onclick="confirmClose(\''+t.id+'\')">✅ Confirm Close</button><button class="btn btn-outline btn-sm" onclick="toggleCloseForm(\''+t.id+'\')">Cancel</button></div></div></div></div>';}).join(''):'<div class="empty-state"><div class="es-icon">📭</div><p>No open positions yet.<br/>Click <strong>+ Add Trade</strong> to record your first entry.</p></div>';
-document.getElementById('closedTradesList').innerHTML=closed.length?closed.map(t=>{const gain=t.gainLossUSD||0;const cardClass=gain>=0?'profit':'loss';return'<div class="trade-card closed-trade '+cardClass+'"><div class="trade-card-header"><div class="trade-card-title"><div class="trade-ticker">'+t.ticker+'</div><div class="trade-date">'+t.dateOpen+' → '+t.dateClosed+' ('+t.holdingDays+'d)</div>'+(t.notes?'<div style="font-size:.7rem;color:#8b949e;font-style:italic">'+t.notes+'</div>':'')+'</div><div style="display:flex;gap:8px;align-items:center;"><strong style="color:'+(gain>=0?'#3fb950':'#f85149')+';;font-size:.95rem;">'+fmtUSD(gain)+'</strong><span class="trade-status-badge closed">CLOSED</span></div></div><div class="trade-card-body"><div class="trade-metrics"><div class="trade-metric"><div class="tm-label">Shares</div><div class="tm-val">'+t.shares+'</div></div><div class="trade-metric"><div class="tm-label">Entry → Exit</div><div class="tm-val">'+fmtUSD(t.entryPriceUSD)+' → '+fmtUSD(t.exitPriceUSD)+'</div></div><div class="trade-metric"><div class="tm-label">Cost Base (AUD)</div><div class="tm-val">'+(t.costBaseAUD?fmtAUD(t.costBaseAUD):'—')+'</div></div><div class="trade-metric"><div class="tm-label">Proceeds (AUD)</div><div class="tm-val">'+(t.proceedsAUD?fmtAUD(t.proceedsAUD):'—')+'</div></div><div class="trade-metric"><div class="tm-label">Gain/Loss (USD)</div><div class="tm-val '+(gain>=0?'green':'red')+'">'+fmtUSD(gain)+'</div></div><div class="trade-metric"><div class="tm-label">Gain/Loss (AUD)</div><div class="tm-val '+((t.gainLossAUD||0)>=0?'green':'red')+'">'+(t.gainLossAUD!=null?fmtAUD(t.gainLossAUD):'—')+'</div></div><div class="trade-metric"><div class="tm-label">CGT 50% Discount</div><div class="tm-val '+(t.cgtEligible?'green':'amber')+'">'+(t.cgtEligible?'✅ Eligible':'❌ < 12 months')+'</div></div><div class="trade-metric"><div class="tm-label">Net CGT Gain (AUD)</div><div class="tm-val '+((t.netGainAUD||0)>=0?'green':'red')+'">'+(t.netGainAUD!=null?fmtAUD(t.netGainAUD):'—')+'</div></div></div><div class="trade-card-actions"><button class="btn btn-outline btn-sm" onclick="deleteTrade(\''+t.id+'\')">🗑 Delete</button></div></div></div>';}).join(''):'<div class="empty-state"><div class="es-icon">📁</div><p>No closed trades yet.</p></div>';}
-function exportATO(){const trades=loadTrades();if(!trades.length){alert('No trades to export yet. Add your first trade first.');return;}const wb=XLSX.utils.book_new();const jH=['#','Status','Ticker','Date Opened','Date Closed','Holding (days)','Shares','Entry Price (USD)','Entry Value (USD)','Brokerage Entry (USD)','Cost Base (USD)','AUD/USD (Entry)','Cost Base (AUD)','Exit Price (USD)','Exit Value (USD)','Brokerage Exit (USD)','Proceeds (USD)','AUD/USD (Exit)','Proceeds (AUD)','Gain/Loss (USD)','Gain/Loss (AUD)','CGT 50% Discount Eligible','Net CGT Gain/Loss (AUD)','Stop Loss','Target','Notes'];const jR=trades.map((t,i)=>[i+1,t.status,t.ticker,t.dateOpen,t.dateClosed||'OPEN',t.holdingDays||'',t.shares,t.entryPriceUSD,t.entryValueUSD,t.brokerageEntryUSD,t.costBaseUSD,t.audUsdEntry,t.costBaseAUD||'',t.exitPriceUSD||'',t.exitValueUSD||'',t.brokerageExitUSD||'',t.proceedsUSD||'',t.audUsdExit||'',t.proceedsAUD||'',t.gainLossUSD||'',t.gainLossAUD||'',t.cgtEligible===null?'':(t.cgtEligible?'YES (50% discount)':'NO (<12 months)'),t.netGainAUD||'',t.stopLoss,t.target,t.notes||'']);const wsJ=XLSX.utils.aoa_to_sheet([jH,...jR]);wsJ['!cols']=jH.map(h=>({wch:Math.max(h.length,12)}));const rng=XLSX.utils.decode_range(wsJ['!ref']);for(let C=rng.s.c;C<=rng.e.c;C++){const addr=XLSX.utils.encode_cell({r:0,c:C});if(!wsJ[addr])continue;wsJ[addr].s={font:{bold:true,color:{rgb:"FFFFFF"}},fill:{fgColor:{rgb:"0F3460"}},alignment:{horizontal:"center"}};}XLSX.utils.book_append_sheet(wb,wsJ,'Trade Journal');const closed=trades.filter(t=>t.status==='CLOSED');const aH=['CGT Event #','Ticker','Date of Acquisition','Date of Disposal','Holding Period (days)','CGT 50% Discount','Cost Base (AUD)','Capital Proceeds (AUD)','Capital Gain / (Loss) AUD','Net Taxable Gain (AUD)','Notes'];const aR=closed.map((t,i)=>[i+1,t.ticker,t.dateOpen,t.dateClosed||'',t.holdingDays||'',t.cgtEligible?'YES — 50% discount applies':'NO — held < 12 months',t.costBaseAUD||'',t.proceedsAUD||'',t.gainLossAUD||'',t.netGainAUD||'',t.notes||'']);if(closed.length){const tCA=closed.reduce((s,t)=>s+(t.costBaseAUD||0),0);const tPA=closed.reduce((s,t)=>s+(t.proceedsAUD||0),0);const tGA=closed.reduce((s,t)=>s+(t.gainLossAUD||0),0);const tNA=closed.reduce((s,t)=>s+(t.netGainAUD||0),0);aR.push(['TOTAL','','','','','',Math.round(tCA*100)/100,Math.round(tPA*100)/100,Math.round(tGA*100)/100,Math.round(tNA*100)/100,'']);}const wsA=XLSX.utils.aoa_to_sheet([aH,...aR]);wsA['!cols']=aH.map(h=>({wch:Math.max(h.length+2,14)}));const aRng=XLSX.utils.decode_range(wsA['!ref']);for(let C=aRng.s.c;C<=aRng.e.c;C++){const addr=XLSX.utils.encode_cell({r:0,c:C});if(!wsA[addr])continue;wsA[addr].s={font:{bold:true,color:{rgb:"FFFFFF"}},fill:{fgColor:{rgb:"1e6b2e"}},alignment:{horizontal:"center"}};}XLSX.utils.book_append_sheet(wb,wsA,'ATO CGT Summary');const nD=[['AUSTRALIAN TAX OFFICE — CGT REPORTING NOTES'],[''],['Generated by:','Trend Following Dashboard — Shark Strategy'],['Export date:',new Date().toLocaleDateString('en-AU')],['Platform:','Stake (AU-based US stock broker, long-only)'],[''],['KEY ATO RULES APPLIED:'],['CGT 50% Discount:','Applies to assets held 12+ months by Australian residents (individuals). Reduces net capital gain by 50%.'],['Cost Base:','Purchase price + brokerage commissions (entry). See ATO s110-25.'],['Capital Proceeds:','Sale price - brokerage commissions (exit). See ATO s116-20.'],['Foreign Currency:','All USD amounts converted to AUD at the exchange rate on the date of the transaction (ATO TR 2014/6).'],['CGT Event A1:','Disposal of a CGT asset (shares). Report in the year of disposal.'],[''],['DISCLAIMER:','This spreadsheet is a record-keeping aid only. Consult a registered tax agent for ATO compliance advice.'],['ATO Reference:','ato.gov.au/individuals-and-families/investments-and-assets/capital-gains-tax']];const wsN=XLSX.utils.aoa_to_sheet(nD);wsN['!cols']=[{wch:22},{wch:80}];wsN['!merges']=[{s:{r:0,c:0},e:{r:0,c:1}}];XLSX.utils.book_append_sheet(wb,wsN,'ATO Notes');const today=new Date().toISOString().slice(0,10);XLSX.writeFile(wb,'TrendFollowing_ATO_'+today+'.xlsx');}
+async function fetchAndFillCloseRate(id){const dateEl=document.getElementById('cf_date_'+id);const input=document.getElementById('cf_aud_'+id);const hint=document.getElementById('cf_aud_hint_'+id);if(!input||!hint)return;const dateStr=dateEl?.value?.trim()||'';input.value='';input.placeholder='Fetching…';hint.textContent='Fetching rate…';hint.style.color='var(--amber)';try{const{rate,date,source}=await _fetchAudRate(dateStr);input.value=rate.toFixed(4);hint.textContent='✅ '+source+' — '+date+' — 1 AUD = '+rate.toFixed(4)+' USD';hint.style.color='var(--green)';}catch(e){hint.textContent='⚠️ Could not fetch — enter manually';hint.style.color='var(--red)';input.placeholder='e.g. 0.6300';}}
+function confirmClose(id){const exitDate=document.getElementById('cf_date_'+id).value.trim();const exitPrice=parseFloat(document.getElementById('cf_price_'+id).value);const brokExit=parseFloat(document.getElementById('cf_brok_'+id).value)||0;const audUsdExit=parseFloat(document.getElementById('cf_aud_'+id).value)||0;if(!exitDate||!exitPrice){alert('Please enter Exit Date and Exit Price.');return;}const trades=loadTrades();const t=trades.find(x=>x.id===id);if(!t)return;const exitValueUSD=exitPrice*t.shares;const proceedsUSD=exitValueUSD-brokExit;const proceedsAUD=audUsdExit>0?proceedsUSD/audUsdExit:null;const gainLossUSD=proceedsUSD-t.costBaseUSD;const gainLossAUD=(proceedsAUD&&t.costBaseAUD)?proceedsAUD-t.costBaseAUD:null;const holdingDays=daysBetween(t.dateOpen,exitDate);const cgtEligible=holdingDays>=365;const netGainAUD=gainLossAUD!=null?(gainLossAUD>0&&cgtEligible?gainLossAUD*0.5:gainLossAUD):null;Object.assign(t,{status:'CLOSED',dateClosed:exitDate,exitPriceUSD:exitPrice,exitValueUSD:Math.round(exitValueUSD*100)/100,brokerageExitUSD:brokExit,proceedsUSD:Math.round(proceedsUSD*100)/100,audUsdExit,proceedsAUD:proceedsAUD?Math.round(proceedsAUD*100)/100:null,gainLossUSD:Math.round(gainLossUSD*100)/100,gainLossAUD:gainLossAUD?Math.round(gainLossAUD*100)/100:null,holdingDays,cgtEligible,netGainAUD:netGainAUD?Math.round(netGainAUD*100)/100:null});saveTrades(trades);renderTrades();renderPositions();renderPerformance();}
+function deleteTrade(id){if(!confirm('Delete this trade record? This cannot be undone.'))return;const trades=loadTrades().filter(t=>t.id!==id);saveTrades(trades);renderTrades();renderPositions();renderPerformance();}
+function closeFormHTML(t){
+  return '<div class="close-form" id="closeForm_'+t.id+'"><h4>📤 Close '+t.ticker+' — record exit</h4>'
+    +'<div class="form-grid">'
+    +'<div class="form-group"><label class="form-label">Exit Date</label><input class="form-input" type="text" id="cf_date_'+t.id+'" value="'+todayStr()+'" placeholder="DD/MM/YYYY" onchange="fetchAndFillCloseRate(\''+t.id+'\')"/></div>'
+    +'<div class="form-group"><label class="form-label">Exit Price (USD)</label><input class="form-input" type="number" step="0.01" id="cf_price_'+t.id+'" placeholder="e.g. '+(ASSETS[t.ticker]?ASSETS[t.ticker].price.toFixed(2):'0.00')+'"/></div>'
+    +'<div class="form-group"><label class="form-label">Brokerage — Exit (USD)</label><input class="form-input" type="number" step="0.01" id="cf_brok_'+t.id+'" value="3"/></div>'
+    +'<div class="form-group"><label class="form-label">AUD/USD Rate (Exit)</label><input class="form-input auto-fill" type="number" step="0.0001" id="cf_aud_'+t.id+'" placeholder="Fetching…"/><span class="form-hint" id="cf_aud_hint_'+t.id+'">Auto-fetched for exit date</span></div>'
+    +'</div><div class="form-actions"><button class="btn btn-success btn-sm" onclick="confirmClose(\''+t.id+'\')">✅ Confirm Close</button><button class="btn btn-outline btn-sm" onclick="toggleCloseForm(\''+t.id+'\')">Cancel</button></div></div>';
+}
+function renderTrades(){
+  const trades=loadTrades();
+  const open=trades.filter(t=>t.status==='OPEN');
+  const closed=trades.filter(t=>t.status==='CLOSED');
+  const totalCostUSD=open.reduce((s,t)=>s+t.costBaseUSD,0);
+  const totalRealizedAUD=closed.reduce((s,t)=>s+(t.netGainAUD||0),0);
+  const totalRealizedUSD=closed.reduce((s,t)=>s+(t.gainLossUSD||0),0);
+  document.getElementById('pnlStrip').innerHTML=
+    '<div class="pnl-card"><div class="pl">Open Positions</div><div class="pv blue">'+open.length+'</div></div>'
+    +'<div class="pnl-card"><div class="pl">Capital at Risk (USD)</div><div class="pv amber">'+(open.length?fmtUSD(totalCostUSD):'—')+'</div></div>'
+    +'<div class="pnl-card"><div class="pl">Realised P&L (USD)</div><div class="pv '+(totalRealizedUSD>=0?'green':'red')+'">'+(closed.length?fmtUSD(totalRealizedUSD):'—')+'</div></div>'
+    +'<div class="pnl-card"><div class="pl">Net CGT Gain (AUD)</div><div class="pv '+(totalRealizedAUD>=0?'green':'red')+'">'+(closed.length?fmtAUD(totalRealizedAUD):'—')+'</div></div>'
+    +'<div class="pnl-card"><div class="pl">Closed Trades</div><div class="pv blue">'+closed.length+'</div></div>';
+  document.getElementById('openCount').textContent=open.length+' position'+(open.length!==1?'s':'');
+  document.getElementById('closedCount').textContent=closed.length+' trade'+(closed.length!==1?'s':'');
+  document.getElementById('openTradesList').innerHTML=open.length?open.map(t=>{
+    const a=ASSETS[t.ticker];const curPrice=a?a.price:null;
+    const unrealPnL=curPrice?(curPrice-t.entryPriceUSD)*t.shares:null;
+    return '<div class="trade-card open-trade"><div class="trade-card-header"><div class="trade-card-title"><div class="trade-ticker">'+t.ticker+'</div><div class="trade-date">Opened '+t.dateOpen+'</div>'+(t.notes?'<div style="font-size:.7rem;color:var(--text-faint);font-style:italic">'+esc(t.notes)+'</div>':'')+'</div><span class="trade-status-badge open">🟢 OPEN</span></div><div class="trade-card-body"><div class="trade-metrics">'
+      +'<div class="trade-metric"><div class="tm-label">Shares</div><div class="tm-val">'+t.shares+'</div></div>'
+      +'<div class="trade-metric"><div class="tm-label">Entry Price</div><div class="tm-val">'+fmtUSD(t.entryPriceUSD)+'</div></div>'
+      +'<div class="trade-metric"><div class="tm-label">Cost Base (USD)</div><div class="tm-val amber">'+fmtUSD(t.costBaseUSD)+'</div></div>'
+      +'<div class="trade-metric"><div class="tm-label">Cost Base (AUD)</div><div class="tm-val amber">'+(t.costBaseAUD?fmtAUD(t.costBaseAUD):'—')+'</div></div>'
+      +'<div class="trade-metric"><div class="tm-label">Stop Loss</div><div class="tm-val red">'+fmtUSD(t.stopLoss)+'</div></div>'
+      +'<div class="trade-metric"><div class="tm-label">Target (2:1)</div><div class="tm-val green">'+fmtUSD(t.target)+'</div></div>'
+      +(curPrice?'<div class="trade-metric"><div class="tm-label">Current Price</div><div class="tm-val blue">'+fmtUSD(curPrice)+'</div></div>':'')
+      +(unrealPnL!=null?'<div class="trade-metric"><div class="tm-label">Unreal. P&L (USD)</div><div class="tm-val '+(unrealPnL>=0?'green':'red')+'">'+fmtUSD(unrealPnL)+'</div></div>':'')
+      +'</div><div class="trade-card-actions"><button class="btn btn-warning btn-sm" onclick="toggleCloseForm(\''+t.id+'\')">📤 Close Trade</button><button class="btn btn-outline btn-sm" onclick="deleteTrade(\''+t.id+'\')">🗑 Delete</button></div>'
+      +closeFormHTML(t)+'</div></div>';
+  }).join(''):'<div class="empty-state">No open positions — hit <strong>＋ Add Trade</strong> when a BUY signal fires.</div>';
+  document.getElementById('closedTradesList').innerHTML=closed.length?closed.map(t=>{
+    const gain=t.gainLossUSD||0;const cardClass=gain>=0?'profit':'loss';
+    return '<div class="trade-card closed-trade '+cardClass+'"><div class="trade-card-header"><div class="trade-card-title"><div class="trade-ticker">'+t.ticker+'</div><div class="trade-date">'+t.dateOpen+' → '+t.dateClosed+' ('+t.holdingDays+'d)</div>'+(t.notes?'<div style="font-size:.7rem;color:var(--text-faint);font-style:italic">'+esc(t.notes)+'</div>':'')+'</div><div style="display:flex;gap:8px;align-items:center;"><strong style="color:'+(gain>=0?'var(--green)':'var(--red)')+';font-size:.95rem;">'+fmtUSD(gain)+'</strong><span class="trade-status-badge closed">CLOSED</span></div></div><div class="trade-card-body"><div class="trade-metrics">'
+      +'<div class="trade-metric"><div class="tm-label">Shares</div><div class="tm-val">'+t.shares+'</div></div>'
+      +'<div class="trade-metric"><div class="tm-label">Entry → Exit</div><div class="tm-val">'+fmtUSD(t.entryPriceUSD)+' → '+fmtUSD(t.exitPriceUSD)+'</div></div>'
+      +'<div class="trade-metric"><div class="tm-label">Cost Base (AUD)</div><div class="tm-val">'+(t.costBaseAUD?fmtAUD(t.costBaseAUD):'—')+'</div></div>'
+      +'<div class="trade-metric"><div class="tm-label">Proceeds (AUD)</div><div class="tm-val">'+(t.proceedsAUD?fmtAUD(t.proceedsAUD):'—')+'</div></div>'
+      +'<div class="trade-metric"><div class="tm-label">Gain/Loss (USD)</div><div class="tm-val '+(gain>=0?'green':'red')+'">'+fmtUSD(gain)+'</div></div>'
+      +'<div class="trade-metric"><div class="tm-label">Gain/Loss (AUD)</div><div class="tm-val '+((t.gainLossAUD||0)>=0?'green':'red')+'">'+(t.gainLossAUD!=null?fmtAUD(t.gainLossAUD):'—')+'</div></div>'
+      +'<div class="trade-metric"><div class="tm-label">CGT 50% Discount</div><div class="tm-val '+(t.cgtEligible?'green':'amber')+'">'+(t.cgtEligible?'✅ Eligible':'❌ < 12 months')+'</div></div>'
+      +'<div class="trade-metric"><div class="tm-label">Net CGT Gain (AUD)</div><div class="tm-val '+((t.netGainAUD||0)>=0?'green':'red')+'">'+(t.netGainAUD!=null?fmtAUD(t.netGainAUD):'—')+'</div></div>'
+      +'</div><div class="trade-card-actions"><button class="btn btn-outline btn-sm" onclick="deleteTrade(\''+t.id+'\')">🗑 Delete</button></div></div></div>';
+  }).join(''):'<div class="empty-state">No closed trades yet.</div>';
+}
+
+// ─── ATO Export (unchanged from v1) ────────────────────────────────
+function exportATO(){const trades=loadTrades();if(!trades.length){alert('No trades to export yet. Add your first trade first.');return;}const wb=XLSX.utils.book_new();const jH=['#','Status','Ticker','Date Opened','Date Closed','Holding (days)','Shares','Entry Price (USD)','Entry Value (USD)','Brokerage Entry (USD)','Cost Base (USD)','AUD/USD (Entry)','Cost Base (AUD)','Exit Price (USD)','Exit Value (USD)','Brokerage Exit (USD)','Proceeds (USD)','AUD/USD (Exit)','Proceeds (AUD)','Gain/Loss (USD)','Gain/Loss (AUD)','CGT 50% Discount Eligible','Net CGT Gain/Loss (AUD)','Stop Loss','Target','Notes'];const jR=trades.map((t,i)=>[i+1,t.status,t.ticker,t.dateOpen,t.dateClosed||'OPEN',t.holdingDays||'',t.shares,t.entryPriceUSD,t.entryValueUSD,t.brokerageEntryUSD,t.costBaseUSD,t.audUsdEntry,t.costBaseAUD||'',t.exitPriceUSD||'',t.exitValueUSD||'',t.brokerageExitUSD||'',t.proceedsUSD||'',t.audUsdExit||'',t.proceedsAUD||'',t.gainLossUSD||'',t.gainLossAUD||'',t.cgtEligible===null?'':(t.cgtEligible?'YES (50% discount)':'NO (<12 months)'),t.netGainAUD||'',t.stopLoss,t.target,t.notes||'']);const wsJ=XLSX.utils.aoa_to_sheet([jH,...jR]);wsJ['!cols']=jH.map(h=>({wch:Math.max(h.length,12)}));XLSX.utils.book_append_sheet(wb,wsJ,'Trade Journal');const closed=trades.filter(t=>t.status==='CLOSED');const aH=['CGT Event #','Ticker','Date of Acquisition','Date of Disposal','Holding Period (days)','CGT 50% Discount','Cost Base (AUD)','Capital Proceeds (AUD)','Capital Gain / (Loss) AUD','Net Taxable Gain (AUD)','Notes'];const aR=closed.map((t,i)=>[i+1,t.ticker,t.dateOpen,t.dateClosed||'',t.holdingDays||'',t.cgtEligible?'YES — 50% discount applies':'NO — held < 12 months',t.costBaseAUD||'',t.proceedsAUD||'',t.gainLossAUD||'',t.netGainAUD||'',t.notes||'']);if(closed.length){const tCA=closed.reduce((s,t)=>s+(t.costBaseAUD||0),0);const tPA=closed.reduce((s,t)=>s+(t.proceedsAUD||0),0);const tGA=closed.reduce((s,t)=>s+(t.gainLossAUD||0),0);const tNA=closed.reduce((s,t)=>s+(t.netGainAUD||0),0);aR.push(['TOTAL','','','','','',Math.round(tCA*100)/100,Math.round(tPA*100)/100,Math.round(tGA*100)/100,Math.round(tNA*100)/100,'']);}const wsA=XLSX.utils.aoa_to_sheet([aH,...aR]);wsA['!cols']=aH.map(h=>({wch:Math.max(h.length+2,14)}));XLSX.utils.book_append_sheet(wb,wsA,'ATO CGT Summary');const nD=[['AUSTRALIAN TAX OFFICE — CGT REPORTING NOTES'],[''],['Generated by:','Trend Following Dashboard — Shark Strategy'],['Export date:',new Date().toLocaleDateString('en-AU')],['Platform:','Stake (AU-based US stock broker, long-only)'],[''],['KEY ATO RULES APPLIED:'],['CGT 50% Discount:','Applies to assets held 12+ months by Australian residents (individuals). Reduces net capital gain by 50%.'],['Cost Base:','Purchase price + brokerage commissions (entry). See ATO s110-25.'],['Capital Proceeds:','Sale price - brokerage commissions (exit). See ATO s116-20.'],['Foreign Currency:','All USD amounts converted to AUD at the exchange rate on the date of the transaction (ATO TR 2014/6).'],['CGT Event A1:','Disposal of a CGT asset (shares). Report in the year of disposal.'],[''],['DISCLAIMER:','This spreadsheet is a record-keeping aid only. Consult a registered tax agent for ATO compliance advice.'],['ATO Reference:','ato.gov.au/individuals-and-families/investments-and-assets/capital-gains-tax']];const wsN=XLSX.utils.aoa_to_sheet(nD);wsN['!cols']=[{wch:22},{wch:80}];wsN['!merges']=[{s:{r:0,c:0},e:{r:0,c:1}}];XLSX.utils.book_append_sheet(wb,wsN,'ATO Notes');const today=new Date().toISOString().slice(0,10);XLSX.writeFile(wb,'TrendFollowing_ATO_'+today+'.xlsx');}
+
+// ─── Boot ──────────────────────────────────────────────────────────
+loadSettings();
+populateTickerSelect();
+renderLogFilters();
 refresh();
+renderTrades();
 _fetchAudRate('').catch(()=>{});
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 </script>
