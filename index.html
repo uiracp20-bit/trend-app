@@ -277,7 +277,7 @@ strong { font-weight:650; }
     <div>
       <h1><span class="logo">📈</span> Trend Following <span class="accent">Dashboard</span></h1>
       <div class="hero-meta">
-        <span class="badge prep">🟡 PRE-CLOSE</span>
+        <span class="badge prep">🌙 EVENING PREP</span>
         <span class="badge date">📅 03/07/2026</span>
         <span class="badge">Strategy: <strong>Shark</strong></span>
         <span class="badge">Platform: <strong>Stake</strong> · Long Only</span>
@@ -335,8 +335,9 @@ strong { font-weight:650; }
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
         <button class="btn btn-primary" onclick="toggleTradeForm()">＋ Add Trade</button>
         <button class="btn btn-excel" onclick="exportATO()">📊 Export ATO Excel</button>
+        <button class="btn btn-outline" onclick="backupTrades()">💾 Backup trades.json</button>
       </div>
-      <span style="font-size:.7rem;color:var(--text-faint);">Data saved in browser · ATO = Australian Tax Office CGT format</span>
+      <span style="font-size:.7rem;color:var(--text-faint);">Data saved in browser · 💾 Save trades.json into the project folder to enable phone position alerts</span>
     </div>
     <div class="trade-form-wrap" id="tradeFormWrap">
       <h3>📝 Record New Trade (BUY Entry)</h3>
@@ -463,12 +464,12 @@ strong { font-weight:650; }
   <div class="footer"><strong>Trend Following System</strong> — Shark Strategy · Stake Platform · All signals for educational purposes only.</div>
 </div>
 <script>
-// ─── Live Data (PRE-CLOSE 03/07/2026 05:37 AEDT) ── ✅ AUTO via yfinance ──
+// ─── Live Data (EVENING PREP 03/07/2026 20:03 AEDT) ── ✅ AUTO via yfinance ──
 const ASSETS = {
-  NVDA: { name:"NVIDIA Corporation", price:193.46, hiloVal:209.34, hiHigh:209.34, hiLow:202.52, rsi:40.18, hiloSignal:"SELL", netVol:"BEARISH", period:23 },
-  AAPL: { name:"Apple Inc.", price:308.27, hiloVal:286.14, hiHigh:295.77, hiLow:286.14, rsi:60.13, hiloSignal:"BUY", netVol:"BULLISH", period:9 },
-  META: { name:"Meta Platforms Inc.", price:585.01, hiloVal:563.96, hiHigh:582.22, hiLow:563.96, rsi:50.27, hiloSignal:"BUY", netVol:"BULLISH", period:15 },
-  QQQ: { name:"Nasdaq 100 ETF", price:710.31, hiloVal:730.64, hiHigh:730.64, hiLow:717.12, rsi:47.54, hiloSignal:"SELL", netVol:"BEARISH", period:30 }
+  NVDA: { name:"NVIDIA Corporation", price:194.83, hiloVal:209.34, hiHigh:209.34, hiLow:202.52, rsi:41.15, hiloSignal:"SELL", netVol:"BEARISH", period:23 },
+  AAPL: { name:"Apple Inc.", price:308.63, hiloVal:286.14, hiHigh:295.87, hiLow:286.14, rsi:60.31, hiloSignal:"BUY", netVol:"BULLISH", period:9 },
+  META: { name:"Meta Platforms Inc.", price:582.9, hiloVal:563.96, hiHigh:582.22, hiLow:563.96, rsi:49.74, hiloSignal:"BUY", netVol:"BULLISH", period:15 },
+  QQQ: { name:"Nasdaq 100 ETF", price:712.6, hiloVal:730.64, hiHigh:730.64, hiLow:717.12, rsi:48.25, hiloSignal:"SELL", netVol:"BEARISH", period:30 }
 };
 const LOG = [
   { date:"13/04/2026", ticker:"NVDA", hilo:"BUY",     netVol:"BEARISH", rsi:68.17, signal:"WATCH", price:188.63, stop:176.30 },
@@ -1182,15 +1183,20 @@ const LOG = [
   { date:"01/07/2026", ticker:"META", hilo:"BUY", netVol:"BULLISH", rsi:58.7, signal:"BUY", price:612.91, stop:563.27 },  // ✅ EVENING PREP 02/07/2026 20:03 AEDT
   { date:"01/07/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:52.64, signal:"WATCH", price:725.17, stop:716.69 },  // 👀 EVENING PREP 02/07/2026 20:03 AEDT
 
-  { date:"02/07/2026", ticker:"NVDA", hilo:"SELL", netVol:"BEARISH", rsi:40.26, signal:"SELL", price:193.58, stop:209.34 },  // ❌ PRE-CLOSE 03/07/2026 05:35 AEDT
-  { date:"02/07/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:60.05, signal:"BUY", price:308.11, stop:286.14 },  // ✅ PRE-CLOSE 03/07/2026 05:35 AEDT
-  { date:"02/07/2026", ticker:"META", hilo:"BUY", netVol:"BULLISH", rsi:50.31, signal:"BUY", price:585.15, stop:563.96 },  // ✅ PRE-CLOSE 03/07/2026 05:35 AEDT
-  { date:"02/07/2026", ticker:"QQQ", hilo:"SELL", netVol:"BEARISH", rsi:47.74, signal:"SELL", price:710.93, stop:730.64 },  // ❌ PRE-CLOSE 03/07/2026 05:35 AEDT
+  { date:"02/07/2026", ticker:"NVDA", hilo:"SELL", netVol:"BEARISH", rsi:41.15, signal:"SELL", price:194.83, stop:209.34 },  // ❌ EVENING PREP 03/07/2026 07:09 AEDT (re-patch after v2 promotion)
+  { date:"02/07/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:60.31, signal:"BUY", price:308.63, stop:286.14 },  // ✅ EVENING PREP 03/07/2026 07:09 AEDT (re-patch after v2 promotion)
+  { date:"02/07/2026", ticker:"META", hilo:"BUY", netVol:"BULLISH", rsi:49.74, signal:"BUY", price:582.9, stop:563.96 },  // ✅ EVENING PREP 03/07/2026 07:09 AEDT (re-patch after v2 promotion)
+  { date:"02/07/2026", ticker:"QQQ", hilo:"SELL", netVol:"BEARISH", rsi:48.25, signal:"SELL", price:712.6, stop:730.64 },  // ❌ EVENING PREP 03/07/2026 07:09 AEDT (re-patch after v2 promotion)
 
-  { date:"02/07/2026", ticker:"NVDA", hilo:"SELL", netVol:"BEARISH", rsi:40.18, signal:"SELL", price:193.46, stop:209.34 },  // ❌ PRE-CLOSE 03/07/2026 05:37 AEDT
-  { date:"02/07/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:60.13, signal:"BUY", price:308.27, stop:286.14 },  // ✅ PRE-CLOSE 03/07/2026 05:37 AEDT
-  { date:"02/07/2026", ticker:"META", hilo:"BUY", netVol:"BULLISH", rsi:50.27, signal:"BUY", price:585.01, stop:563.96 },  // ✅ PRE-CLOSE 03/07/2026 05:37 AEDT
-  { date:"02/07/2026", ticker:"QQQ", hilo:"SELL", netVol:"BEARISH", rsi:47.54, signal:"SELL", price:710.31, stop:730.64 },  // ❌ PRE-CLOSE 03/07/2026 05:37 AEDT
+  { date:"02/07/2026", ticker:"NVDA", hilo:"SELL", netVol:"BEARISH", rsi:41.15, signal:"SELL", price:194.83, stop:209.34 },  // ❌ EVENING PREP 03/07/2026 20:02 AEDT
+  { date:"02/07/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:60.31, signal:"BUY", price:308.63, stop:286.14 },  // ✅ EVENING PREP 03/07/2026 20:02 AEDT
+  { date:"02/07/2026", ticker:"META", hilo:"BUY", netVol:"BULLISH", rsi:49.74, signal:"BUY", price:582.9, stop:563.96 },  // ✅ EVENING PREP 03/07/2026 20:02 AEDT
+  { date:"02/07/2026", ticker:"QQQ", hilo:"SELL", netVol:"BEARISH", rsi:48.25, signal:"SELL", price:712.6, stop:730.64 },  // ❌ EVENING PREP 03/07/2026 20:02 AEDT
+
+  { date:"02/07/2026", ticker:"NVDA", hilo:"SELL", netVol:"BEARISH", rsi:41.15, signal:"SELL", price:194.83, stop:209.34 },  // ❌ EVENING PREP 03/07/2026 20:03 AEDT
+  { date:"02/07/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:60.31, signal:"BUY", price:308.63, stop:286.14 },  // ✅ EVENING PREP 03/07/2026 20:03 AEDT
+  { date:"02/07/2026", ticker:"META", hilo:"BUY", netVol:"BULLISH", rsi:49.74, signal:"BUY", price:582.9, stop:563.96 },  // ✅ EVENING PREP 03/07/2026 20:03 AEDT
+  { date:"02/07/2026", ticker:"QQQ", hilo:"SELL", netVol:"BEARISH", rsi:48.25, signal:"SELL", price:712.6, stop:730.64 },  // ❌ EVENING PREP 03/07/2026 20:03 AEDT
 ];
 
 // ─── Signal engine (unchanged from v1) ─────────────────────────────
@@ -1627,6 +1633,9 @@ function renderTrades(){
       +'</div><div class="trade-card-actions"><button class="btn btn-outline btn-sm" onclick="deleteTrade(\''+t.id+'\')">🗑 Delete</button></div></div></div>';
   }).join(''):'<div class="empty-state">No closed trades yet.</div>';
 }
+
+// ─── Backup trades.json (feeds update_dashboard.py position alerts) ─
+function backupTrades(){const trades=loadTrades();if(!trades.length){alert('No trades to back up yet.');return;}const blob=new Blob([JSON.stringify(trades,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='trades.json';a.click();URL.revokeObjectURL(a.href);}
 
 // ─── ATO Export (unchanged from v1) ────────────────────────────────
 function exportATO(){const trades=loadTrades();if(!trades.length){alert('No trades to export yet. Add your first trade first.');return;}const wb=XLSX.utils.book_new();const jH=['#','Status','Ticker','Date Opened','Date Closed','Holding (days)','Shares','Entry Price (USD)','Entry Value (USD)','Brokerage Entry (USD)','Cost Base (USD)','AUD/USD (Entry)','Cost Base (AUD)','Exit Price (USD)','Exit Value (USD)','Brokerage Exit (USD)','Proceeds (USD)','AUD/USD (Exit)','Proceeds (AUD)','Gain/Loss (USD)','Gain/Loss (AUD)','CGT 50% Discount Eligible','Net CGT Gain/Loss (AUD)','Stop Loss','Target','Notes'];const jR=trades.map((t,i)=>[i+1,t.status,t.ticker,t.dateOpen,t.dateClosed||'OPEN',t.holdingDays||'',t.shares,t.entryPriceUSD,t.entryValueUSD,t.brokerageEntryUSD,t.costBaseUSD,t.audUsdEntry,t.costBaseAUD||'',t.exitPriceUSD||'',t.exitValueUSD||'',t.brokerageExitUSD||'',t.proceedsUSD||'',t.audUsdExit||'',t.proceedsAUD||'',t.gainLossUSD||'',t.gainLossAUD||'',t.cgtEligible===null?'':(t.cgtEligible?'YES (50% discount)':'NO (<12 months)'),t.netGainAUD||'',t.stopLoss,t.target,t.notes||'']);const wsJ=XLSX.utils.aoa_to_sheet([jH,...jR]);wsJ['!cols']=jH.map(h=>({wch:Math.max(h.length,12)}));XLSX.utils.book_append_sheet(wb,wsJ,'Trade Journal');const closed=trades.filter(t=>t.status==='CLOSED');const aH=['CGT Event #','Ticker','Date of Acquisition','Date of Disposal','Holding Period (days)','CGT 50% Discount','Cost Base (AUD)','Capital Proceeds (AUD)','Capital Gain / (Loss) AUD','Net Taxable Gain (AUD)','Notes'];const aR=closed.map((t,i)=>[i+1,t.ticker,t.dateOpen,t.dateClosed||'',t.holdingDays||'',t.cgtEligible?'YES — 50% discount applies':'NO — held < 12 months',t.costBaseAUD||'',t.proceedsAUD||'',t.gainLossAUD||'',t.netGainAUD||'',t.notes||'']);if(closed.length){const tCA=closed.reduce((s,t)=>s+(t.costBaseAUD||0),0);const tPA=closed.reduce((s,t)=>s+(t.proceedsAUD||0),0);const tGA=closed.reduce((s,t)=>s+(t.gainLossAUD||0),0);const tNA=closed.reduce((s,t)=>s+(t.netGainAUD||0),0);aR.push(['TOTAL','','','','','',Math.round(tCA*100)/100,Math.round(tPA*100)/100,Math.round(tGA*100)/100,Math.round(tNA*100)/100,'']);}const wsA=XLSX.utils.aoa_to_sheet([aH,...aR]);wsA['!cols']=aH.map(h=>({wch:Math.max(h.length+2,14)}));XLSX.utils.book_append_sheet(wb,wsA,'ATO CGT Summary');const nD=[['AUSTRALIAN TAX OFFICE — CGT REPORTING NOTES'],[''],['Generated by:','Trend Following Dashboard — Shark Strategy'],['Export date:',new Date().toLocaleDateString('en-AU')],['Platform:','Stake (AU-based US stock broker, long-only)'],[''],['KEY ATO RULES APPLIED:'],['CGT 50% Discount:','Applies to assets held 12+ months by Australian residents (individuals). Reduces net capital gain by 50%.'],['Cost Base:','Purchase price + brokerage commissions (entry). See ATO s110-25.'],['Capital Proceeds:','Sale price - brokerage commissions (exit). See ATO s116-20.'],['Foreign Currency:','All USD amounts converted to AUD at the exchange rate on the date of the transaction (ATO TR 2014/6).'],['CGT Event A1:','Disposal of a CGT asset (shares). Report in the year of disposal.'],[''],['DISCLAIMER:','This spreadsheet is a record-keeping aid only. Consult a registered tax agent for ATO compliance advice.'],['ATO Reference:','ato.gov.au/individuals-and-families/investments-and-assets/capital-gains-tax']];const wsN=XLSX.utils.aoa_to_sheet(nD);wsN['!cols']=[{wch:22},{wch:80}];wsN['!merges']=[{s:{r:0,c:0},e:{r:0,c:1}}];XLSX.utils.book_append_sheet(wb,wsN,'ATO Notes');const today=new Date().toISOString().slice(0,10);XLSX.writeFile(wb,'TrendFollowing_ATO_'+today+'.xlsx');}
