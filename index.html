@@ -277,7 +277,7 @@ strong { font-weight:650; }
     <div>
       <h1><span class="logo">📈</span> Trend Following <span class="accent">Dashboard</span></h1>
       <div class="hero-meta">
-        <span class="badge prep">🟡 PRE-CLOSE</span>
+        <span class="badge prep">🌙 EVENING PREP</span>
         <span class="badge date">📅 10/07/2026</span>
         <span class="badge">Strategy: <strong>Shark</strong></span>
         <span class="badge">Platform: <strong>Stake</strong> · Long Only</span>
@@ -464,12 +464,12 @@ strong { font-weight:650; }
   <div class="footer"><strong>Trend Following System</strong> — Shark Strategy · Stake Platform · All signals for educational purposes only.</div>
 </div>
 <script>
-// ─── Live Data (PRE-CLOSE 10/07/2026 05:37 AEDT) ── ✅ AUTO via yfinance ──
+// ─── Live Data (EVENING PREP 10/07/2026 20:02 AEDT) ── ✅ AUTO via yfinance ──
 const ASSETS = {
-  NVDA: { name:"NVIDIA Corporation", price:203.9, hiloVal:205.2, hiHigh:205.2, hiLow:198.93, rsi:50.72, hiloSignal:"SELL", netVol:"BEARISH", period:23 },
-  AAPL: { name:"Apple Inc.", price:315.56, hiloVal:294.44, hiHigh:303.4, hiLow:294.44, rsi:63.55, hiloSignal:"BUY", netVol:"BEARISH", period:9 },
-  META: { name:"Meta Platforms Inc.", price:628.89, hiloVal:568.78, hiHigh:590.19, hiLow:568.78, rsi:59.53, hiloSignal:"BUY", netVol:"BEARISH", period:15 },
-  QQQ: { name:"Nasdaq 100 ETF", price:722.96, hiloVal:730.59, hiHigh:730.59, hiLow:716.85, rsi:52.02, hiloSignal:"SELL", netVol:"BEARISH", period:30 }
+  NVDA: { name:"NVIDIA Corporation", price:202.78, hiloVal:205.2, hiHigh:205.2, hiLow:198.93, rsi:49.56, hiloSignal:"SELL", netVol:"BEARISH", period:23 },
+  AAPL: { name:"Apple Inc.", price:316.22, hiloVal:294.44, hiHigh:303.48, hiLow:294.44, rsi:63.91, hiloSignal:"BUY", netVol:"BEARISH", period:9 },
+  META: { name:"Meta Platforms Inc.", price:631.48, hiloVal:568.78, hiHigh:590.48, hiLow:568.78, rsi:60.02, hiloSignal:"BUY", netVol:"BEARISH", period:15 },
+  QQQ: { name:"Nasdaq 100 ETF", price:723.28, hiloVal:730.59, hiHigh:730.59, hiLow:716.85, rsi:52.13, hiloSignal:"SELL", netVol:"BEARISH", period:30 }
 };
 const LOG = [
   { date:"13/04/2026", ticker:"NVDA", hilo:"BUY",     netVol:"BEARISH", rsi:68.17, signal:"WATCH", price:188.63, stop:176.30 },
@@ -1287,6 +1287,16 @@ const LOG = [
   { date:"09/07/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:63.55, signal:"WATCH", price:315.56, stop:294.44 },  // 👀 PRE-CLOSE 10/07/2026 05:37 AEDT
   { date:"09/07/2026", ticker:"META", hilo:"BUY", netVol:"BEARISH", rsi:59.53, signal:"WATCH", price:628.89, stop:568.78 },  // 👀 PRE-CLOSE 10/07/2026 05:37 AEDT
   { date:"09/07/2026", ticker:"QQQ", hilo:"SELL", netVol:"BEARISH", rsi:52.02, signal:"SELL", price:722.96, stop:730.59 },  // ❌ PRE-CLOSE 10/07/2026 05:37 AEDT
+
+  { date:"09/07/2026", ticker:"NVDA", hilo:"SELL", netVol:"BEARISH", rsi:49.56, signal:"SELL", price:202.78, stop:205.2 },  // ❌ EVENING PREP 10/07/2026 20:02 AEDT
+  { date:"09/07/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:63.91, signal:"WATCH", price:316.22, stop:294.44 },  // 👀 EVENING PREP 10/07/2026 20:02 AEDT
+  { date:"09/07/2026", ticker:"META", hilo:"BUY", netVol:"BEARISH", rsi:60.02, signal:"WATCH", price:631.48, stop:568.78 },  // 👀 EVENING PREP 10/07/2026 20:02 AEDT
+  { date:"09/07/2026", ticker:"QQQ", hilo:"SELL", netVol:"BEARISH", rsi:52.13, signal:"SELL", price:723.28, stop:730.59 },  // ❌ EVENING PREP 10/07/2026 20:02 AEDT
+
+  { date:"09/07/2026", ticker:"NVDA", hilo:"SELL", netVol:"BEARISH", rsi:49.56, signal:"SELL", price:202.78, stop:205.2 },  // ❌ EVENING PREP 10/07/2026 20:02 AEDT
+  { date:"09/07/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:63.91, signal:"WATCH", price:316.22, stop:294.44 },  // 👀 EVENING PREP 10/07/2026 20:02 AEDT
+  { date:"09/07/2026", ticker:"META", hilo:"BUY", netVol:"BEARISH", rsi:60.02, signal:"WATCH", price:631.48, stop:568.78 },  // 👀 EVENING PREP 10/07/2026 20:02 AEDT
+  { date:"09/07/2026", ticker:"QQQ", hilo:"SELL", netVol:"BEARISH", rsi:52.13, signal:"SELL", price:723.28, stop:730.59 },  // ❌ EVENING PREP 10/07/2026 20:02 AEDT
 ];
 
 // ─── Signal engine (unchanged from v1) ─────────────────────────────
