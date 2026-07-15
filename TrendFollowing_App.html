@@ -278,7 +278,7 @@ strong { font-weight:650; }
       <h1><span class="logo">📈</span> Trend Following <span class="accent">Dashboard</span></h1>
       <div class="hero-meta">
         <span class="badge prep">🌙 EVENING PREP</span>
-        <span class="badge date">📅 15/07/2026</span>
+        <span class="badge date">📅 16/07/2026</span>
         <span class="badge">Strategy: <strong>Shark</strong></span>
         <span class="badge">Platform: <strong>Stake</strong> · Long Only</span>
         <span class="ny-clock" id="nyClock">🕐 Loading NY time...</span>
@@ -464,12 +464,12 @@ strong { font-weight:650; }
   <div class="footer"><strong>Trend Following System</strong> — Shark Strategy · Stake Platform · All signals for educational purposes only.</div>
 </div>
 <script>
-// ─── Live Data (EVENING PREP 15/07/2026 20:02 AEDT) ── ✅ AUTO via yfinance ──
+// ─── Live Data (EVENING PREP 16/07/2026 06:39 AEDT) ── ✅ AUTO via yfinance ──
 const ASSETS = {
-  NVDA: { name:"NVIDIA Corporation", price:203.53, hiloVal:198.69, hiHigh:205.04, hiLow:198.69, rsi:49.75, hiloSignal:"BUY", netVol:"BEARISH", period:23 },
-  AAPL: { name:"Apple Inc.", price:317.31, hiloVal:302.65, hiHigh:310.82, hiLow:302.65, rsi:64.19, hiloSignal:"BUY", netVol:"BEARISH", period:9 },
-  META: { name:"Meta Platforms Inc.", price:661.04, hiloVal:586.92, hiHigh:608.56, hiLow:586.92, rsi:63.51, hiloSignal:"BUY", netVol:"BEARISH", period:15 },
-  QQQ: { name:"Nasdaq 100 ETF", price:711.74, hiloVal:729.82, hiHigh:729.82, hiLow:716.08, rsi:47.65, hiloSignal:"SELL", netVol:"BEARISH", period:30 }
+  NVDA: { name:"NVIDIA Corporation", price:212.5, hiloVal:199.15, hiHigh:205.38, hiLow:199.15, rsi:56.83, hiloSignal:"BUY", netVol:"BEARISH", period:23 },
+  AAPL: { name:"Apple Inc.", price:327.5, hiloVal:309.25, hiHigh:317.3, hiLow:309.25, rsi:68.85, hiloSignal:"BUY", netVol:"BEARISH", period:9 },
+  META: { name:"Meta Platforms Inc.", price:681.31, hiloVal:593.3, hiHigh:616.15, hiLow:593.3, rsi:66.82, hiloSignal:"BUY", netVol:"BULLISH", period:15 },
+  QQQ: { name:"Nasdaq 100 ETF", price:717.74, hiloVal:728.52, hiHigh:728.52, hiLow:714.58, rsi:49.87, hiloSignal:"SELL", netVol:"BEARISH", period:30 }
 };
 const LOG = [
   { date:"13/04/2026", ticker:"NVDA", hilo:"BUY",     netVol:"BEARISH", rsi:68.17, signal:"WATCH", price:188.63, stop:176.30 },
@@ -1362,6 +1362,16 @@ const LOG = [
   { date:"13/07/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:64.19, signal:"WATCH", price:317.31, stop:302.65 },  // 👀 EVENING PREP 15/07/2026 20:02 AEDT
   { date:"14/07/2026", ticker:"META", hilo:"BUY", netVol:"BEARISH", rsi:63.51, signal:"WATCH", price:661.04, stop:586.92 },  // 👀 EVENING PREP 15/07/2026 20:02 AEDT
   { date:"13/07/2026", ticker:"QQQ", hilo:"SELL", netVol:"BEARISH", rsi:47.65, signal:"SELL", price:711.74, stop:729.82 },  // ❌ EVENING PREP 15/07/2026 20:02 AEDT
+
+  { date:"15/07/2026", ticker:"NVDA", hilo:"BUY", netVol:"BEARISH", rsi:56.83, signal:"WATCH", price:212.5, stop:199.15 },  // 👀 EVENING PREP 16/07/2026 06:39 AEDT
+  { date:"15/07/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:68.85, signal:"WATCH", price:327.5, stop:309.25 },  // 👀 EVENING PREP 16/07/2026 06:39 AEDT
+  { date:"15/07/2026", ticker:"META", hilo:"BUY", netVol:"BULLISH", rsi:66.82, signal:"BUY", price:681.31, stop:593.3 },  // ✅ EVENING PREP 16/07/2026 06:39 AEDT
+  { date:"15/07/2026", ticker:"QQQ", hilo:"SELL", netVol:"BEARISH", rsi:49.87, signal:"SELL", price:717.74, stop:728.52 },  // ❌ EVENING PREP 16/07/2026 06:39 AEDT
+
+  { date:"15/07/2026", ticker:"NVDA", hilo:"BUY", netVol:"BEARISH", rsi:56.83, signal:"WATCH", price:212.5, stop:199.15 },  // 👀 EVENING PREP 16/07/2026 06:39 AEDT
+  { date:"15/07/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:68.85, signal:"WATCH", price:327.5, stop:309.25 },  // 👀 EVENING PREP 16/07/2026 06:39 AEDT
+  { date:"15/07/2026", ticker:"META", hilo:"BUY", netVol:"BULLISH", rsi:66.82, signal:"BUY", price:681.31, stop:593.3 },  // ✅ EVENING PREP 16/07/2026 06:39 AEDT
+  { date:"15/07/2026", ticker:"QQQ", hilo:"SELL", netVol:"BEARISH", rsi:49.87, signal:"SELL", price:717.74, stop:728.52 },  // ❌ EVENING PREP 16/07/2026 06:39 AEDT
 ];
 
 // ─── Signal engine (unchanged from v1) ─────────────────────────────
