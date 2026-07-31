@@ -464,11 +464,11 @@ strong { font-weight:650; }
   <div class="footer"><strong>Trend Following System</strong> — Shark Strategy · Stake Platform · All signals for educational purposes only.</div>
 </div>
 <script>
-// ─── Live Data (EVENING PREP 31/07/2026 11:39 AEST) ── ✅ AUTO via yfinance ──
+// ─── Live Data (EVENING PREP 31/07/2026 20:02 AEST) ── ✅ AUTO via yfinance ──
 const ASSETS = {
   NVDA: { name:"NVIDIA Corporation", price:195.04, hiloVal:205.37, hiHigh:205.37, hiLow:198.27, rsi:42.99, hiloSignal:"SELL", netVol:"BULLISH", period:23 },
   AAPL: { name:"Apple Inc.", price:333.43, hiloVal:327.42, hiHigh:334.64, hiLow:327.42, rsi:61.68, hiloSignal:"BUY", netVol:"BULLISH", period:9 },
-  META: { name:"Meta Platforms Inc.", price:539.03, hiloVal:638.41, hiHigh:638.41, hiLow:619.06, rsi:32.04, hiloSignal:"SELL", netVol:"BULLISH", period:15 },
+  META: { name:"Meta Platforms Inc.", price:539.03, hiloVal:638.41, hiHigh:638.41, hiLow:619.05, rsi:32.04, hiloSignal:"SELL", netVol:"BULLISH", period:15 },
   QQQ: { name:"Nasdaq 100 ETF", price:683.55, hiloVal:715.75, hiHigh:715.75, hiLow:703.43, rsi:43.02, hiloSignal:"SELL", netVol:"BULLISH", period:30 }
 };
 const LOG = [
@@ -1582,6 +1582,26 @@ const LOG = [
   { date:"30/07/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:61.68, signal:"BUY", price:333.43, stop:327.42 },  // ✅ EVENING PREP 31/07/2026 11:39 AEST
   { date:"30/07/2026", ticker:"META", hilo:"SELL", netVol:"BULLISH", rsi:32.04, signal:"WATCH", price:539.03, stop:638.41 },  // 👀 EVENING PREP 31/07/2026 11:39 AEST
   { date:"30/07/2026", ticker:"QQQ", hilo:"SELL", netVol:"BULLISH", rsi:43.02, signal:"WATCH", price:683.55, stop:715.75 },  // 👀 EVENING PREP 31/07/2026 11:39 AEST
+
+  { date:"30/07/2026", ticker:"NVDA", hilo:"SELL", netVol:"BULLISH", rsi:42.99, signal:"WATCH", price:195.04, stop:205.37 },  // 👀 EVENING PREP 31/07/2026 11:40 AEST
+  { date:"30/07/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:61.68, signal:"BUY", price:333.43, stop:327.42 },  // ✅ EVENING PREP 31/07/2026 11:40 AEST
+  { date:"30/07/2026", ticker:"META", hilo:"SELL", netVol:"BULLISH", rsi:32.04, signal:"WATCH", price:539.03, stop:638.41 },  // 👀 EVENING PREP 31/07/2026 11:40 AEST
+  { date:"30/07/2026", ticker:"QQQ", hilo:"SELL", netVol:"BULLISH", rsi:43.02, signal:"WATCH", price:683.55, stop:715.75 },  // 👀 EVENING PREP 31/07/2026 11:40 AEST
+
+  { date:"30/07/2026", ticker:"NVDA", hilo:"SELL", netVol:"BULLISH", rsi:42.99, signal:"WATCH", price:195.04, stop:205.37 },  // 👀 EVENING PREP 31/07/2026 11:40 AEST
+  { date:"30/07/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:61.68, signal:"BUY", price:333.43, stop:327.42 },  // ✅ EVENING PREP 31/07/2026 11:40 AEST
+  { date:"30/07/2026", ticker:"META", hilo:"SELL", netVol:"BULLISH", rsi:32.04, signal:"WATCH", price:539.03, stop:638.41 },  // 👀 EVENING PREP 31/07/2026 11:40 AEST
+  { date:"30/07/2026", ticker:"QQQ", hilo:"SELL", netVol:"BULLISH", rsi:43.02, signal:"WATCH", price:683.55, stop:715.75 },  // 👀 EVENING PREP 31/07/2026 11:40 AEST
+
+  { date:"30/07/2026", ticker:"NVDA", hilo:"SELL", netVol:"BULLISH", rsi:42.99, signal:"WATCH", price:195.04, stop:205.37 },  // 👀 EVENING PREP 31/07/2026 20:02 AEST
+  { date:"30/07/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:61.68, signal:"BUY", price:333.43, stop:327.42 },  // ✅ EVENING PREP 31/07/2026 20:02 AEST
+  { date:"30/07/2026", ticker:"META", hilo:"SELL", netVol:"BULLISH", rsi:32.04, signal:"WATCH", price:539.03, stop:638.41 },  // 👀 EVENING PREP 31/07/2026 20:02 AEST
+  { date:"30/07/2026", ticker:"QQQ", hilo:"SELL", netVol:"BULLISH", rsi:43.02, signal:"WATCH", price:683.55, stop:715.75 },  // 👀 EVENING PREP 31/07/2026 20:02 AEST
+
+  { date:"30/07/2026", ticker:"NVDA", hilo:"SELL", netVol:"BULLISH", rsi:42.99, signal:"WATCH", price:195.04, stop:205.37 },  // 👀 EVENING PREP 31/07/2026 20:02 AEST
+  { date:"30/07/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:61.68, signal:"BUY", price:333.43, stop:327.42 },  // ✅ EVENING PREP 31/07/2026 20:02 AEST
+  { date:"30/07/2026", ticker:"META", hilo:"SELL", netVol:"BULLISH", rsi:32.04, signal:"WATCH", price:539.03, stop:638.41 },  // 👀 EVENING PREP 31/07/2026 20:02 AEST
+  { date:"30/07/2026", ticker:"QQQ", hilo:"SELL", netVol:"BULLISH", rsi:43.02, signal:"WATCH", price:683.55, stop:715.75 },  // 👀 EVENING PREP 31/07/2026 20:02 AEST
 ];
 
 // ─── Signal engine (unchanged from v1) ─────────────────────────────
