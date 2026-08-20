@@ -277,8 +277,8 @@ strong { font-weight:650; }
     <div>
       <h1><span class="logo">📈</span> Trend Following <span class="accent">Dashboard</span></h1>
       <div class="hero-meta">
-        <span class="badge prep">🌙 EVENING PREP</span>
-        <span class="badge date">📅 20/08/2026</span>
+        <span class="badge prep">🟡 PRE-CLOSE</span>
+        <span class="badge date">📅 21/08/2026</span>
         <span class="badge">Strategy: <strong>Shark</strong></span>
         <span class="badge">Platform: <strong>Stake</strong> · Long Only</span>
         <span class="ny-clock" id="nyClock">🕐 Loading NY time...</span>
@@ -310,6 +310,7 @@ strong { font-weight:650; }
   <button class="tab-btn" onclick="switchTab('performance',this)">🏆 Performance</button>
   <button class="tab-btn" onclick="switchTab('log',this)">📅 Daily Log</button>
   <button class="tab-btn" onclick="switchTab('rules',this)">📐 Strategy Rules</button>
+  <button class="tab-btn" onclick="switchTab('execution',this)">🤖 Execution</button>
 </div>
 <div class="container">
 
@@ -461,15 +462,22 @@ strong { font-weight:650; }
     </div>
   </div>
 
+  <div class="tab-panel" id="panel-execution">
+    <p class="section-title">Phase 5 — Automated Execution</p>
+    <div id="execStatus"></div>
+    <p class="section-title" style="margin-top:22px;">Recent Activity</p>
+    <div id="execLog"></div>
+  </div>
+
   <div class="footer"><strong>Trend Following System</strong> — Shark Strategy · Stake Platform · All signals for educational purposes only.</div>
 </div>
 <script>
-// ─── Live Data (EVENING PREP 20/08/2026 20:03 AEST) ── ✅ AUTO via yfinance ──
+// ─── Live Data (PRE-CLOSE 21/08/2026 05:37 AEST) ── ✅ AUTO via yfinance ──
 const ASSETS = {
-  NVDA: { name:"NVIDIA Corporation", price:217.56, hiloVal:209.06, hiHigh:215.14, hiLow:209.06, rsi:54.13, hiloSignal:"BUY", netVol:"BEARISH", period:23 },
-  AAPL: { name:"Apple Inc.", price:316.83, hiloVal:304.79, hiHigh:310.04, hiLow:304.79, rsi:53.85, hiloSignal:"BUY", netVol:"BULLISH", period:9 },
-  META: { name:"Meta Platforms Inc.", price:546.03, hiloVal:587.43, hiHigh:587.43, hiLow:568.77, rsi:37.02, hiloSignal:"SELL", netVol:"BULLISH", period:15 },
-  QQQ: { name:"Nasdaq 100 ETF", price:716.08, hiloVal:703.03, hiHigh:713.4, hiLow:703.03, rsi:51.3, hiloSignal:"BUY", netVol:"BULLISH", period:30 }
+  NVDA: { name:"NVIDIA Corporation", price:217.21, hiloVal:209.64, hiHigh:215.67, hiLow:209.64, rsi:53.72, hiloSignal:"BUY", netVol:"BEARISH", period:23 },
+  AAPL: { name:"Apple Inc.", price:313.37, hiloVal:305.06, hiHigh:310.68, hiLow:305.06, rsi:50.63, hiloSignal:"BUY", netVol:"BEARISH", period:9 },
+  META: { name:"Meta Platforms Inc.", price:543.5, hiloVal:588.1, hiHigh:588.1, hiLow:569.76, rsi:36.45, hiloSignal:"SELL", netVol:"BULLISH", period:15 },
+  QQQ: { name:"Nasdaq 100 ETF", price:711.29, hiloVal:702.81, hiHigh:713.09, hiLow:702.81, rsi:48.81, hiloSignal:"BUY", netVol:"BULLISH", period:30 }
 };
 const LOG = [
   { date:"13/04/2026", ticker:"NVDA", hilo:"BUY",     netVol:"BEARISH", rsi:68.17, signal:"WATCH", price:188.63, stop:176.30 },
@@ -1852,6 +1860,41 @@ const LOG = [
   { date:"19/08/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:53.85, signal:"BUY", price:316.83, stop:304.79 },  // ✅ EVENING PREP 20/08/2026 20:03 AEST
   { date:"19/08/2026", ticker:"META", hilo:"SELL", netVol:"BULLISH", rsi:37.02, signal:"WATCH", price:546.03, stop:587.43 },  // 👀 EVENING PREP 20/08/2026 20:03 AEST
   { date:"19/08/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:51.3, signal:"BUY", price:716.08, stop:703.03 },  // ✅ EVENING PREP 20/08/2026 20:03 AEST
+
+  { date:"19/08/2026", ticker:"NVDA", hilo:"BUY", netVol:"BEARISH", rsi:54.13, signal:"WATCH", price:217.56, stop:209.06 },  // 👀 EVENING PREP 20/08/2026 20:45 AEST
+  { date:"19/08/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:53.85, signal:"BUY", price:316.83, stop:304.79 },  // ✅ EVENING PREP 20/08/2026 20:45 AEST
+  { date:"19/08/2026", ticker:"META", hilo:"SELL", netVol:"BULLISH", rsi:37.02, signal:"WATCH", price:546.03, stop:587.43 },  // 👀 EVENING PREP 20/08/2026 20:45 AEST
+  { date:"19/08/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:51.3, signal:"BUY", price:716.08, stop:703.03 },  // ✅ EVENING PREP 20/08/2026 20:45 AEST
+
+  { date:"19/08/2026", ticker:"NVDA", hilo:"BUY", netVol:"BEARISH", rsi:54.13, signal:"WATCH", price:217.56, stop:209.06 },  // 👀 EVENING PREP 20/08/2026 20:46 AEST
+  { date:"19/08/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:53.85, signal:"BUY", price:316.83, stop:304.79 },  // ✅ EVENING PREP 20/08/2026 20:46 AEST
+  { date:"19/08/2026", ticker:"META", hilo:"SELL", netVol:"BULLISH", rsi:37.02, signal:"WATCH", price:546.03, stop:587.43 },  // 👀 EVENING PREP 20/08/2026 20:46 AEST
+  { date:"19/08/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:51.3, signal:"BUY", price:716.08, stop:703.03 },  // ✅ EVENING PREP 20/08/2026 20:46 AEST
+
+  { date:"19/08/2026", ticker:"NVDA", hilo:"BUY", netVol:"BEARISH", rsi:54.13, signal:"WATCH", price:217.56, stop:209.06 },  // 👀 EVENING PREP 20/08/2026 21:29 AEST
+  { date:"19/08/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:53.85, signal:"BUY", price:316.83, stop:304.79 },  // ✅ EVENING PREP 20/08/2026 21:29 AEST
+  { date:"19/08/2026", ticker:"META", hilo:"SELL", netVol:"BULLISH", rsi:37.02, signal:"WATCH", price:546.03, stop:587.43 },  // 👀 EVENING PREP 20/08/2026 21:29 AEST
+  { date:"19/08/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:51.3, signal:"BUY", price:716.08, stop:703.03 },  // ✅ EVENING PREP 20/08/2026 21:29 AEST
+
+  { date:"19/08/2026", ticker:"NVDA", hilo:"BUY", netVol:"BEARISH", rsi:54.13, signal:"WATCH", price:217.56, stop:209.06 },  // 👀 EVENING PREP 20/08/2026 21:32 AEST
+  { date:"19/08/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:53.85, signal:"BUY", price:316.83, stop:304.79 },  // ✅ EVENING PREP 20/08/2026 21:32 AEST
+  { date:"19/08/2026", ticker:"META", hilo:"SELL", netVol:"BULLISH", rsi:37.02, signal:"WATCH", price:546.03, stop:587.43 },  // 👀 EVENING PREP 20/08/2026 21:32 AEST
+  { date:"19/08/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:51.3, signal:"BUY", price:716.08, stop:703.03 },  // ✅ EVENING PREP 20/08/2026 21:32 AEST
+
+  { date:"19/08/2026", ticker:"NVDA", hilo:"BUY", netVol:"BEARISH", rsi:54.13, signal:"WATCH", price:217.56, stop:209.06 },  // 👀 EVENING PREP 20/08/2026 21:33 AEST
+  { date:"19/08/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:53.85, signal:"BUY", price:316.83, stop:304.79 },  // ✅ EVENING PREP 20/08/2026 21:33 AEST
+  { date:"19/08/2026", ticker:"META", hilo:"SELL", netVol:"BULLISH", rsi:37.02, signal:"WATCH", price:546.03, stop:587.43 },  // 👀 EVENING PREP 20/08/2026 21:33 AEST
+  { date:"19/08/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:51.3, signal:"BUY", price:716.08, stop:703.03 },  // ✅ EVENING PREP 20/08/2026 21:33 AEST
+
+  { date:"20/08/2026", ticker:"NVDA", hilo:"BUY", netVol:"BEARISH", rsi:53.65, signal:"WATCH", price:217.14, stop:209.64 },  // 👀 PRE-CLOSE 21/08/2026 05:35 AEST
+  { date:"20/08/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:50.75, signal:"WATCH", price:313.5, stop:305.06 },  // 👀 PRE-CLOSE 21/08/2026 05:35 AEST
+  { date:"20/08/2026", ticker:"META", hilo:"SELL", netVol:"BULLISH", rsi:36.41, signal:"WATCH", price:543.3, stop:588.1 },  // 👀 PRE-CLOSE 21/08/2026 05:35 AEST
+  { date:"20/08/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:48.67, signal:"BUY", price:711.01, stop:702.81 },  // ✅ PRE-CLOSE 21/08/2026 05:35 AEST
+
+  { date:"20/08/2026", ticker:"NVDA", hilo:"BUY", netVol:"BEARISH", rsi:53.72, signal:"WATCH", price:217.21, stop:209.64 },  // 👀 PRE-CLOSE 21/08/2026 05:37 AEST
+  { date:"20/08/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:50.63, signal:"WATCH", price:313.37, stop:305.06 },  // 👀 PRE-CLOSE 21/08/2026 05:37 AEST
+  { date:"20/08/2026", ticker:"META", hilo:"SELL", netVol:"BULLISH", rsi:36.45, signal:"WATCH", price:543.5, stop:588.1 },  // 👀 PRE-CLOSE 21/08/2026 05:37 AEST
+  { date:"20/08/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:48.81, signal:"BUY", price:711.29, stop:702.81 },  // ✅ PRE-CLOSE 21/08/2026 05:37 AEST
 ];
 
 // ─── Signal engine (unchanged from v1) ─────────────────────────────
@@ -1917,6 +1960,7 @@ function switchTab(name,btn){
   if(name==='trades')renderTrades();
   if(name==='positions')renderPositions();
   if(name==='performance')renderPerformance();
+  if(name==='execution')renderExecution();
 }
 function refresh(){
   const ra=riskAmt();
@@ -2294,6 +2338,83 @@ function backupTrades(){const trades=loadTrades();if(!trades.length){alert('No t
 
 // ─── ATO Export (unchanged from v1) ────────────────────────────────
 function exportATO(){const trades=loadTrades();if(!trades.length){alert('No trades to export yet. Add your first trade first.');return;}const wb=XLSX.utils.book_new();const jH=['#','Status','Ticker','Date Opened','Date Closed','Holding (days)','Shares','Entry Price (USD)','Entry Value (USD)','Brokerage Entry (USD)','Cost Base (USD)','AUD/USD (Entry)','Cost Base (AUD)','Exit Price (USD)','Exit Value (USD)','Brokerage Exit (USD)','Proceeds (USD)','AUD/USD (Exit)','Proceeds (AUD)','Gain/Loss (USD)','Gain/Loss (AUD)','CGT 50% Discount Eligible','Net CGT Gain/Loss (AUD)','Stop Loss','Target','Notes'];const jR=trades.map((t,i)=>[i+1,t.status,t.ticker,t.dateOpen,t.dateClosed||'OPEN',t.holdingDays||'',t.shares,t.entryPriceUSD,t.entryValueUSD,t.brokerageEntryUSD,t.costBaseUSD,t.audUsdEntry,t.costBaseAUD||'',t.exitPriceUSD||'',t.exitValueUSD||'',t.brokerageExitUSD||'',t.proceedsUSD||'',t.audUsdExit||'',t.proceedsAUD||'',t.gainLossUSD||'',t.gainLossAUD||'',t.cgtEligible===null?'':(t.cgtEligible?'YES (50% discount)':'NO (<12 months)'),t.netGainAUD||'',t.stopLoss,t.target,t.notes||'']);const wsJ=XLSX.utils.aoa_to_sheet([jH,...jR]);wsJ['!cols']=jH.map(h=>({wch:Math.max(h.length,12)}));XLSX.utils.book_append_sheet(wb,wsJ,'Trade Journal');const closed=trades.filter(t=>t.status==='CLOSED');const aH=['CGT Event #','Ticker','Date of Acquisition','Date of Disposal','Holding Period (days)','CGT 50% Discount','Cost Base (AUD)','Capital Proceeds (AUD)','Capital Gain / (Loss) AUD','Net Taxable Gain (AUD)','Notes'];const aR=closed.map((t,i)=>[i+1,t.ticker,t.dateOpen,t.dateClosed||'',t.holdingDays||'',t.cgtEligible?'YES — 50% discount applies':'NO — held < 12 months',t.costBaseAUD||'',t.proceedsAUD||'',t.gainLossAUD||'',t.netGainAUD||'',t.notes||'']);if(closed.length){const tCA=closed.reduce((s,t)=>s+(t.costBaseAUD||0),0);const tPA=closed.reduce((s,t)=>s+(t.proceedsAUD||0),0);const tGA=closed.reduce((s,t)=>s+(t.gainLossAUD||0),0);const tNA=closed.reduce((s,t)=>s+(t.netGainAUD||0),0);aR.push(['TOTAL','','','','','',Math.round(tCA*100)/100,Math.round(tPA*100)/100,Math.round(tGA*100)/100,Math.round(tNA*100)/100,'']);}const wsA=XLSX.utils.aoa_to_sheet([aH,...aR]);wsA['!cols']=aH.map(h=>({wch:Math.max(h.length+2,14)}));XLSX.utils.book_append_sheet(wb,wsA,'ATO CGT Summary');const nD=[['AUSTRALIAN TAX OFFICE — CGT REPORTING NOTES'],[''],['Generated by:','Trend Following Dashboard — Shark Strategy'],['Export date:',new Date().toLocaleDateString('en-AU')],['Platform:','Stake (AU-based US stock broker, long-only)'],[''],['KEY ATO RULES APPLIED:'],['CGT 50% Discount:','Applies to assets held 12+ months by Australian residents (individuals). Reduces net capital gain by 50%.'],['Cost Base:','Purchase price + brokerage commissions (entry). See ATO s110-25.'],['Capital Proceeds:','Sale price - brokerage commissions (exit). See ATO s116-20.'],['Foreign Currency:','All USD amounts converted to AUD at the exchange rate on the date of the transaction (ATO TR 2014/6).'],['CGT Event A1:','Disposal of a CGT asset (shares). Report in the year of disposal.'],[''],['DISCLAIMER:','This spreadsheet is a record-keeping aid only. Consult a registered tax agent for ATO compliance advice.'],['ATO Reference:','ato.gov.au/individuals-and-families/investments-and-assets/capital-gains-tax']];const wsN=XLSX.utils.aoa_to_sheet(nD);wsN['!cols']=[{wch:22},{wch:80}];wsN['!merges']=[{s:{r:0,c:0},e:{r:0,c:1}}];XLSX.utils.book_append_sheet(wb,wsN,'ATO Notes');const today=new Date().toISOString().slice(0,10);XLSX.writeFile(wb,'TrendFollowing_ATO_'+today+'.xlsx');}
+
+// ─── Execution (Phase 5) ───────────────────────────────────────────
+// Patched each run by update_dashboard.build_execution_js().
+const EXECUTION = {
+  "mode": "DRY_RUN",
+  "reason": "mode DRY_RUN",
+  "updated": "21/08/2026 05:38",
+  "halted": false,
+  "capital": null,
+  "riskPct": 2.0,
+  "oversize": "REJECT",
+  "redacted": true,
+  "reconciled": null,
+  "events": [
+    {
+      "ts": "05:36:01",
+      "event": "intended_order",
+      "ticker": "AAPL",
+      "detail": "[...] AAPL @  stop [...]"
+    },
+    {
+      "ts": "21:26:33",
+      "event": "intended_order",
+      "ticker": "AAPL",
+      "detail": "[...] AAPL @  stop [...]"
+    }
+  ]
+};
+
+function renderExecution(){
+  const e = EXECUTION, host = document.getElementById('execStatus');
+  const modeCol = e.mode==='LIVE' ? 'var(--red)' : (e.mode==='PAPER' ? 'var(--amber)' : 'var(--green)');
+  const modeNote = e.mode==='LIVE' ? 'REAL MONEY' : (e.mode==='PAPER' ? 'paper account — no real money' : 'signals only — no orders placed');
+
+  // Capital/risk here come from execution_config.json, NOT the browser
+  // settings above. If they disagree the executor sizes differently to the
+  // Trade Planner, so surface it rather than hide it.
+  const capMismatch = e.capital!=null && Math.abs(e.capital - capital()) > 0.5;
+
+  let cards = ''
+    + '<div class="plan-card"><div class="plan-header"><div class="plan-ticker">Mode</div>'
+    + '<div class="plan-sig" style="background:'+modeCol+'22;color:'+modeCol+'">'+esc(e.mode)+'</div></div>'
+    + '<div class="plan-body">'
+    + '<div class="plan-row"><span class="pkey">Status</span><span class="pval">'+esc(modeNote)+'</span></div>'
+    + '<div class="plan-row"><span class="pkey">Kill switch</span><span class="pval '+(e.halted?'red':'green')+'">'+(e.halted?'ENGAGED':'clear')+'</span></div>'
+    + '<div class="plan-row"><span class="pkey">Last run</span><span class="pval">'+esc(e.updated||'—')+'</span></div>'
+    + '<div class="plan-row"><span class="pkey">Detail</span><span class="pval" style="font-size:.68rem">'+esc(e.reason||'')+'</span></div>'
+    + '</div></div>';
+
+  cards += '<div class="plan-card"><div class="plan-header"><div class="plan-ticker">Engine Risk Settings</div></div><div class="plan-body">'
+    + '<div class="plan-row"><span class="pkey">Capital (engine)</span><span class="pval '+(capMismatch?'amber':'blue')+'">'+(e.capital!=null?fmtUSD(e.capital):'—')+'</span></div>'
+    + '<div class="plan-row"><span class="pkey">Capital (this browser)</span><span class="pval blue">'+fmtUSD(capital())+'</span></div>'
+    + '<div class="plan-row"><span class="pkey">Risk per trade</span><span class="pval amber">'+(e.riskPct!=null?e.riskPct+'%':'—')+'</span></div>'
+    + '<div class="plan-row"><span class="pkey">Oversize policy</span><span class="pval">'+esc(e.oversize||'—')+'</span></div>'
+    + (capMismatch?'<div class="plan-note">⚠️ The engine and this browser disagree on capital. The executor uses its own value — edit execution_config.json to match.</div>':'')
+    + (e.redacted?'<div class="plan-note">🔒 Amounts hidden — this page is published publicly. Full detail is in execution_log.jsonl on your Mac.</div>':'')
+    + '</div></div>';
+
+  let recHtml = '<div class="plan-row"><span class="pkey">Reconciliation</span><span class="pval">not run</span></div>';
+  if(e.reconciled){
+    recHtml = e.reconciled.ok
+      ? '<div class="plan-row"><span class="pkey">Reconciliation</span><span class="pval green">broker matches trades.json</span></div>'
+      : '<div class="plan-row"><span class="pkey">Reconciliation</span><span class="pval red">DRIFT — trading halted</span></div>'
+        + (e.reconciled.drift||[]).map(d=>'<div class="plan-row"><span class="pkey">'+esc(d.ticker)+'</span><span class="pval red">broker '+d.broker+' vs local '+d.trades_json+'</span></div>').join('');
+  }
+  cards += '<div class="plan-card"><div class="plan-header"><div class="plan-ticker">Broker Sync</div></div><div class="plan-body">'+recHtml+'</div></div>';
+
+  host.className = 'planner-grid';
+  host.innerHTML = cards;
+
+  const rows = (e.events||[]);
+  document.getElementById('execLog').innerHTML = rows.length
+    ? '<table class="log-table"><thead><tr><th>Time</th><th>Event</th><th>Ticker</th><th>Detail</th></tr></thead><tbody>'
+      + rows.map(r=>'<tr><td>'+esc(r.ts||'')+'</td><td>'+esc(r.event||'')+'</td><td>'+esc(r.ticker||'—')+'</td><td style="font-size:.68rem">'+esc(r.detail||'')+'</td></tr>').join('')
+      + '</tbody></table>'
+    : '<div class="plan-note">No execution activity recorded yet.</div>';
+}
 
 // ─── Boot ──────────────────────────────────────────────────────────
 loadSettings();
