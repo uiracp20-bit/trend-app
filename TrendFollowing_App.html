@@ -472,12 +472,12 @@ strong { font-weight:650; }
   <div class="footer"><strong>Trend Following System</strong> — Shark Strategy · Stake Platform · All signals for educational purposes only.</div>
 </div>
 <script>
-// ─── Live Data (PRE-CLOSE 26/08/2026 05:35 AEST) ── ✅ AUTO via yfinance ──
+// ─── Live Data (PRE-CLOSE 26/08/2026 23:34 AEST) ── ✅ AUTO via yfinance ──
 const ASSETS = {
-  NVDA: { name:"NVIDIA Corporation", price:212.26, hiloVal:216.33, hiHigh:216.33, hiLow:210.38, rsi:48.77, hiloSignal:"SELL", netVol:"BULLISH", period:23 },
-  AAPL: { name:"Apple Inc.", price:308.95, hiloVal:306.72, hiHigh:312.39, hiLow:306.72, rsi:46.85, hiloSignal:"BUY", netVol:"BEARISH", period:9 },
-  META: { name:"Meta Platforms Inc.", price:567.59, hiloVal:583.79, hiHigh:583.79, hiLow:567.97, rsi:45.58, hiloSignal:"SELL", netVol:"BEARISH", period:15 },
-  QQQ: { name:"Nasdaq 100 ETF", price:709.78, hiloVal:702.07, hiHigh:712.16, hiLow:702.07, rsi:48.19, hiloSignal:"BUY", netVol:"BEARISH", period:30 }
+  NVDA: { name:"NVIDIA Corporation", price:211.66, hiloVal:216.4, hiHigh:216.4, hiLow:210.67, rsi:48.15, hiloSignal:"SELL", netVol:"BEARISH", period:23 },
+  AAPL: { name:"Apple Inc.", price:309.57, hiloVal:307.47, hiHigh:313.02, hiLow:307.47, rsi:47.39, hiloSignal:"BUY", netVol:"BEARISH", period:9 },
+  META: { name:"Meta Platforms Inc.", price:585.31, hiloVal:568.0, hiHigh:583.41, hiLow:568.0, rsi:51.66, hiloSignal:"BUY", netVol:"BEARISH", period:15 },
+  QQQ: { name:"Nasdaq 100 ETF", price:710.28, hiloVal:702.01, hiHigh:711.71, hiLow:702.01, rsi:48.47, hiloSignal:"BUY", netVol:"BEARISH", period:30 }
 };
 const LOG = [
   { date:"13/04/2026", ticker:"NVDA", hilo:"BUY",     netVol:"BEARISH", rsi:68.17, signal:"WATCH", price:188.63, stop:176.30 },
@@ -1945,6 +1945,11 @@ const LOG = [
   { date:"25/08/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:46.85, signal:"WATCH", price:308.95, stop:306.72 },  // 👀 PRE-CLOSE 26/08/2026 05:35 AEST
   { date:"25/08/2026", ticker:"META", hilo:"SELL", netVol:"BEARISH", rsi:45.58, signal:"SELL", price:567.59, stop:583.79 },  // ❌ PRE-CLOSE 26/08/2026 05:35 AEST
   { date:"25/08/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:48.19, signal:"WATCH", price:709.78, stop:702.07 },  // 👀 PRE-CLOSE 26/08/2026 05:35 AEST
+
+  { date:"26/08/2026", ticker:"NVDA", hilo:"SELL", netVol:"BEARISH", rsi:48.15, signal:"SELL", price:211.66, stop:216.4 },  // ❌ PRE-CLOSE 26/08/2026 23:34 AEST
+  { date:"26/08/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:47.39, signal:"WATCH", price:309.57, stop:307.47 },  // 👀 PRE-CLOSE 26/08/2026 23:34 AEST
+  { date:"26/08/2026", ticker:"META", hilo:"BUY", netVol:"BEARISH", rsi:51.66, signal:"WATCH", price:585.31, stop:568.0 },  // 👀 PRE-CLOSE 26/08/2026 23:34 AEST
+  { date:"26/08/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:48.47, signal:"WATCH", price:710.28, stop:702.01 },  // 👀 PRE-CLOSE 26/08/2026 23:34 AEST
 ];
 
 // ─── Signal engine (unchanged from v1) ─────────────────────────────
@@ -2394,7 +2399,7 @@ function exportATO(){const trades=loadTrades();if(!trades.length){alert('No trad
 const EXECUTION = {
   "mode": "PAPER",
   "reason": "mode PAPER",
-  "updated": "26/08/2026 05:37",
+  "updated": "26/08/2026 23:34",
   "halted": false,
   "capital": null,
   "riskPct": 2.0,
@@ -2402,6 +2407,12 @@ const EXECUTION = {
   "redacted": true,
   "reconciled": null,
   "events": [
+    {
+      "ts": "23:34:49",
+      "event": "auth_required",
+      "ticker": null,
+      "detail": "gateway returned [...] \u2014 browser login required"
+    },
     {
       "ts": "05:37:46",
       "event": "auth_required",
@@ -2473,12 +2484,6 @@ const EXECUTION = {
       "event": "broker_error",
       "ticker": null,
       "detail": "gateway unreachable at https://localhost:[...]/v[...]/api (HTTPSConnectionPool(host='localhost', port=[...]): Max retries exceeded with url: /v[...]/api/iserver/auth/ssod"
-    },
-    {
-      "ts": "17:58:06",
-      "event": "reconciliation",
-      "ticker": null,
-      "detail": ""
     }
   ]
 };
