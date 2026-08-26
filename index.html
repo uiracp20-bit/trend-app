@@ -278,7 +278,7 @@ strong { font-weight:650; }
       <h1><span class="logo">📈</span> Trend Following <span class="accent">Dashboard</span></h1>
       <div class="hero-meta">
         <span class="badge prep">🟡 PRE-CLOSE</span>
-        <span class="badge date">📅 26/08/2026</span>
+        <span class="badge date">📅 27/08/2026</span>
         <span class="badge">Strategy: <strong>Shark</strong></span>
         <span class="badge">Platform: <strong>Stake</strong> · Long Only</span>
         <span class="ny-clock" id="nyClock">🕐 Loading NY time...</span>
@@ -472,12 +472,12 @@ strong { font-weight:650; }
   <div class="footer"><strong>Trend Following System</strong> — Shark Strategy · Stake Platform · All signals for educational purposes only.</div>
 </div>
 <script>
-// ─── Live Data (PRE-CLOSE 26/08/2026 23:34 AEST) ── ✅ AUTO via yfinance ──
+// ─── Live Data (PRE-CLOSE 27/08/2026 05:37 AEST) ── ✅ AUTO via yfinance ──
 const ASSETS = {
-  NVDA: { name:"NVIDIA Corporation", price:211.66, hiloVal:216.4, hiHigh:216.4, hiLow:210.67, rsi:48.15, hiloSignal:"SELL", netVol:"BEARISH", period:23 },
-  AAPL: { name:"Apple Inc.", price:309.57, hiloVal:307.47, hiHigh:313.02, hiLow:307.47, rsi:47.39, hiloSignal:"BUY", netVol:"BEARISH", period:9 },
-  META: { name:"Meta Platforms Inc.", price:585.31, hiloVal:568.0, hiHigh:583.41, hiLow:568.0, rsi:51.66, hiloSignal:"BUY", netVol:"BEARISH", period:15 },
-  QQQ: { name:"Nasdaq 100 ETF", price:710.28, hiloVal:702.01, hiHigh:711.71, hiLow:702.01, rsi:48.47, hiloSignal:"BUY", netVol:"BEARISH", period:30 }
+  NVDA: { name:"NVIDIA Corporation", price:210.38, hiloVal:216.4, hiHigh:216.4, hiLow:210.58, rsi:46.91, hiloSignal:"SELL", netVol:"BULLISH", period:23 },
+  AAPL: { name:"Apple Inc.", price:314.79, hiloVal:307.47, hiHigh:313.42, hiLow:307.47, rsi:52.62, hiloSignal:"BUY", netVol:"BEARISH", period:9 },
+  META: { name:"Meta Platforms Inc.", price:577.2, hiloVal:583.41, hiHigh:583.41, hiLow:566.76, rsi:49.03, hiloSignal:"SELL", netVol:"BEARISH", period:15 },
+  QQQ: { name:"Nasdaq 100 ETF", price:712.13, hiloVal:702.0, hiHigh:711.78, hiLow:702.0, rsi:49.54, hiloSignal:"BUY", netVol:"BEARISH", period:30 }
 };
 const LOG = [
   { date:"13/04/2026", ticker:"NVDA", hilo:"BUY",     netVol:"BEARISH", rsi:68.17, signal:"WATCH", price:188.63, stop:176.30 },
@@ -1950,6 +1950,21 @@ const LOG = [
   { date:"26/08/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:47.39, signal:"WATCH", price:309.57, stop:307.47 },  // 👀 PRE-CLOSE 26/08/2026 23:34 AEST
   { date:"26/08/2026", ticker:"META", hilo:"BUY", netVol:"BEARISH", rsi:51.66, signal:"WATCH", price:585.31, stop:568.0 },  // 👀 PRE-CLOSE 26/08/2026 23:34 AEST
   { date:"26/08/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:48.47, signal:"WATCH", price:710.28, stop:702.01 },  // 👀 PRE-CLOSE 26/08/2026 23:34 AEST
+
+  { date:"26/08/2026", ticker:"NVDA", hilo:"SELL", netVol:"BEARISH", rsi:48.08, signal:"SELL", price:211.59, stop:216.4 },  // ❌ PRE-CLOSE 26/08/2026 23:35 AEST
+  { date:"26/08/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:47.17, signal:"WATCH", price:309.35, stop:307.47 },  // 👀 PRE-CLOSE 26/08/2026 23:35 AEST
+  { date:"26/08/2026", ticker:"META", hilo:"SELL", netVol:"BEARISH", rsi:50.45, signal:"SELL", price:581.49, stop:583.41 },  // ❌ PRE-CLOSE 26/08/2026 23:35 AEST
+  { date:"26/08/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:48.27, signal:"WATCH", price:709.92, stop:702.01 },  // 👀 PRE-CLOSE 26/08/2026 23:35 AEST
+
+  { date:"26/08/2026", ticker:"NVDA", hilo:"SELL", netVol:"BULLISH", rsi:47.1, signal:"WATCH", price:210.59, stop:216.4 },  // 👀 PRE-CLOSE 27/08/2026 05:35 AEST
+  { date:"26/08/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:52.8, signal:"WATCH", price:314.99, stop:307.47 },  // 👀 PRE-CLOSE 27/08/2026 05:35 AEST
+  { date:"26/08/2026", ticker:"META", hilo:"SELL", netVol:"BEARISH", rsi:49.08, signal:"SELL", price:577.34, stop:583.41 },  // ❌ PRE-CLOSE 27/08/2026 05:35 AEST
+  { date:"26/08/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:49.69, signal:"WATCH", price:712.38, stop:702.0 },  // 👀 PRE-CLOSE 27/08/2026 05:35 AEST
+
+  { date:"26/08/2026", ticker:"NVDA", hilo:"SELL", netVol:"BULLISH", rsi:46.91, signal:"WATCH", price:210.38, stop:216.4 },  // 👀 PRE-CLOSE 27/08/2026 05:37 AEST
+  { date:"26/08/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:52.62, signal:"WATCH", price:314.79, stop:307.47 },  // 👀 PRE-CLOSE 27/08/2026 05:37 AEST
+  { date:"26/08/2026", ticker:"META", hilo:"SELL", netVol:"BEARISH", rsi:49.03, signal:"SELL", price:577.2, stop:583.41 },  // ❌ PRE-CLOSE 27/08/2026 05:37 AEST
+  { date:"26/08/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:49.54, signal:"WATCH", price:712.13, stop:702.0 },  // 👀 PRE-CLOSE 27/08/2026 05:37 AEST
 ];
 
 // ─── Signal engine (unchanged from v1) ─────────────────────────────
@@ -2399,7 +2414,7 @@ function exportATO(){const trades=loadTrades();if(!trades.length){alert('No trad
 const EXECUTION = {
   "mode": "PAPER",
   "reason": "mode PAPER",
-  "updated": "26/08/2026 23:34",
+  "updated": "27/08/2026 05:37",
   "halted": false,
   "capital": null,
   "riskPct": 2.0,
@@ -2407,6 +2422,24 @@ const EXECUTION = {
   "redacted": true,
   "reconciled": null,
   "events": [
+    {
+      "ts": "05:37:35",
+      "event": "auth_required",
+      "ticker": null,
+      "detail": "gateway returned [...] \u2014 browser login required"
+    },
+    {
+      "ts": "05:35:50",
+      "event": "broker_error",
+      "ticker": null,
+      "detail": "gateway unreachable at https://localhost:[...]/v[...]/api (HTTPSConnectionPool(host='localhost', port=[...]): Max retries exceeded with url: /v[...]/api/iserver/auth/ssod"
+    },
+    {
+      "ts": "23:35:11",
+      "event": "broker_error",
+      "ticker": null,
+      "detail": "gateway unreachable at https://localhost:[...]/v[...]/api (HTTPSConnectionPool(host='localhost', port=[...]): Max retries exceeded with url: /v[...]/api/iserver/auth/ssod"
+    },
     {
       "ts": "23:34:49",
       "event": "auth_required",
@@ -2478,12 +2511,6 @@ const EXECUTION = {
       "event": "reconciliation",
       "ticker": null,
       "detail": ""
-    },
-    {
-      "ts": "20:02:53",
-      "event": "broker_error",
-      "ticker": null,
-      "detail": "gateway unreachable at https://localhost:[...]/v[...]/api (HTTPSConnectionPool(host='localhost', port=[...]): Max retries exceeded with url: /v[...]/api/iserver/auth/ssod"
     }
   ]
 };
