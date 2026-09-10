@@ -472,12 +472,12 @@ strong { font-weight:650; }
   <div class="footer"><strong>Trend Following System</strong> — Shark Strategy · Stake Platform · All signals for educational purposes only.</div>
 </div>
 <script>
-// ─── Live Data (EVENING PREP 10/09/2026 10:37 AEST) ── ✅ AUTO via yfinance ──
+// ─── Live Data (EVENING PREP 10/09/2026 20:04 AEST) ── ✅ AUTO via yfinance ──
 const ASSETS = {
-  NVDA: { name:"NVIDIA Corporation", price:225.73, hiloVal:218.38, hiHigh:224.25, hiLow:218.38, rsi:56.32, hiloSignal:"BUY", netVol:"BEARISH", period:23 },
-  AAPL: { name:"Apple Inc.", price:316.22, hiloVal:315.73, hiHigh:323.4, hiLow:315.73, rsi:50.32, hiloSignal:"BUY", netVol:"BULLISH", period:9 },
-  META: { name:"Meta Platforms Inc.", price:613.48, hiloVal:566.19, hiHigh:583.16, hiLow:566.19, rsi:61.17, hiloSignal:"BUY", netVol:"BULLISH", period:15 },
-  QQQ: { name:"Nasdaq 100 ETF", price:718.36, hiloVal:707.23, hiHigh:715.87, hiLow:707.23, rsi:53.36, hiloSignal:"BUY", netVol:"BULLISH", period:30 }
+  NVDA: { name:"NVIDIA Corporation", price:223.67, hiloVal:218.66, hiHigh:224.36, hiLow:218.66, rsi:54.46, hiloSignal:"BUY", netVol:"BEARISH", period:23 },
+  AAPL: { name:"Apple Inc.", price:315.34, hiloVal:323.81, hiHigh:323.81, hiLow:315.85, rsi:49.46, hiloSignal:"SELL", netVol:"BULLISH", period:9 },
+  META: { name:"Meta Platforms Inc.", price:653.69, hiloVal:572.54, hiHigh:589.64, hiLow:572.54, rsi:70.75, hiloSignal:"BUY", netVol:"BULLISH", period:15 },
+  QQQ: { name:"Nasdaq 100 ETF", price:716.31, hiloVal:708.76, hiHigh:717.22, hiLow:708.76, rsi:51.8, hiloSignal:"BUY", netVol:"BEARISH", period:30 }
 };
 const LOG = [
   { date:"13/04/2026", ticker:"NVDA", hilo:"BUY",     netVol:"BEARISH", rsi:68.17, signal:"WATCH", price:188.63, stop:176.30 },
@@ -2065,6 +2065,11 @@ const LOG = [
   { date:"08/09/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:50.32, signal:"BUY", price:316.22, stop:315.73 },  // ✅ EVENING PREP 10/09/2026 10:37 AEST
   { date:"08/09/2026", ticker:"META", hilo:"BUY", netVol:"BULLISH", rsi:61.17, signal:"BUY", price:613.48, stop:566.19 },  // ✅ EVENING PREP 10/09/2026 10:37 AEST
   { date:"08/09/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:53.36, signal:"BUY", price:718.36, stop:707.23 },  // ✅ EVENING PREP 10/09/2026 10:37 AEST
+
+  { date:"09/09/2026", ticker:"NVDA", hilo:"BUY", netVol:"BEARISH", rsi:54.46, signal:"WATCH", price:223.67, stop:218.66 },  // 👀 EVENING PREP 10/09/2026 20:04 AEST
+  { date:"09/09/2026", ticker:"AAPL", hilo:"SELL", netVol:"BULLISH", rsi:49.46, signal:"WATCH", price:315.34, stop:323.81 },  // 👀 EVENING PREP 10/09/2026 20:04 AEST
+  { date:"09/09/2026", ticker:"META", hilo:"BUY", netVol:"BULLISH", rsi:70.75, signal:"WATCH", price:653.69, stop:572.54 },  // 👀 EVENING PREP 10/09/2026 20:04 AEST
+  { date:"09/09/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:51.8, signal:"WATCH", price:716.31, stop:708.76 },  // 👀 EVENING PREP 10/09/2026 20:04 AEST
 ];
 
 // ─── Signal engine (unchanged from v1) ─────────────────────────────
@@ -2514,7 +2519,7 @@ function exportATO(){const trades=loadTrades();if(!trades.length){alert('No trad
 const EXECUTION = {
   "mode": "PAPER",
   "reason": "mode PAPER",
-  "updated": "10/09/2026 10:37",
+  "updated": "10/09/2026 20:04",
   "halted": false,
   "capital": null,
   "riskPct": 2.0,
@@ -2522,6 +2527,12 @@ const EXECUTION = {
   "redacted": true,
   "reconciled": null,
   "events": [
+    {
+      "ts": "20:04:52",
+      "event": "auth_required",
+      "ticker": null,
+      "detail": "gateway returned [...] \u2014 browser login required"
+    },
     {
       "ts": "10:37:38",
       "event": "auth_required",
@@ -2632,12 +2643,6 @@ const EXECUTION = {
     },
     {
       "ts": "05:37:46",
-      "event": "broker_error",
-      "ticker": null,
-      "detail": "gateway unreachable at https://localhost:[...]/v[...]/api (HTTPSConnectionPool(host='localhost', port=[...]): Max retries exceeded with url: /v[...]/api/iserver/auth/ssod"
-    },
-    {
-      "ts": "05:37:34",
       "event": "broker_error",
       "ticker": null,
       "detail": "gateway unreachable at https://localhost:[...]/v[...]/api (HTTPSConnectionPool(host='localhost', port=[...]): Max retries exceeded with url: /v[...]/api/iserver/auth/ssod"
