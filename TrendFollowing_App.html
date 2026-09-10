@@ -278,7 +278,7 @@ strong { font-weight:650; }
       <h1><span class="logo">📈</span> Trend Following <span class="accent">Dashboard</span></h1>
       <div class="hero-meta">
         <span class="badge prep">🌙 EVENING PREP</span>
-        <span class="badge date">📅 10/09/2026</span>
+        <span class="badge date">📅 11/09/2026</span>
         <span class="badge">Strategy: <strong>Shark</strong></span>
         <span class="badge">Platform: <strong>Stake</strong> · Long Only</span>
         <span class="ny-clock" id="nyClock">🕐 Loading NY time...</span>
@@ -472,12 +472,12 @@ strong { font-weight:650; }
   <div class="footer"><strong>Trend Following System</strong> — Shark Strategy · Stake Platform · All signals for educational purposes only.</div>
 </div>
 <script>
-// ─── Live Data (EVENING PREP 10/09/2026 20:04 AEST) ── ✅ AUTO via yfinance ──
+// ─── Live Data (EVENING PREP 11/09/2026 06:49 AEST) ── ✅ AUTO via yfinance ──
 const ASSETS = {
-  NVDA: { name:"NVIDIA Corporation", price:223.67, hiloVal:218.66, hiHigh:224.36, hiLow:218.66, rsi:54.46, hiloSignal:"BUY", netVol:"BEARISH", period:23 },
-  AAPL: { name:"Apple Inc.", price:315.34, hiloVal:323.81, hiHigh:323.81, hiLow:315.85, rsi:49.46, hiloSignal:"SELL", netVol:"BULLISH", period:9 },
-  META: { name:"Meta Platforms Inc.", price:653.69, hiloVal:572.54, hiHigh:589.64, hiLow:572.54, rsi:70.75, hiloSignal:"BUY", netVol:"BULLISH", period:15 },
-  QQQ: { name:"Nasdaq 100 ETF", price:716.31, hiloVal:708.76, hiHigh:717.22, hiLow:708.76, rsi:51.8, hiloSignal:"BUY", netVol:"BEARISH", period:30 }
+  NVDA: { name:"NVIDIA Corporation", price:218.36, hiloVal:224.2, hiHigh:224.2, hiLow:218.51, rsi:49.86, hiloSignal:"SELL", netVol:"BEARISH", period:23 },
+  AAPL: { name:"Apple Inc.", price:326.57, hiloVal:316.65, hiHigh:325.06, hiLow:316.65, rsi:59.09, hiloSignal:"BUY", netVol:"BULLISH", period:9 },
+  META: { name:"Meta Platforms Inc.", price:644.38, hiloVal:579.54, hiHigh:596.94, hiLow:579.54, rsi:66.66, hiloSignal:"BUY", netVol:"BULLISH", period:15 },
+  QQQ: { name:"Nasdaq 100 ETF", price:708.69, hiloVal:718.28, hiHigh:718.28, hiLow:710.29, rsi:46.19, hiloSignal:"SELL", netVol:"BEARISH", period:30 }
 };
 const LOG = [
   { date:"13/04/2026", ticker:"NVDA", hilo:"BUY",     netVol:"BEARISH", rsi:68.17, signal:"WATCH", price:188.63, stop:176.30 },
@@ -2070,6 +2070,11 @@ const LOG = [
   { date:"09/09/2026", ticker:"AAPL", hilo:"SELL", netVol:"BULLISH", rsi:49.46, signal:"WATCH", price:315.34, stop:323.81 },  // 👀 EVENING PREP 10/09/2026 20:04 AEST
   { date:"09/09/2026", ticker:"META", hilo:"BUY", netVol:"BULLISH", rsi:70.75, signal:"WATCH", price:653.69, stop:572.54 },  // 👀 EVENING PREP 10/09/2026 20:04 AEST
   { date:"09/09/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:51.8, signal:"WATCH", price:716.31, stop:708.76 },  // 👀 EVENING PREP 10/09/2026 20:04 AEST
+
+  { date:"10/09/2026", ticker:"NVDA", hilo:"SELL", netVol:"BEARISH", rsi:49.86, signal:"SELL", price:218.36, stop:224.2 },  // ❌ EVENING PREP 11/09/2026 06:49 AEST
+  { date:"10/09/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:59.09, signal:"BUY", price:326.57, stop:316.65 },  // ✅ EVENING PREP 11/09/2026 06:49 AEST
+  { date:"10/09/2026", ticker:"META", hilo:"BUY", netVol:"BULLISH", rsi:66.66, signal:"BUY", price:644.38, stop:579.54 },  // ✅ EVENING PREP 11/09/2026 06:49 AEST
+  { date:"10/09/2026", ticker:"QQQ", hilo:"SELL", netVol:"BEARISH", rsi:46.19, signal:"SELL", price:708.69, stop:718.28 },  // ❌ EVENING PREP 11/09/2026 06:49 AEST
 ];
 
 // ─── Signal engine (unchanged from v1) ─────────────────────────────
@@ -2519,7 +2524,7 @@ function exportATO(){const trades=loadTrades();if(!trades.length){alert('No trad
 const EXECUTION = {
   "mode": "PAPER",
   "reason": "mode PAPER",
-  "updated": "10/09/2026 20:04",
+  "updated": "11/09/2026 06:49",
   "halted": false,
   "capital": null,
   "riskPct": 2.0,
@@ -2527,6 +2532,12 @@ const EXECUTION = {
   "redacted": true,
   "reconciled": null,
   "events": [
+    {
+      "ts": "06:49:11",
+      "event": "auth_required",
+      "ticker": null,
+      "detail": "gateway returned [...] \u2014 browser login required"
+    },
     {
       "ts": "20:04:52",
       "event": "auth_required",
