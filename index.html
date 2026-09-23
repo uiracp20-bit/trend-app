@@ -277,7 +277,7 @@ strong { font-weight:650; }
     <div>
       <h1><span class="logo">📈</span> Trend Following <span class="accent">Dashboard</span></h1>
       <div class="hero-meta">
-        <span class="badge prep">🟡 PRE-CLOSE</span>
+        <span class="badge prep">🌙 EVENING PREP</span>
         <span class="badge date">📅 23/09/2026</span>
         <span class="badge">Strategy: <strong>Shark</strong></span>
         <span class="badge">Platform: <strong>Stake</strong> · Long Only</span>
@@ -472,12 +472,12 @@ strong { font-weight:650; }
   <div class="footer"><strong>Trend Following System</strong> — Shark Strategy · Stake Platform · All signals for educational purposes only.</div>
 </div>
 <script>
-// ─── Live Data (PRE-CLOSE 23/09/2026 05:37 AEST) ── ✅ AUTO via yfinance ──
+// ─── Live Data (EVENING PREP 23/09/2026 20:03 AEST) ── ✅ AUTO via yfinance ──
 const ASSETS = {
-  NVDA: { name:"NVIDIA Corporation", price:229.66, hiloVal:217.16, hiHigh:222.65, hiLow:217.16, rsi:60.2, hiloSignal:"BUY", netVol:"BULLISH", period:23 },
-  AAPL: { name:"Apple Inc.", price:340.36, hiloVal:329.75, hiHigh:336.39, hiLow:329.75, rsi:67.51, hiloSignal:"BUY", netVol:"BEARISH", period:9 },
-  META: { name:"Meta Platforms Inc.", price:740.2, hiloVal:639.18, hiHigh:662.83, hiLow:639.18, rsi:77.74, hiloSignal:"BUY", netVol:"BULLISH", period:15 },
-  QQQ: { name:"Nasdaq 100 ETF", price:747.78, hiloVal:713.2, hiHigh:720.2, hiLow:713.2, rsi:68.47, hiloSignal:"BUY", netVol:"BULLISH", period:30 }
+  NVDA: { name:"NVIDIA Corporation", price:227.38, hiloVal:216.73, hiHigh:222.33, hiLow:216.73, rsi:58.58, hiloSignal:"BUY", netVol:"BULLISH", period:23 },
+  AAPL: { name:"Apple Inc.", price:338.98, hiloVal:326.54, hiHigh:333.48, hiLow:326.54, rsi:66.56, hiloSignal:"BUY", netVol:"BEARISH", period:9 },
+  META: { name:"Meta Platforms Inc.", price:741.25, hiloVal:628.43, hiHigh:650.89, hiLow:628.43, rsi:78.16, hiloSignal:"BUY", netVol:"BULLISH", period:15 },
+  QQQ: { name:"Nasdaq 100 ETF", price:741.47, hiloVal:712.49, hiHigh:719.4, hiLow:712.49, rsi:66.26, hiloSignal:"BUY", netVol:"BULLISH", period:30 }
 };
 const LOG = [
   { date:"13/04/2026", ticker:"NVDA", hilo:"BUY",     netVol:"BEARISH", rsi:68.17, signal:"WATCH", price:188.63, stop:176.30 },
@@ -2150,6 +2150,21 @@ const LOG = [
   { date:"22/09/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:67.51, signal:"WATCH", price:340.36, stop:329.75 },  // 👀 PRE-CLOSE 23/09/2026 05:37 AEST
   { date:"22/09/2026", ticker:"META", hilo:"BUY", netVol:"BULLISH", rsi:77.74, signal:"WATCH", price:740.2, stop:639.18 },  // 👀 PRE-CLOSE 23/09/2026 05:37 AEST
   { date:"22/09/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:68.47, signal:"BUY", price:747.78, stop:713.2 },  // ✅ PRE-CLOSE 23/09/2026 05:37 AEST
+
+  { date:"22/09/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:59.88, signal:"BUY", price:229.22, stop:217.16 },  // ✅ PRE-CLOSE 23/09/2026 05:43 AEST
+  { date:"22/09/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:67.24, signal:"WATCH", price:339.97, stop:329.75 },  // 👀 PRE-CLOSE 23/09/2026 05:43 AEST
+  { date:"22/09/2026", ticker:"META", hilo:"BUY", netVol:"BULLISH", rsi:77.38, signal:"WATCH", price:739.27, stop:639.18 },  // 👀 PRE-CLOSE 23/09/2026 05:43 AEST
+  { date:"22/09/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:68.34, signal:"BUY", price:747.41, stop:713.2 },  // ✅ PRE-CLOSE 23/09/2026 05:43 AEST
+
+  { date:"22/09/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:59.91, signal:"BUY", price:229.27, stop:217.16 },  // ✅ PRE-CLOSE 23/09/2026 05:43 AEST
+  { date:"22/09/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:67.27, signal:"WATCH", price:340.02, stop:329.75 },  // 👀 PRE-CLOSE 23/09/2026 05:43 AEST
+  { date:"22/09/2026", ticker:"META", hilo:"BUY", netVol:"BULLISH", rsi:77.47, signal:"WATCH", price:739.49, stop:639.18 },  // 👀 PRE-CLOSE 23/09/2026 05:43 AEST
+  { date:"22/09/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:68.37, signal:"BUY", price:747.5, stop:713.2 },  // ✅ PRE-CLOSE 23/09/2026 05:43 AEST
+
+  { date:"21/09/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:58.58, signal:"BUY", price:227.38, stop:216.73 },  // ✅ EVENING PREP 23/09/2026 20:03 AEST
+  { date:"21/09/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:66.56, signal:"WATCH", price:338.98, stop:326.54 },  // 👀 EVENING PREP 23/09/2026 20:03 AEST
+  { date:"21/09/2026", ticker:"META", hilo:"BUY", netVol:"BULLISH", rsi:78.16, signal:"WATCH", price:741.25, stop:628.43 },  // 👀 EVENING PREP 23/09/2026 20:03 AEST
+  { date:"21/09/2026", ticker:"QQQ", hilo:"BUY", netVol:"BULLISH", rsi:66.26, signal:"BUY", price:741.47, stop:712.49 },  // ✅ EVENING PREP 23/09/2026 20:03 AEST
 ];
 
 // ─── Signal engine (unchanged from v1) ─────────────────────────────
@@ -2599,7 +2614,7 @@ function exportATO(){const trades=loadTrades();if(!trades.length){alert('No trad
 const EXECUTION = {
   "mode": "PAPER",
   "reason": "mode PAPER",
-  "updated": "23/09/2026 05:38",
+  "updated": "23/09/2026 20:04",
   "halted": false,
   "capital": null,
   "riskPct": 2.0,
@@ -2610,6 +2625,30 @@ const EXECUTION = {
     "drift": []
   },
   "events": [
+    {
+      "ts": "20:03:50",
+      "event": "reconciliation",
+      "ticker": null,
+      "detail": ""
+    },
+    {
+      "ts": "07:28:45",
+      "event": "reconciliation",
+      "ticker": null,
+      "detail": ""
+    },
+    {
+      "ts": "05:44:01",
+      "event": "broker_error",
+      "ticker": null,
+      "detail": "ib_async unavailable (No module named 'ib_async'). This adapter needs Python >= [...] \u2014 run the engine with ~/ibkr-gateway/py[...]/bin/python[...]"
+    },
+    {
+      "ts": "05:43:48",
+      "event": "broker_error",
+      "ticker": null,
+      "detail": "ib_async unavailable (No module named 'ib_async'). This adapter needs Python >= [...] \u2014 run the engine with ~/ibkr-gateway/py[...]/bin/python[...]"
+    },
     {
       "ts": "05:37:59",
       "event": "order_error",
@@ -2633,30 +2672,6 @@ const EXECUTION = {
       "event": "broker_error",
       "ticker": null,
       "detail": "ib_async unavailable (No module named 'ib_async'). This adapter needs Python >= [...] \u2014 run the engine with ~/ibkr-gateway/py[...]/bin/python[...]"
-    },
-    {
-      "ts": "20:13:01",
-      "event": "reconciliation",
-      "ticker": null,
-      "detail": ""
-    },
-    {
-      "ts": "08:13:18",
-      "event": "reconciliation",
-      "ticker": null,
-      "detail": ""
-    },
-    {
-      "ts": "08:12:02",
-      "event": "reconciliation",
-      "ticker": null,
-      "detail": ""
-    },
-    {
-      "ts": "05:37:21",
-      "event": "auth_required",
-      "ticker": null,
-      "detail": "cannot reach IB Gateway at [...].[...]:[...] ([Errno [...]] Connect call failed ('[...].[...]', [...])). Is the Gateway running and is the API enabled?"
     }
   ]
 };
