@@ -472,7 +472,7 @@ strong { font-weight:650; }
   <div class="footer"><strong>Trend Following System</strong> — Shark Strategy · Stake Platform · All signals for educational purposes only.</div>
 </div>
 <script>
-// ─── Live Data (EVENING PREP 29/09/2026 07:27 AEST) ── ✅ AUTO via yfinance ──
+// ─── Live Data (EVENING PREP 29/09/2026 20:02 AEST) ── ✅ AUTO via yfinance ──
 const ASSETS = {
   NVDA: { name:"NVIDIA Corporation", price:228.86, hiloVal:219.32, hiHigh:224.66, hiLow:219.32, rsi:58.99, hiloSignal:"BUY", netVol:"BEARISH", period:23 },
   AAPL: { name:"Apple Inc.", price:338.4, hiloVal:334.18, hiHigh:340.3, hiLow:334.18, rsi:62.11, hiloSignal:"BUY", netVol:"BEARISH", period:9 },
@@ -2245,6 +2245,11 @@ const LOG = [
   { date:"28/09/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:62.11, signal:"WATCH", price:338.4, stop:334.18 },  // 👀 EVENING PREP 29/09/2026 07:27 AEST
   { date:"28/09/2026", ticker:"META", hilo:"BUY", netVol:"BULLISH", rsi:61.1, signal:"BUY", price:715.62, stop:679.27 },  // ✅ EVENING PREP 29/09/2026 07:27 AEST
   { date:"28/09/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:58.83, signal:"WATCH", price:736.53, stop:715.08 },  // 👀 EVENING PREP 29/09/2026 07:27 AEST
+
+  { date:"28/09/2026", ticker:"NVDA", hilo:"BUY", netVol:"BEARISH", rsi:58.99, signal:"WATCH", price:228.86, stop:219.32 },  // 👀 EVENING PREP 29/09/2026 20:02 AEST
+  { date:"28/09/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:62.11, signal:"WATCH", price:338.4, stop:334.18 },  // 👀 EVENING PREP 29/09/2026 20:02 AEST
+  { date:"28/09/2026", ticker:"META", hilo:"BUY", netVol:"BULLISH", rsi:61.1, signal:"BUY", price:715.62, stop:679.27 },  // ✅ EVENING PREP 29/09/2026 20:02 AEST
+  { date:"28/09/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:58.83, signal:"WATCH", price:736.53, stop:715.08 },  // 👀 EVENING PREP 29/09/2026 20:02 AEST
 ];
 
 // ─── Signal engine (unchanged from v1) ─────────────────────────────
@@ -2694,14 +2699,29 @@ function exportATO(){const trades=loadTrades();if(!trades.length){alert('No trad
 const EXECUTION = {
   "mode": "PAPER",
   "reason": "mode PAPER",
-  "updated": "29/09/2026 07:28",
+  "updated": "29/09/2026 20:02",
   "halted": false,
   "capital": null,
   "riskPct": 2.0,
   "oversize": "SHRINK",
   "redacted": true,
-  "reconciled": null,
+  "reconciled": {
+    "ok": true,
+    "drift": []
+  },
   "events": [
+    {
+      "ts": "16+10:00",
+      "event": "reconciliation",
+      "ticker": null,
+      "detail": ""
+    },
+    {
+      "ts": "38+10:00",
+      "event": "reconciliation",
+      "ticker": null,
+      "detail": ""
+    },
     {
       "ts": "25+10:00",
       "event": "auth_required",
@@ -2716,48 +2736,6 @@ const EXECUTION = {
     },
     {
       "ts": "51+10:00",
-      "event": "reconciliation",
-      "ticker": null,
-      "detail": ""
-    },
-    {
-      "ts": "50+10:00",
-      "event": "broker_error",
-      "ticker": null,
-      "detail": "ib_async unavailable (No module named 'ib_async'). This adapter needs Python >= [...] \u2014 run the engine with ~/ibkr-gateway/py[...]/bin/python[...]"
-    },
-    {
-      "ts": "55+10:00",
-      "event": "broker_error",
-      "ticker": null,
-      "detail": "ib_async unavailable (No module named 'ib_async'). This adapter needs Python >= [...] \u2014 run the engine with ~/ibkr-gateway/py[...]/bin/python[...]"
-    },
-    {
-      "ts": "19+10:00",
-      "event": "broker_error",
-      "ticker": null,
-      "detail": "ib_async unavailable (No module named 'ib_async'). This adapter needs Python >= [...] \u2014 run the engine with ~/ibkr-gateway/py[...]/bin/python[...]"
-    },
-    {
-      "ts": "58+10:00",
-      "event": "stop_modified",
-      "ticker": "NVDA",
-      "detail": "[...] NVDA @  stop [...]"
-    },
-    {
-      "ts": "53+10:00",
-      "event": "trades_json_stop",
-      "ticker": null,
-      "detail": ""
-    },
-    {
-      "ts": "49+10:00",
-      "event": "trades_json_stop",
-      "ticker": null,
-      "detail": ""
-    },
-    {
-      "ts": "42+10:00",
       "event": "reconciliation",
       "ticker": null,
       "detail": ""
