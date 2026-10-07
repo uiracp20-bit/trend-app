@@ -277,7 +277,7 @@ strong { font-weight:650; }
     <div>
       <h1><span class="logo">📈</span> Trend Following <span class="accent">Dashboard</span></h1>
       <div class="hero-meta">
-        <span class="badge prep">🟡 PRE-CLOSE</span>
+        <span class="badge prep">🌙 EVENING PREP</span>
         <span class="badge date">📅 07/10/2026</span>
         <span class="badge">Strategy: <strong>Shark</strong></span>
         <span class="badge">Platform: <strong>Stake</strong> · Long Only</span>
@@ -472,12 +472,12 @@ strong { font-weight:650; }
   <div class="footer"><strong>Trend Following System</strong> — Shark Strategy · Stake Platform · All signals for educational purposes only.</div>
 </div>
 <script>
-// ─── Live Data (PRE-CLOSE 07/10/2026 05:30 AEDT) ── ✅ AUTO via yfinance ──
+// ─── Live Data (EVENING PREP 07/10/2026 20:02 AEDT) ── ✅ AUTO via yfinance ──
 const ASSETS = {
-  NVDA: { name:"NVIDIA Corporation", price:240.21, hiloVal:223.52, hiHigh:228.02, hiLow:223.52, rsi:68.26, hiloSignal:"BUY", netVol:"BULLISH", period:23 },
-  AAPL: { name:"Apple Inc.", price:333.24, hiloVal:337.53, hiHigh:337.53, hiLow:331.6, rsi:54.06, hiloSignal:"SELL", netVol:"BULLISH", period:9 },
-  META: { name:"Meta Platforms Inc.", price:743.22, hiloVal:713.2, hiHigh:738.78, hiLow:713.2, rsi:64.32, hiloSignal:"BUY", netVol:"BEARISH", period:15 },
-  QQQ: { name:"Nasdaq 100 ETF", price:760.9, hiloVal:721.51, hiHigh:728.61, hiLow:721.51, rsi:70.89, hiloSignal:"BUY", netVol:"BEARISH", period:30 }
+  NVDA: { name:"NVIDIA Corporation", price:239.24, hiloVal:223.49, hiHigh:228.02, hiLow:223.49, rsi:67.52, hiloSignal:"BUY", netVol:"BULLISH", period:23 },
+  AAPL: { name:"Apple Inc.", price:333.63, hiloVal:337.53, hiHigh:337.53, hiLow:331.6, rsi:54.49, hiloSignal:"SELL", netVol:"BULLISH", period:9 },
+  META: { name:"Meta Platforms Inc.", price:738.88, hiloVal:713.2, hiHigh:738.78, hiLow:713.2, rsi:63.1, hiloSignal:"BUY", netVol:"BEARISH", period:15 },
+  QQQ: { name:"Nasdaq 100 ETF", price:759.66, hiloVal:721.51, hiHigh:728.61, hiLow:721.51, rsi:70.5, hiloSignal:"BUY", netVol:"BEARISH", period:30 }
 };
 const LOG = [
   { date:"13/04/2026", ticker:"NVDA", hilo:"BUY",     netVol:"BEARISH", rsi:68.17, signal:"WATCH", price:188.63, stop:176.30 },
@@ -2305,6 +2305,11 @@ const LOG = [
   { date:"06/10/2026", ticker:"AAPL", hilo:"SELL", netVol:"BULLISH", rsi:54.06, signal:"WATCH", price:333.24, stop:337.53 },  // 👀 PRE-CLOSE 07/10/2026 05:30 AEDT
   { date:"06/10/2026", ticker:"META", hilo:"BUY", netVol:"BEARISH", rsi:64.32, signal:"WATCH", price:743.22, stop:713.2 },  // 👀 PRE-CLOSE 07/10/2026 05:30 AEDT
   { date:"06/10/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:70.89, signal:"WATCH", price:760.9, stop:721.51 },  // 👀 PRE-CLOSE 07/10/2026 05:30 AEDT
+
+  { date:"06/10/2026", ticker:"NVDA", hilo:"BUY", netVol:"BULLISH", rsi:67.52, signal:"BUY", price:239.24, stop:223.49 },  // ✅ EVENING PREP 07/10/2026 20:02 AEDT
+  { date:"06/10/2026", ticker:"AAPL", hilo:"SELL", netVol:"BULLISH", rsi:54.49, signal:"WATCH", price:333.63, stop:337.53 },  // 👀 EVENING PREP 07/10/2026 20:02 AEDT
+  { date:"06/10/2026", ticker:"META", hilo:"BUY", netVol:"BEARISH", rsi:63.1, signal:"WATCH", price:738.88, stop:713.2 },  // 👀 EVENING PREP 07/10/2026 20:02 AEDT
+  { date:"06/10/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:70.5, signal:"WATCH", price:759.66, stop:721.51 },  // 👀 EVENING PREP 07/10/2026 20:02 AEDT
 ];
 
 // ─── Signal engine (unchanged from v1) ─────────────────────────────
@@ -2754,10 +2759,10 @@ function exportATO(){const trades=loadTrades();if(!trades.length){alert('No trad
 const EXECUTION = {
   "mode": "PAPER",
   "reason": "mode PAPER",
-  "updated": "07/10/2026 05:30",
+  "updated": "07/10/2026 20:02",
   "halted": false,
   "capital": null,
-  "riskPct": 2.0,
+  "riskPct": 3.0,
   "oversize": "SHRINK",
   "redacted": true,
   "reconciled": {
@@ -2765,6 +2770,12 @@ const EXECUTION = {
     "drift": []
   },
   "events": [
+    {
+      "ts": "16+11:00",
+      "event": "reconciliation",
+      "ticker": null,
+      "detail": ""
+    },
     {
       "ts": "29+11:00",
       "event": "stop_modified",
@@ -2803,12 +2814,6 @@ const EXECUTION = {
     },
     {
       "ts": "14+11:00",
-      "event": "reconciliation",
-      "ticker": null,
-      "detail": ""
-    },
-    {
-      "ts": "12+11:00",
       "event": "reconciliation",
       "ticker": null,
       "detail": ""
