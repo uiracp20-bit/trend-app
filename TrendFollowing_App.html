@@ -472,7 +472,7 @@ strong { font-weight:650; }
   <div class="footer"><strong>Trend Following System</strong> — Shark Strategy · Stake Platform · All signals for educational purposes only.</div>
 </div>
 <script>
-// ─── Live Data (EVENING PREP 14/10/2026 07:38 AEDT) ── ✅ AUTO via yfinance ──
+// ─── Live Data (EVENING PREP 14/10/2026 20:02 AEDT) ── ✅ AUTO via yfinance ──
 const ASSETS = {
   NVDA: { name:"NVIDIA Corporation", price:228.52, hiloVal:224.55, hiHigh:229.0, hiLow:224.55, rsi:51.97, hiloSignal:"BUY", netVol:"BEARISH", period:23 },
   AAPL: { name:"Apple Inc.", price:341.27, hiloVal:332.93, hiHigh:338.58, hiLow:332.93, rsi:60.48, hiloSignal:"BUY", netVol:"BEARISH", period:9 },
@@ -2365,6 +2365,11 @@ const LOG = [
   { date:"13/10/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:60.48, signal:"WATCH", price:341.27, stop:332.93 },  // 👀 EVENING PREP 14/10/2026 07:38 AEDT
   { date:"13/10/2026", ticker:"META", hilo:"BUY", netVol:"BULLISH", rsi:66.06, signal:"BUY", price:762.5, stop:726.71 },  // ✅ EVENING PREP 14/10/2026 07:38 AEDT
   { date:"13/10/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:54.81, signal:"WATCH", price:743.57, stop:727.26 },  // 👀 EVENING PREP 14/10/2026 07:38 AEDT
+
+  { date:"13/10/2026", ticker:"NVDA", hilo:"BUY", netVol:"BEARISH", rsi:51.97, signal:"WATCH", price:228.52, stop:224.55 },  // 👀 EVENING PREP 14/10/2026 20:02 AEDT
+  { date:"13/10/2026", ticker:"AAPL", hilo:"BUY", netVol:"BEARISH", rsi:60.48, signal:"WATCH", price:341.27, stop:332.93 },  // 👀 EVENING PREP 14/10/2026 20:02 AEDT
+  { date:"13/10/2026", ticker:"META", hilo:"BUY", netVol:"BULLISH", rsi:66.06, signal:"BUY", price:762.5, stop:726.71 },  // ✅ EVENING PREP 14/10/2026 20:02 AEDT
+  { date:"13/10/2026", ticker:"QQQ", hilo:"BUY", netVol:"BEARISH", rsi:54.81, signal:"WATCH", price:743.57, stop:727.26 },  // 👀 EVENING PREP 14/10/2026 20:02 AEDT
 ];
 
 // ─── Signal engine (unchanged from v1) ─────────────────────────────
@@ -2814,7 +2819,7 @@ function exportATO(){const trades=loadTrades();if(!trades.length){alert('No trad
 const EXECUTION = {
   "mode": "PAPER",
   "reason": "mode PAPER",
-  "updated": "14/10/2026 07:38",
+  "updated": "14/10/2026 20:02",
   "halted": false,
   "capital": null,
   "riskPct": 3.0,
@@ -2825,6 +2830,18 @@ const EXECUTION = {
     "drift": []
   },
   "events": [
+    {
+      "ts": "19+11:00",
+      "event": "reconciliation",
+      "ticker": null,
+      "detail": ""
+    },
+    {
+      "ts": "15+11:00",
+      "event": "reconciliation",
+      "ticker": null,
+      "detail": ""
+    },
     {
       "ts": "31+11:00",
       "event": "reconciliation",
@@ -2851,24 +2868,6 @@ const EXECUTION = {
     },
     {
       "ts": "18+11:00",
-      "event": "reconciliation",
-      "ticker": null,
-      "detail": ""
-    },
-    {
-      "ts": "43+11:00",
-      "event": "stop_modified",
-      "ticker": "NVDA",
-      "detail": "[...] NVDA @  stop [...]"
-    },
-    {
-      "ts": "38+11:00",
-      "event": "trades_json_stop",
-      "ticker": null,
-      "detail": ""
-    },
-    {
-      "ts": "29+11:00",
       "event": "reconciliation",
       "ticker": null,
       "detail": ""
