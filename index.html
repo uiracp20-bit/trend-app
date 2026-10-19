@@ -223,6 +223,9 @@ strong { font-weight:650; }
 .trade-card-header { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:1px solid var(--border); gap:10px; flex-wrap:wrap; }
 .trade-ticker { font-size:1rem; font-weight:750; color:#fff; }
 .trade-date { font-size:.7rem; color:var(--text-faint); }
+.side-badge { display:inline-block; font-size:.62rem; font-weight:700; letter-spacing:.04em; padding:2px 8px; border-radius:10px; vertical-align:middle; }
+.side-badge.LONG { background:var(--green-soft); color:var(--green); }
+.side-badge.SHORT { background:var(--red-soft); color:var(--red); }
 .trade-status-badge { font-size:.68rem; font-weight:700; padding:3px 10px; border-radius:12px; }
 .trade-status-badge.open { background:var(--green-soft); color:var(--green); }
 .trade-status-badge.closed { background:var(--bg-inset); color:var(--text-dim); border:1px solid var(--border); }
@@ -268,6 +271,10 @@ strong { font-weight:650; }
   .container { padding:18px 12px 50px; }
   .tab-btn { padding:12px 11px; font-size:.75rem; }
   .indicators { grid-template-columns:repeat(2,1fr); }
+  /* The NY clock pill is an unwrapping inline-flex row; at phone width it
+     pushed the header (and the whole page) ~64px past the screen edge. */
+  .hero-top > div:first-child { min-width:0; max-width:100%; }
+  .ny-clock { flex-wrap:wrap; row-gap:2px; border-radius:12px; }
 }
 </style>
 </head>
@@ -277,10 +284,10 @@ strong { font-weight:650; }
     <div>
       <h1><span class="logo">📈</span> Trend Following <span class="accent">Dashboard</span></h1>
       <div class="hero-meta">
-        <span class="badge prep">🟡 PRE-CLOSE</span>
-        <span class="badge date">📅 17/10/2026</span>
+        <span class="badge prep">🌙 EVENING PREP</span>
+        <span class="badge date">📅 19/10/2026</span>
         <span class="badge">Strategy: <strong>Shark</strong></span>
-        <span class="badge">Platform: <strong>Stake</strong> · Long Only</span>
+        <span class="badge">Platform: <strong>IBKR</strong> · Long &amp; Short (shorts paper-only)</span>
         <span class="ny-clock" id="nyClock">🕐 Loading NY time...</span>
       </div>
     </div>
@@ -341,11 +348,19 @@ strong { font-weight:650; }
       <span style="font-size:.7rem;color:var(--text-faint);">Data saved in browser · 💾 Save trades.json into the project folder to enable phone position alerts</span>
     </div>
     <div class="trade-form-wrap" id="tradeFormWrap">
-      <h3>📝 Record New Trade (BUY Entry)</h3>
+      <h3>📝 Record New Trade</h3>
       <div class="form-grid">
         <div class="form-group">
           <label class="form-label">Ticker</label>
-          <select class="form-select" id="fTicker" onchange="autoFillForm()"></select>
+          <select class="form-select" id="fTicker" onchange="autoFillForm(true)"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Side</label>
+          <select class="form-select" id="fSide" onchange="autoFillForm()">
+            <option value="LONG">Long (BUY to open)</option>
+            <option value="SHORT">Short (SELL to open)</option>
+          </select>
+          <span class="form-hint">Defaults from the signal</span>
         </div>
         <div class="form-group">
           <label class="form-label">Date Opened</label>
@@ -441,16 +456,19 @@ strong { font-weight:650; }
       <div class="rule-card">
         <h3>🚦 Signal Rules</h3>
         <div class="rule-item"><div class="rkey">BUY (enter long)</div><div class="rval accent">Hilo = BUY + Net Vol = BULLISH + RSI 30–70 ✅</div></div>
-        <div class="rule-item"><div class="rkey">SELL (close position)</div><div class="rval">Hilo = SELL + Net Vol = BEARISH + RSI 30–70</div></div>
+        <div class="rule-item"><div class="rkey">SELL (enter short)</div><div class="rval accent">Hilo = SELL + Net Vol = BEARISH + RSI 30–70 ✅</div></div>
+        <div class="rule-item"><div class="rkey">Exit a long</div><div class="rval">Hilo flips to SELL, or price at/below the stop</div></div>
+        <div class="rule-item"><div class="rkey">Cover a short</div><div class="rval">Hilo flips to BUY, or price at/above the stop</div></div>
+        <div class="rule-item"><div class="rkey">Cooldown</div><div class="rval">After any exit, that ticker waits for the next trading day — no same-day re-entry either way</div></div>
         <div class="rule-item"><div class="rkey">WATCH</div><div class="rval">Partial confirmation only — do not act</div></div>
       </div>
       <div class="rule-card">
         <h3>💼 Risk Management</h3>
         <div class="rule-item"><div class="rkey">Risk per trade</div><div class="rval">Configurable % of capital (default 2%)</div></div>
         <div class="rule-item"><div class="rkey">Stop Loss</div><div class="rval">= Hilo Value (HiloLow when BUY, HiloHigh when SELL)</div></div>
-        <div class="rule-item"><div class="rkey">Position Size</div><div class="rval">Risk $ ÷ (Entry − Stop) = number of shares</div></div>
-        <div class="rule-item"><div class="rkey">Trailing Stop</div><div class="rval">Hilo value rises with the trend — raise your stop to the latest Hilo each session (see Positions tab)</div></div>
-        <div class="rule-item"><div class="rkey">Platform note</div><div class="rval">Stake is long-only. SELL = close trade, not short.</div></div>
+        <div class="rule-item"><div class="rkey">Position Size</div><div class="rval">Risk $ ÷ |Entry − Stop| = number of shares (long or short)</div></div>
+        <div class="rule-item"><div class="rkey">Trailing Stop</div><div class="rval">Follow the Hilo each session and never loosen it: a long's stop only rises, a short's only falls (see Positions tab)</div></div>
+        <div class="rule-item"><div class="rkey">Platform note</div><div class="rval">IBKR margin account. Shorts run in PAPER only — LIVE needs a separate switch.</div></div>
       </div>
       <div class="rule-card">
         <h3>⚙️ Optimised Hilo Periods</h3>
@@ -469,15 +487,15 @@ strong { font-weight:650; }
     <div id="execLog"></div>
   </div>
 
-  <div class="footer"><strong>Trend Following System</strong> — Shark Strategy · Stake Platform · All signals for educational purposes only.</div>
+  <div class="footer"><strong>Trend Following System</strong> — Shark Strategy · IBKR · Long &amp; Short · All signals for educational purposes only.</div>
 </div>
 <script>
-// ─── Live Data (PRE-CLOSE 17/10/2026 06:45 AEDT) ── ✅ AUTO via yfinance ──
+// ─── Live Data (EVENING PREP 19/10/2026 20:02 AEDT) ── ✅ AUTO via yfinance ──
 const ASSETS = {
-  NVDA: { name:"NVIDIA Corporation", price:214.21, hiloVal:229.63, hiHigh:229.63, hiLow:224.88, rsi:37.47, hiloSignal:"SELL", netVol:"BEARISH", period:23 },
-  AAPL: { name:"Apple Inc.", price:343.88, hiloVal:336.9, hiHigh:342.97, hiLow:336.9, rsi:62.36, hiloSignal:"BUY", netVol:"BULLISH", period:9 },
-  META: { name:"Meta Platforms Inc.", price:703.59, hiloVal:743.99, hiHigh:743.99, hiLow:721.61, rsi:48.8, hiloSignal:"SELL", netVol:"BULLISH", period:15 },
-  QQQ: { name:"Nasdaq 100 ETF", price:708.51, hiloVal:736.38, hiHigh:736.38, hiLow:728.32, rsi:34.5, hiloSignal:"SELL", netVol:"BULLISH", period:30 }
+  NVDA: { name:"NVIDIA Corporation", price:214.13, hiloVal:229.63, hiHigh:229.63, hiLow:224.88, rsi:37.44, hiloSignal:"SELL", netVol:"BULLISH", period:23 },
+  AAPL: { name:"Apple Inc.", price:343.46, hiloVal:336.9, hiHigh:342.97, hiLow:336.9, rsi:61.94, hiloSignal:"BUY", netVol:"BULLISH", period:9 },
+  META: { name:"Meta Platforms Inc.", price:709.33, hiloVal:743.99, hiHigh:743.99, hiLow:721.61, rsi:50.2, hiloSignal:"SELL", netVol:"BULLISH", period:15 },
+  QQQ: { name:"Nasdaq 100 ETF", price:709.8, hiloVal:736.38, hiHigh:736.38, hiLow:728.32, rsi:35.04, hiloSignal:"SELL", netVol:"BULLISH", period:30 }
 };
 const LOG = [
   { date:"13/04/2026", ticker:"NVDA", hilo:"BUY",     netVol:"BEARISH", rsi:68.17, signal:"WATCH", price:188.63, stop:176.30 },
@@ -2400,6 +2418,11 @@ const LOG = [
   { date:"16/10/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:62.36, signal:"BUY", price:343.88, stop:336.9 },  // ✅ PRE-CLOSE 17/10/2026 06:45 AEDT
   { date:"16/10/2026", ticker:"META", hilo:"SELL", netVol:"BULLISH", rsi:48.8, signal:"WATCH", price:703.59, stop:743.99 },  // 👀 PRE-CLOSE 17/10/2026 06:45 AEDT
   { date:"16/10/2026", ticker:"QQQ", hilo:"SELL", netVol:"BULLISH", rsi:34.5, signal:"WATCH", price:708.51, stop:736.38 },  // 👀 PRE-CLOSE 17/10/2026 06:45 AEDT
+
+  { date:"16/10/2026", ticker:"NVDA", hilo:"SELL", netVol:"BULLISH", rsi:37.44, signal:"WATCH", price:214.13, stop:229.63 },  // 👀 EVENING PREP 19/10/2026 20:02 AEDT
+  { date:"16/10/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:61.94, signal:"BUY", price:343.46, stop:336.9 },  // ✅ EVENING PREP 19/10/2026 20:02 AEDT
+  { date:"16/10/2026", ticker:"META", hilo:"SELL", netVol:"BULLISH", rsi:50.2, signal:"WATCH", price:709.33, stop:743.99 },  // 👀 EVENING PREP 19/10/2026 20:02 AEDT
+  { date:"16/10/2026", ticker:"QQQ", hilo:"SELL", netVol:"BULLISH", rsi:35.04, signal:"WATCH", price:709.8, stop:736.38 },  // 👀 EVENING PREP 19/10/2026 20:02 AEDT
 ];
 
 // ─── Signal engine (unchanged from v1) ─────────────────────────────
@@ -2424,6 +2447,9 @@ function signalBlockers(a) {
 function capital()  { return parseFloat(document.getElementById("capitalInput").value) || 0; }
 function riskPct()  { return parseFloat(document.getElementById("riskSelect").value) / 100; }
 function riskAmt()  { return capital() * riskPct(); }
+// A short faces the other way: stop above entry, profit when price falls.
+function isShortT(t){ return !!t && String(t.side||'').toUpperCase()==='SHORT'; }
+function sideBadge(side){ const s=String(side||'LONG').toUpperCase()==='SHORT'?'SHORT':'LONG'; return '<span class="side-badge '+s+'">'+s+'</span>'; }
 function fmt(n,d)   { d=d==null?2:d; return n != null ? n.toFixed(d) : "—"; }
 function fmtUSD(n)  { return n != null ? (n<0?"-$":"$") + Math.abs(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,",") : "—"; }
 function fmtAUD(n)  { return n != null ? (n<0?"-A$":"A$") + Math.abs(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,",") : "—"; }
@@ -2514,8 +2540,10 @@ function renderDashboard(){
   document.getElementById("assetGrid").innerHTML=Object.entries(ASSETS).map(([tk,a])=>{
     const sig=computeSignal(a);
     const bl=sig==="WATCH"?signalBlockers(a):[];
-    const stopDistPct=(a.price-a.hiloVal)/a.price*100;
-    const shares=ra>0&&(a.price-a.hiloVal)>0?(ra/(a.price-a.hiloVal)).toFixed(1):"—";
+    // Hilo above price = the short-side stop (Hilo in SELL state).
+    const stopAbove=a.hiloVal>a.price;
+    const stopDistPct=Math.abs(a.price-a.hiloVal)/a.price*100;
+    const shares=ra>0&&a.price!==a.hiloVal?(ra/Math.abs(a.price-a.hiloVal)).toFixed(1):"—";
     const hist=tickerHistory(tk);
     const spark=sparklineSVG(hist,a.price);
     // gauge: clamp stop distance to 0..15% scale
@@ -2535,9 +2563,9 @@ function renderDashboard(){
       +'<div class="ind"><div class="ind-label">Stop Loss</div><div class="ind-val">'+fmtUSD(a.hiloVal)+'</div></div>'
       +'</div>'
       +'<div class="stop-gauge"><div class="sg-track"><div class="sg-marker" style="left:'+(gaugePos*100).toFixed(1)+'%"></div></div>'
-      +'<div class="sg-labels"><span>At stop</span><span>Stop distance: '+stopDistPct.toFixed(1)+'%</span><span>15%+</span></div></div>'
+      +'<div class="sg-labels"><span>At stop</span><span>Stop distance: '+stopDistPct.toFixed(1)+'% '+(stopAbove?'above':'below')+'</span><span>15%+</span></div></div>'
       +'<div class="signal-block '+sig+'"><div><div class="sig-label">Final Signal</div><div class="sig-text '+sig+'">'+(sig==="BUY"?"✅ BUY":sig==="SELL"?"❌ SELL":"👀 WATCH")+'</div></div>'
-      +'<div class="sig-meta">Risk: <strong>'+fmtUSD(ra)+'</strong> → <strong>'+shares+' shares</strong></div></div>'
+      +'<div class="sig-meta">Risk: <strong>'+fmtUSD(ra)+'</strong> → <strong>'+shares+' shares'+(stopAbove?' short':'')+'</strong></div></div>'
       +flagsHtml+'</div></div>';
   }).join("");
 }
@@ -2547,23 +2575,27 @@ function renderPlanner(){
   const cap=capital(),ra=riskAmt();
   document.getElementById("plannerGrid").innerHTML=Object.entries(ASSETS).map(([tk,a])=>{
     const sig=computeSignal(a);
-    const risk=a.price-a.hiloVal;
+    // SELL = short: the stop is the Hilo ABOVE price, so risk is measured upward.
+    const short=a.hiloVal>a.price;
+    const risk=Math.abs(a.price-a.hiloVal);
     const shares=risk>0?ra/risk:0;
     const posVal=shares*a.price;
     const pctOfCap=cap>0?(posVal/cap*100):0;
     const maxLoss=shares*risk;
     const bl=sig==="WATCH"?signalBlockers(a):[];
     const pillsHtml=bl.length?'<div class="blockers">'+bl.map(b=>'<span class="blocker-pill">⚠️ '+b+'</span>').join("")+'</div>':"";
-    const noteHtml=sig!=="BUY"
-      ?'<div class="plan-note">👀 Signal is '+sig+' — no entry recommended.'+(bl.length?' Blockers: '+bl.join(", "):'')+'</div>'
-      :'<div class="plan-note">✅ All 3 indicators aligned — entry valid if confirmed at open.</div>';
+    const noteHtml=sig==="BUY"
+      ?'<div class="plan-note">✅ All 3 indicators aligned — long entry valid if confirmed at open.</div>'
+      :sig==="SELL"
+      ?'<div class="plan-note">✅ All 3 indicators aligned — short entry valid (paper only). Stop sits above at the Hilo.</div>'
+      :'<div class="plan-note">👀 Signal is '+sig+' — no entry recommended.'+(bl.length?' Blockers: '+bl.join(", "):'')+'</div>';
     return '<div class="plan-card"><div class="plan-header"><div class="plan-ticker">'+tk+' <span style="font-size:.72rem;color:var(--text-faint);font-weight:400">'+a.name+'</span></div><div class="plan-sig '+sig+'">'+sig+'</div></div><div class="plan-body">'
       +'<div class="plan-row"><span class="pkey">Entry Price</span><span class="pval">'+fmtUSD(a.price)+'</span></div>'
       +'<div class="plan-row"><span class="pkey">Stop Loss</span><span class="pval red">'+fmtUSD(a.hiloVal)+'</span></div>'
       +'<div class="plan-row"><span class="pkey">Risk per share</span><span class="pval amber">'+fmtUSD(risk)+'</span></div>'
       +'<div class="plan-row"><span class="pkey">Your capital</span><span class="pval blue">'+fmtUSD(cap)+'</span></div>'
       +'<div class="plan-row"><span class="pkey">Risk amount</span><span class="pval amber">'+fmtUSD(ra)+'</span></div>'
-      +'<div class="plan-row"><span class="pkey">Shares to buy</span><span class="pval green">'+(risk>0?fmt(shares,1):"—")+'</span></div>'
+      +'<div class="plan-row"><span class="pkey">'+(short?'Shares to short':'Shares to buy')+'</span><span class="pval green">'+(risk>0?fmt(shares,1):"—")+'</span></div>'
       +'<div class="plan-row"><span class="pkey">Position value</span><span class="pval">'+(risk>0?fmtUSD(posVal):"—")+'</span></div>'
       +'<div class="plan-row"><span class="pkey">% of capital</span><span class="pval">'+(risk>0?fmt(pctOfCap,1)+"%":"—")+'</span></div>'
       +'<div class="plan-row"><span class="pkey">Max loss (if stopped)</span><span class="pval red">'+(risk>0?fmtUSD(maxLoss):"—")+'</span></div>'
@@ -2586,27 +2618,36 @@ function renderPositions(){
     const cur=a?a.price:null;
     const entryVal=t.entryPriceUSD*t.shares;
     const curVal=cur!=null?cur*t.shares:null;
-    const pnl=cur!=null?(cur-t.entryPriceUSD)*t.shares:null;
-    const pnlPct=cur!=null?((cur/t.entryPriceUSD)-1)*100:null;
-    const rMult=(cur!=null&&(t.entryPriceUSD-t.stopLoss)>0)?(cur-t.entryPriceUSD)/(t.entryPriceUSD-t.stopLoss):null;
+    const short=isShortT(t), dir=short?-1:1;
+    const pnl=cur!=null?(cur-t.entryPriceUSD)*t.shares*dir:null;
+    const pnlPct=cur!=null?((cur/t.entryPriceUSD)-1)*100*dir:null;
+    const initRisk=(t.entryPriceUSD-t.stopLoss)*dir;
+    const rMult=(cur!=null&&initRisk>0)?(cur-t.entryPriceUSD)*dir/initRisk:null;
     const trailStop=a?a.hiloVal:null;
-    const bestStop=trailStop!=null?Math.max(t.stopLoss,trailStop):t.stopLoss;
+    // Tighter of recorded stop and Hilo: highest for a long, lowest for a short.
+    const bestStop=trailStop!=null?(short?(t.stopLoss>0?Math.min(t.stopLoss,trailStop):trailStop):Math.max(t.stopLoss,trailStop)):t.stopLoss;
     const sig=a?computeSignal(a):null;
     totCost+=t.costBaseUSD; if(curVal!=null){totVal+=curVal; totPnl+=pnl;}
     // range bar: stop → target scale
-    const lo=Math.min(bestStop,t.entryPriceUSD,cur!=null?cur:t.entryPriceUSD);
-    const hi=Math.max(t.target||t.entryPriceUSD*1.1,t.entryPriceUSD,cur!=null?cur:t.entryPriceUSD);
+    // Price runs left→right. A short's stop sits above (right) and its target
+    // below (left), so leave headroom on the opposite side for each.
+    const tgt=t.target||t.entryPriceUSD*(short?0.9:1.1);
+    const lo=Math.min(bestStop,t.entryPriceUSD,tgt,cur!=null?cur:t.entryPriceUSD);
+    const hi=Math.max(bestStop,t.entryPriceUSD,tgt,cur!=null?cur:t.entryPriceUSD);
     const span=(hi-lo)||1;
     const px=v=>Math.max(0,Math.min(100,(v-lo)/span*100));
     // alert logic
     let alertHtml='';
-    if(cur!=null&&cur<=bestStop) alertHtml='<div class="pos-alert bad">🛑 Price at/below stop ('+fmtUSD(bestStop)+') — exit rule triggered. Close the position.</div>';
-    else if(sig==='SELL') alertHtml='<div class="pos-alert bad">❌ System signal for '+t.ticker+' flipped to SELL — trend over, close the position.</div>';
-    else if(trailStop!=null&&trailStop>t.stopLoss) alertHtml='<div class="pos-alert warn">📈 Hilo trailing stop has risen to <strong>'+fmtUSD(trailStop)+'</strong> (your recorded stop: '+fmtUSD(t.stopLoss)+'). Raise your stop to lock in gains.</div>';
+    const stopHit=cur!=null&&(short?cur>=bestStop:cur<=bestStop);
+    const flip=short?sig==='BUY':sig==='SELL';
+    if(stopHit) alertHtml='<div class="pos-alert bad">🛑 Price at/'+(short?'above':'below')+' stop ('+fmtUSD(bestStop)+') — exit rule triggered. '+(short?'Cover the short.':'Close the position.')+'</div>';
+    else if(flip) alertHtml='<div class="pos-alert bad">❌ System signal for '+t.ticker+' flipped to '+sig+' — trend over, '+(short?'cover the short.':'close the position.')+'</div>';
+    else if(trailStop!=null&&!short&&trailStop>t.stopLoss) alertHtml='<div class="pos-alert warn">📈 Hilo trailing stop has risen to <strong>'+fmtUSD(trailStop)+'</strong> (your recorded stop: '+fmtUSD(t.stopLoss)+'). Raise your stop to lock in gains.</div>';
+    else if(trailStop!=null&&short&&trailStop>cur&&(!(t.stopLoss>0)||trailStop<t.stopLoss)) alertHtml='<div class="pos-alert warn">📉 Hilo trailing stop has fallen to <strong>'+fmtUSD(trailStop)+'</strong> (your recorded stop: '+fmtUSD(t.stopLoss)+'). Lower your short stop to lock in gains.</div>';
     else alertHtml='<div class="pos-alert ok">✅ Trend intact — hold. Stop unchanged at '+fmtUSD(bestStop)+'.</div>';
-    const danger=cur!=null&&(cur<=bestStop||sig==='SELL');
+    const danger=stopHit||flip;
     return '<div class="pos-card'+(danger?' danger':'')+'">'
-      +'<div class="pos-header"><div><span class="trade-ticker">'+t.ticker+'</span> <span class="trade-date">'+t.shares+' shares · opened '+t.dateOpen+'</span></div>'
+      +'<div class="pos-header"><div><span class="trade-ticker">'+t.ticker+'</span> '+sideBadge(t.side)+' <span class="trade-date">'+t.shares+' shares · opened '+t.dateOpen+'</span></div>'
       +'<div class="pos-pnl" style="color:'+(pnl!=null&&pnl>=0?'var(--green)':'var(--red)')+'">'+(pnl!=null?fmtUSD(pnl)+' ('+fmtPct(pnlPct)+')':'—')+'</div></div>'
       +'<div class="pos-body"><div class="pos-metrics">'
       +'<div class="pm"><div class="pm-label">Entry</div><div class="pm-val">'+fmtUSD(t.entryPriceUSD)+'</div></div>'
@@ -2618,12 +2659,14 @@ function renderPositions(){
       +'<div class="pm"><div class="pm-label">Position Value</div><div class="pm-val">'+(curVal!=null?fmtUSD(curVal):'—')+'</div></div>'
       +'</div>'
       +'<div class="pos-range"><div class="pr-track">'
-      +(cur!=null?'<div class="pr-fill" style="left:'+px(Math.min(t.entryPriceUSD,cur))+'%;width:'+Math.abs(px(cur)-px(t.entryPriceUSD))+'%;background:'+(cur>=t.entryPriceUSD?'var(--green-soft)':'var(--red-soft)')+';border:1px solid '+(cur>=t.entryPriceUSD?'rgba(52,211,153,.4)':'rgba(248,113,113,.4)')+'"></div>':'')
+      +(cur!=null?'<div class="pr-fill" style="left:'+px(Math.min(t.entryPriceUSD,cur))+'%;width:'+Math.abs(px(cur)-px(t.entryPriceUSD))+'%;background:'+((cur-t.entryPriceUSD)*dir>=0?'var(--green-soft)':'var(--red-soft)')+';border:1px solid '+((cur-t.entryPriceUSD)*dir>=0?'rgba(52,211,153,.4)':'rgba(248,113,113,.4)')+'"></div>':'')
       +'<div class="pr-tick" style="left:'+px(bestStop)+'%"></div>'
       +'<div class="pr-tick" style="left:'+px(t.entryPriceUSD)+'%"></div>'
       +(t.target?'<div class="pr-tick" style="left:'+px(t.target)+'%"></div>':'')
       +(cur!=null?'<div class="pr-dot" style="left:'+px(cur)+'%"></div>':'')
-      +'</div><div class="pr-labels"><span>🛑 Stop '+fmtUSD(bestStop)+'</span><span>Entry '+fmtUSD(t.entryPriceUSD)+'</span><span>🎯 '+(t.target?fmtUSD(t.target):'—')+'</span></div></div>'
+      +'</div><div class="pr-labels">'+(short
+        ?'<span>🎯 '+(t.target?fmtUSD(t.target):'—')+'</span><span>Entry '+fmtUSD(t.entryPriceUSD)+'</span><span>🛑 Stop '+fmtUSD(bestStop)+'</span>'
+        :'<span>🛑 Stop '+fmtUSD(bestStop)+'</span><span>Entry '+fmtUSD(t.entryPriceUSD)+'</span><span>🎯 '+(t.target?fmtUSD(t.target):'—')+'</span>')+'</div></div>'
       +alertHtml+'</div></div>';
   }).join('');
   const totPct=totCost>0?(totPnl/totCost*100):null;
@@ -2656,7 +2699,8 @@ function renderPerformance(){
   const totalUSD=closed.reduce((s,t)=>s+t.gainLossUSD,0);
   const totalNetAUD=closed.reduce((s,t)=>s+(t.netGainAUD||0),0);
   const avgHold=closed.reduce((s,t)=>s+(t.holdingDays||0),0)/closed.length;
-  const rMults=closed.filter(t=>t.stopLoss&&(t.entryPriceUSD-t.stopLoss)>0)
+  const rDir=t=>isShortT(t)?-1:1;
+  const rMults=closed.filter(t=>t.stopLoss&&(t.entryPriceUSD-t.stopLoss)*rDir(t)>0)
     .map(t=>(t.exitPriceUSD-t.entryPriceUSD)/(t.entryPriceUSD-t.stopLoss));
   const avgR=rMults.length?rMults.reduce((s,r)=>s+r,0)/rMults.length:null;
   const best=closed.reduce((m,t)=>t.gainLossUSD>m.gainLossUSD?t:m,closed[0]);
@@ -2775,17 +2819,17 @@ function populateTickerSelect(){
   const sel=document.getElementById('fTicker');
   sel.innerHTML=Object.entries(ASSETS).map(([tk,a])=>'<option value="'+tk+'">'+tk+' — '+a.name.split(' ')[0]+'</option>').join('');
 }
-function autoFillForm(){const tk=document.getElementById('fTicker').value;const a=ASSETS[tk];if(!a)return;document.getElementById('fEntryPrice').value=a.price.toFixed(2);document.getElementById('fStopLoss').value=a.hiloVal.toFixed(2);const stopDist=a.price-a.hiloVal;document.getElementById('fTarget').value=(a.price+2*stopDist).toFixed(2);calcLinkedFields('price');updateCostBasePreview();}
+function autoFillForm(fromTicker){const tk=document.getElementById('fTicker').value;const a=ASSETS[tk];if(!a)return;const sideEl=document.getElementById('fSide');if(fromTicker!==false&&fromTicker!==undefined)sideEl.value=computeSignal(a)==='SELL'?'SHORT':'LONG';const dir=sideEl.value==='SHORT'?-1:1;document.getElementById('fEntryPrice').value=a.price.toFixed(2);document.getElementById('fStopLoss').value=a.hiloVal.toFixed(2);const stopDist=Math.abs(a.price-a.hiloVal);document.getElementById('fTarget').value=(a.price+dir*2*stopDist).toFixed(2);calcLinkedFields('price');updateCostBasePreview();}
 function calcLinkedFields(source){const price=parseFloat(document.getElementById('fEntryPrice').value)||0;if(!price)return;if(source==='usd'){const usd=parseFloat(document.getElementById('fUSD').value);if(!isNaN(usd))document.getElementById('fShares').value=(usd/price).toFixed(2);}else if(source==='shares'){const sh=parseFloat(document.getElementById('fShares').value);if(!isNaN(sh))document.getElementById('fUSD').value=(sh*price).toFixed(2);}else if(source==='price'){const sh=parseFloat(document.getElementById('fShares').value);const usd=parseFloat(document.getElementById('fUSD').value);if(!isNaN(sh)&&sh>0)document.getElementById('fUSD').value=(sh*price).toFixed(2);else if(!isNaN(usd)&&usd>0)document.getElementById('fShares').value=(usd/price).toFixed(2);}updateCostBasePreview();}
 function updateCostBasePreview(){const price=parseFloat(document.getElementById('fEntryPrice').value)||0;const shares=parseFloat(document.getElementById('fShares').value)||0;const brok=parseFloat(document.getElementById('fBrokerageEntry').value)||0;const audUsd=parseFloat(document.getElementById('fAudUsdEntry').value)||0;if(!price||!shares){document.getElementById('costBasePreview').textContent='Fill in the fields above to see cost base preview.';return;}const entryVal=price*shares;const costUSD=entryVal+brok;const costAUD=audUsd>0?costUSD/audUsd:null;document.getElementById('costBasePreview').innerHTML='<strong style="color:var(--text);">Cost Base Preview:</strong> &nbsp;'+shares.toFixed(2)+' shares @ '+fmtUSD(price)+' = '+fmtUSD(entryVal)+' + '+fmtUSD(brok)+' brokerage = <strong style="color:var(--orange);">'+fmtUSD(costUSD)+' USD</strong>'+(costAUD?' &nbsp;/&nbsp; <strong style="color:var(--green);">'+fmtAUD(costAUD)+' AUD</strong> (at '+audUsd+' AUD/USD)':'');}
-function toggleTradeForm(){const wrap=document.getElementById('tradeFormWrap');const visible=wrap.classList.toggle('visible');if(visible){document.getElementById('fDateOpen').value=todayStr();autoFillForm();fetchAndFillRate();}}
-function saveTrade(){const ticker=document.getElementById('fTicker').value;const dateOpen=document.getElementById('fDateOpen').value.trim();const price=parseFloat(document.getElementById('fEntryPrice').value);const shares=parseFloat(document.getElementById('fShares').value);const brok=parseFloat(document.getElementById('fBrokerageEntry').value)||0;const audUsd=parseFloat(document.getElementById('fAudUsdEntry').value)||0;const stop=parseFloat(document.getElementById('fStopLoss').value)||0;const target=parseFloat(document.getElementById('fTarget').value)||0;const notes=document.getElementById('fNotes').value.trim();if(!dateOpen||!price||!shares){alert('Please fill in Date, Entry Price, and Shares/USD Amount.');return;}const entryValueUSD=price*shares;const costBaseUSD=entryValueUSD+brok;const costBaseAUD=audUsd>0?costBaseUSD/audUsd:null;const trade={id:Date.now().toString(),status:'OPEN',ticker,dateOpen,shares,notes,entryPriceUSD:price,entryValueUSD:Math.round(entryValueUSD*100)/100,brokerageEntryUSD:brok,costBaseUSD:Math.round(costBaseUSD*100)/100,audUsdEntry:audUsd,costBaseAUD:costBaseAUD?Math.round(costBaseAUD*100)/100:null,stopLoss:stop,target:target,dateClosed:null,exitPriceUSD:null,exitValueUSD:null,brokerageExitUSD:null,proceedsUSD:null,audUsdExit:null,proceedsAUD:null,gainLossUSD:null,gainLossAUD:null,holdingDays:null,cgtEligible:null,netGainAUD:null};const trades=loadTrades();trades.push(trade);saveTrades(trades);document.getElementById('fShares').value='';document.getElementById('fUSD').value='';document.getElementById('fNotes').value='';document.getElementById('tradeFormWrap').classList.remove('visible');renderTrades();renderPositions();}
+function toggleTradeForm(){const wrap=document.getElementById('tradeFormWrap');const visible=wrap.classList.toggle('visible');if(visible){document.getElementById('fDateOpen').value=todayStr();autoFillForm(true);fetchAndFillRate();}}
+function saveTrade(){const ticker=document.getElementById('fTicker').value;const dateOpen=document.getElementById('fDateOpen').value.trim();const price=parseFloat(document.getElementById('fEntryPrice').value);const shares=parseFloat(document.getElementById('fShares').value);const brok=parseFloat(document.getElementById('fBrokerageEntry').value)||0;const audUsd=parseFloat(document.getElementById('fAudUsdEntry').value)||0;const stop=parseFloat(document.getElementById('fStopLoss').value)||0;const target=parseFloat(document.getElementById('fTarget').value)||0;const notes=document.getElementById('fNotes').value.trim();const side=document.getElementById('fSide').value==='SHORT'?'SHORT':'LONG';if(!dateOpen||!price||!shares){alert('Please fill in Date, Entry Price, and Shares/USD Amount.');return;}const entryValueUSD=price*shares;const costBaseUSD=entryValueUSD+brok;const costBaseAUD=audUsd>0?costBaseUSD/audUsd:null;const trade={id:Date.now().toString(),status:'OPEN',ticker,side,dateOpen,shares,notes,entryPriceUSD:price,entryValueUSD:Math.round(entryValueUSD*100)/100,brokerageEntryUSD:brok,costBaseUSD:Math.round(costBaseUSD*100)/100,audUsdEntry:audUsd,costBaseAUD:costBaseAUD?Math.round(costBaseAUD*100)/100:null,stopLoss:stop,target:target,dateClosed:null,exitPriceUSD:null,exitValueUSD:null,brokerageExitUSD:null,proceedsUSD:null,audUsdExit:null,proceedsAUD:null,gainLossUSD:null,gainLossAUD:null,holdingDays:null,cgtEligible:null,netGainAUD:null};const trades=loadTrades();trades.push(trade);saveTrades(trades);document.getElementById('fShares').value='';document.getElementById('fUSD').value='';document.getElementById('fNotes').value='';document.getElementById('tradeFormWrap').classList.remove('visible');renderTrades();renderPositions();}
 function toggleCloseForm(id){const el=document.getElementById('closeForm_'+id);if(!el)return;const nowVisible=el.classList.toggle('visible');if(nowVisible)fetchAndFillCloseRate(id);}
 async function fetchAndFillCloseRate(id){const dateEl=document.getElementById('cf_date_'+id);const input=document.getElementById('cf_aud_'+id);const hint=document.getElementById('cf_aud_hint_'+id);if(!input||!hint)return;const dateStr=dateEl?.value?.trim()||'';input.value='';input.placeholder='Fetching…';hint.textContent='Fetching rate…';hint.style.color='var(--amber)';try{const{rate,date,source}=await _fetchAudRate(dateStr);input.value=rate.toFixed(4);hint.textContent='✅ '+source+' — '+date+' — 1 AUD = '+rate.toFixed(4)+' USD';hint.style.color='var(--green)';}catch(e){hint.textContent='⚠️ Could not fetch — enter manually';hint.style.color='var(--red)';input.placeholder='e.g. 0.6300';}}
-function confirmClose(id){const exitDate=document.getElementById('cf_date_'+id).value.trim();const exitPrice=parseFloat(document.getElementById('cf_price_'+id).value);const brokExit=parseFloat(document.getElementById('cf_brok_'+id).value)||0;const audUsdExit=parseFloat(document.getElementById('cf_aud_'+id).value)||0;if(!exitDate||!exitPrice){alert('Please enter Exit Date and Exit Price.');return;}const trades=loadTrades();const t=trades.find(x=>x.id===id);if(!t)return;const exitValueUSD=exitPrice*t.shares;const proceedsUSD=exitValueUSD-brokExit;const proceedsAUD=audUsdExit>0?proceedsUSD/audUsdExit:null;const gainLossUSD=proceedsUSD-t.costBaseUSD;const gainLossAUD=(proceedsAUD&&t.costBaseAUD)?proceedsAUD-t.costBaseAUD:null;const holdingDays=daysBetween(t.dateOpen,exitDate);const cgtEligible=holdingDays>=365;const netGainAUD=gainLossAUD!=null?(gainLossAUD>0&&cgtEligible?gainLossAUD*0.5:gainLossAUD):null;Object.assign(t,{status:'CLOSED',dateClosed:exitDate,exitPriceUSD:exitPrice,exitValueUSD:Math.round(exitValueUSD*100)/100,brokerageExitUSD:brokExit,proceedsUSD:Math.round(proceedsUSD*100)/100,audUsdExit,proceedsAUD:proceedsAUD?Math.round(proceedsAUD*100)/100:null,gainLossUSD:Math.round(gainLossUSD*100)/100,gainLossAUD:gainLossAUD?Math.round(gainLossAUD*100)/100:null,holdingDays,cgtEligible,netGainAUD:netGainAUD?Math.round(netGainAUD*100)/100:null});saveTrades(trades);renderTrades();renderPositions();renderPerformance();}
+function confirmClose(id){const exitDate=document.getElementById('cf_date_'+id).value.trim();const exitPrice=parseFloat(document.getElementById('cf_price_'+id).value);const brokExit=parseFloat(document.getElementById('cf_brok_'+id).value)||0;const audUsdExit=parseFloat(document.getElementById('cf_aud_'+id).value)||0;if(!exitDate||!exitPrice){alert('Please enter Exit Date and Exit Price.');return;}const trades=loadTrades();const t=trades.find(x=>x.id===id);if(!t)return;const exitValueUSD=exitPrice*t.shares;const short=isShortT(t);let proceedsUSD,proceedsAUD,gainLossUSD,gainLossAUD;if(short){proceedsUSD=(t.entryValueUSD||0)-(t.brokerageEntryUSD||0);const coverUSD=exitValueUSD+brokExit;proceedsAUD=t.audUsdEntry>0?proceedsUSD/t.audUsdEntry:null;const coverAUD=audUsdExit>0?coverUSD/audUsdExit:null;gainLossUSD=proceedsUSD-coverUSD;gainLossAUD=(proceedsAUD!=null&&coverAUD!=null)?proceedsAUD-coverAUD:null;t.costBaseUSD=Math.round(coverUSD*100)/100;t.costBaseAUD=coverAUD!=null?Math.round(coverAUD*100)/100:null;}else{proceedsUSD=exitValueUSD-brokExit;proceedsAUD=audUsdExit>0?proceedsUSD/audUsdExit:null;gainLossUSD=proceedsUSD-t.costBaseUSD;gainLossAUD=(proceedsAUD&&t.costBaseAUD)?proceedsAUD-t.costBaseAUD:null;}const holdingDays=daysBetween(t.dateOpen,exitDate);const cgtEligible=!short&&holdingDays>=365;const netGainAUD=gainLossAUD!=null?(gainLossAUD>0&&cgtEligible?gainLossAUD*0.5:gainLossAUD):null;Object.assign(t,{status:'CLOSED',dateClosed:exitDate,exitPriceUSD:exitPrice,exitValueUSD:Math.round(exitValueUSD*100)/100,brokerageExitUSD:brokExit,proceedsUSD:Math.round(proceedsUSD*100)/100,audUsdExit,proceedsAUD:proceedsAUD?Math.round(proceedsAUD*100)/100:null,gainLossUSD:Math.round(gainLossUSD*100)/100,gainLossAUD:gainLossAUD!=null?Math.round(gainLossAUD*100)/100:null,holdingDays,cgtEligible,netGainAUD:netGainAUD!=null?Math.round(netGainAUD*100)/100:null});saveTrades(trades);renderTrades();renderPositions();renderPerformance();}
 function deleteTrade(id){if(!confirm('Delete this trade record? This cannot be undone.'))return;const trades=loadTrades().filter(t=>t.id!==id);saveTrades(trades);renderTrades();renderPositions();renderPerformance();}
 function closeFormHTML(t){
-  return '<div class="close-form" id="closeForm_'+t.id+'"><h4>📤 Close '+t.ticker+' — record exit</h4>'
+  return '<div class="close-form" id="closeForm_'+t.id+'"><h4>📤 '+(isShortT(t)?'Cover':'Close')+' '+t.ticker+(isShortT(t)?' short':'')+' — record exit</h4>'
     +'<div class="form-grid">'
     +'<div class="form-group"><label class="form-label">Exit Date</label><input class="form-input" type="text" id="cf_date_'+t.id+'" value="'+todayStr()+'" placeholder="DD/MM/YYYY" onchange="fetchAndFillCloseRate(\''+t.id+'\')"/></div>'
     +'<div class="form-group"><label class="form-label">Exit Price (USD)</label><input class="form-input" type="number" step="0.01" id="cf_price_'+t.id+'" placeholder="e.g. '+(ASSETS[t.ticker]?ASSETS[t.ticker].price.toFixed(2):'0.00')+'"/></div>'
@@ -2810,8 +2854,8 @@ function renderTrades(){
   document.getElementById('closedCount').textContent=closed.length+' trade'+(closed.length!==1?'s':'');
   document.getElementById('openTradesList').innerHTML=open.length?open.map(t=>{
     const a=ASSETS[t.ticker];const curPrice=a?a.price:null;
-    const unrealPnL=curPrice?(curPrice-t.entryPriceUSD)*t.shares:null;
-    return '<div class="trade-card open-trade"><div class="trade-card-header"><div class="trade-card-title"><div class="trade-ticker">'+t.ticker+'</div><div class="trade-date">Opened '+t.dateOpen+'</div>'+(t.notes?'<div style="font-size:.7rem;color:var(--text-faint);font-style:italic">'+esc(t.notes)+'</div>':'')+'</div><span class="trade-status-badge open">🟢 OPEN</span></div><div class="trade-card-body"><div class="trade-metrics">'
+    const unrealPnL=curPrice?(curPrice-t.entryPriceUSD)*t.shares*(isShortT(t)?-1:1):null;
+    return '<div class="trade-card open-trade"><div class="trade-card-header"><div class="trade-card-title"><div class="trade-ticker">'+t.ticker+' '+sideBadge(t.side)+'</div><div class="trade-date">Opened '+t.dateOpen+'</div>'+(t.notes?'<div style="font-size:.7rem;color:var(--text-faint);font-style:italic">'+esc(t.notes)+'</div>':'')+'</div><span class="trade-status-badge open">🟢 OPEN</span></div><div class="trade-card-body"><div class="trade-metrics">'
       +'<div class="trade-metric"><div class="tm-label">Shares</div><div class="tm-val">'+t.shares+'</div></div>'
       +'<div class="trade-metric"><div class="tm-label">Entry Price</div><div class="tm-val">'+fmtUSD(t.entryPriceUSD)+'</div></div>'
       +'<div class="trade-metric"><div class="tm-label">Cost Base (USD)</div><div class="tm-val amber">'+fmtUSD(t.costBaseUSD)+'</div></div>'
@@ -2820,19 +2864,19 @@ function renderTrades(){
       +'<div class="trade-metric"><div class="tm-label">Target (2:1)</div><div class="tm-val green">'+fmtUSD(t.target)+'</div></div>'
       +(curPrice?'<div class="trade-metric"><div class="tm-label">Current Price</div><div class="tm-val blue">'+fmtUSD(curPrice)+'</div></div>':'')
       +(unrealPnL!=null?'<div class="trade-metric"><div class="tm-label">Unreal. P&L (USD)</div><div class="tm-val '+(unrealPnL>=0?'green':'red')+'">'+fmtUSD(unrealPnL)+'</div></div>':'')
-      +'</div><div class="trade-card-actions"><button class="btn btn-warning btn-sm" onclick="toggleCloseForm(\''+t.id+'\')">📤 Close Trade</button><button class="btn btn-outline btn-sm" onclick="deleteTrade(\''+t.id+'\')">🗑 Delete</button></div>'
+      +'</div><div class="trade-card-actions"><button class="btn btn-warning btn-sm" onclick="toggleCloseForm(\''+t.id+'\')">📤 '+(isShortT(t)?'Cover Short':'Close Trade')+'</button><button class="btn btn-outline btn-sm" onclick="deleteTrade(\''+t.id+'\')">🗑 Delete</button></div>'
       +closeFormHTML(t)+'</div></div>';
-  }).join(''):'<div class="empty-state">No open positions — hit <strong>＋ Add Trade</strong> when a BUY signal fires.</div>';
+  }).join(''):'<div class="empty-state">No open positions — hit <strong>＋ Add Trade</strong> when a BUY or SELL signal fires.</div>';
   document.getElementById('closedTradesList').innerHTML=closed.length?closed.map(t=>{
     const gain=t.gainLossUSD||0;const cardClass=gain>=0?'profit':'loss';
-    return '<div class="trade-card closed-trade '+cardClass+'"><div class="trade-card-header"><div class="trade-card-title"><div class="trade-ticker">'+t.ticker+'</div><div class="trade-date">'+t.dateOpen+' → '+t.dateClosed+' ('+t.holdingDays+'d)</div>'+(t.notes?'<div style="font-size:.7rem;color:var(--text-faint);font-style:italic">'+esc(t.notes)+'</div>':'')+'</div><div style="display:flex;gap:8px;align-items:center;"><strong style="color:'+(gain>=0?'var(--green)':'var(--red)')+';font-size:.95rem;">'+fmtUSD(gain)+'</strong><span class="trade-status-badge closed">CLOSED</span></div></div><div class="trade-card-body"><div class="trade-metrics">'
+    return '<div class="trade-card closed-trade '+cardClass+'"><div class="trade-card-header"><div class="trade-card-title"><div class="trade-ticker">'+t.ticker+' '+sideBadge(t.side)+'</div><div class="trade-date">'+t.dateOpen+' → '+t.dateClosed+' ('+t.holdingDays+'d)</div>'+(t.notes?'<div style="font-size:.7rem;color:var(--text-faint);font-style:italic">'+esc(t.notes)+'</div>':'')+'</div><div style="display:flex;gap:8px;align-items:center;"><strong style="color:'+(gain>=0?'var(--green)':'var(--red)')+';font-size:.95rem;">'+fmtUSD(gain)+'</strong><span class="trade-status-badge closed">CLOSED</span></div></div><div class="trade-card-body"><div class="trade-metrics">'
       +'<div class="trade-metric"><div class="tm-label">Shares</div><div class="tm-val">'+t.shares+'</div></div>'
       +'<div class="trade-metric"><div class="tm-label">Entry → Exit</div><div class="tm-val">'+fmtUSD(t.entryPriceUSD)+' → '+fmtUSD(t.exitPriceUSD)+'</div></div>'
       +'<div class="trade-metric"><div class="tm-label">Cost Base (AUD)</div><div class="tm-val">'+(t.costBaseAUD?fmtAUD(t.costBaseAUD):'—')+'</div></div>'
       +'<div class="trade-metric"><div class="tm-label">Proceeds (AUD)</div><div class="tm-val">'+(t.proceedsAUD?fmtAUD(t.proceedsAUD):'—')+'</div></div>'
       +'<div class="trade-metric"><div class="tm-label">Gain/Loss (USD)</div><div class="tm-val '+(gain>=0?'green':'red')+'">'+fmtUSD(gain)+'</div></div>'
       +'<div class="trade-metric"><div class="tm-label">Gain/Loss (AUD)</div><div class="tm-val '+((t.gainLossAUD||0)>=0?'green':'red')+'">'+(t.gainLossAUD!=null?fmtAUD(t.gainLossAUD):'—')+'</div></div>'
-      +'<div class="trade-metric"><div class="tm-label">CGT 50% Discount</div><div class="tm-val '+(t.cgtEligible?'green':'amber')+'">'+(t.cgtEligible?'✅ Eligible':'❌ < 12 months')+'</div></div>'
+      +'<div class="trade-metric"><div class="tm-label">CGT 50% Discount</div><div class="tm-val '+(t.cgtEligible?'green':'amber')+'">'+(isShortT(t)?'n/a (short)':t.cgtEligible?'✅ Eligible':'❌ < 12 months')+'</div></div>'
       +'<div class="trade-metric"><div class="tm-label">Net CGT Gain (AUD)</div><div class="tm-val '+((t.netGainAUD||0)>=0?'green':'red')+'">'+(t.netGainAUD!=null?fmtAUD(t.netGainAUD):'—')+'</div></div>'
       +'</div><div class="trade-card-actions"><button class="btn btn-outline btn-sm" onclick="deleteTrade(\''+t.id+'\')">🗑 Delete</button></div></div></div>';
   }).join(''):'<div class="empty-state">No closed trades yet.</div>';
@@ -2842,43 +2886,76 @@ function renderTrades(){
 function backupTrades(){const trades=loadTrades();if(!trades.length){alert('No trades to back up yet.');return;}const blob=new Blob([JSON.stringify(trades,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='trades.json';a.click();URL.revokeObjectURL(a.href);}
 
 // ─── ATO Export (unchanged from v1) ────────────────────────────────
-function exportATO(){const trades=loadTrades();if(!trades.length){alert('No trades to export yet. Add your first trade first.');return;}const wb=XLSX.utils.book_new();const jH=['#','Status','Ticker','Date Opened','Date Closed','Holding (days)','Shares','Entry Price (USD)','Entry Value (USD)','Brokerage Entry (USD)','Cost Base (USD)','AUD/USD (Entry)','Cost Base (AUD)','Exit Price (USD)','Exit Value (USD)','Brokerage Exit (USD)','Proceeds (USD)','AUD/USD (Exit)','Proceeds (AUD)','Gain/Loss (USD)','Gain/Loss (AUD)','CGT 50% Discount Eligible','Net CGT Gain/Loss (AUD)','Stop Loss','Target','Notes'];const jR=trades.map((t,i)=>[i+1,t.status,t.ticker,t.dateOpen,t.dateClosed||'OPEN',t.holdingDays||'',t.shares,t.entryPriceUSD,t.entryValueUSD,t.brokerageEntryUSD,t.costBaseUSD,t.audUsdEntry,t.costBaseAUD||'',t.exitPriceUSD||'',t.exitValueUSD||'',t.brokerageExitUSD||'',t.proceedsUSD||'',t.audUsdExit||'',t.proceedsAUD||'',t.gainLossUSD||'',t.gainLossAUD||'',t.cgtEligible===null?'':(t.cgtEligible?'YES (50% discount)':'NO (<12 months)'),t.netGainAUD||'',t.stopLoss,t.target,t.notes||'']);const wsJ=XLSX.utils.aoa_to_sheet([jH,...jR]);wsJ['!cols']=jH.map(h=>({wch:Math.max(h.length,12)}));XLSX.utils.book_append_sheet(wb,wsJ,'Trade Journal');const closed=trades.filter(t=>t.status==='CLOSED');const aH=['CGT Event #','Ticker','Date of Acquisition','Date of Disposal','Holding Period (days)','CGT 50% Discount','Cost Base (AUD)','Capital Proceeds (AUD)','Capital Gain / (Loss) AUD','Net Taxable Gain (AUD)','Notes'];const aR=closed.map((t,i)=>[i+1,t.ticker,t.dateOpen,t.dateClosed||'',t.holdingDays||'',t.cgtEligible?'YES — 50% discount applies':'NO — held < 12 months',t.costBaseAUD||'',t.proceedsAUD||'',t.gainLossAUD||'',t.netGainAUD||'',t.notes||'']);if(closed.length){const tCA=closed.reduce((s,t)=>s+(t.costBaseAUD||0),0);const tPA=closed.reduce((s,t)=>s+(t.proceedsAUD||0),0);const tGA=closed.reduce((s,t)=>s+(t.gainLossAUD||0),0);const tNA=closed.reduce((s,t)=>s+(t.netGainAUD||0),0);aR.push(['TOTAL','','','','','',Math.round(tCA*100)/100,Math.round(tPA*100)/100,Math.round(tGA*100)/100,Math.round(tNA*100)/100,'']);}const wsA=XLSX.utils.aoa_to_sheet([aH,...aR]);wsA['!cols']=aH.map(h=>({wch:Math.max(h.length+2,14)}));XLSX.utils.book_append_sheet(wb,wsA,'ATO CGT Summary');const nD=[['AUSTRALIAN TAX OFFICE — CGT REPORTING NOTES'],[''],['Generated by:','Trend Following Dashboard — Shark Strategy'],['Export date:',new Date().toLocaleDateString('en-AU')],['Platform:','Stake (AU-based US stock broker, long-only)'],[''],['KEY ATO RULES APPLIED:'],['CGT 50% Discount:','Applies to assets held 12+ months by Australian residents (individuals). Reduces net capital gain by 50%.'],['Cost Base:','Purchase price + brokerage commissions (entry). See ATO s110-25.'],['Capital Proceeds:','Sale price - brokerage commissions (exit). See ATO s116-20.'],['Foreign Currency:','All USD amounts converted to AUD at the exchange rate on the date of the transaction (ATO TR 2014/6).'],['CGT Event A1:','Disposal of a CGT asset (shares). Report in the year of disposal.'],[''],['DISCLAIMER:','This spreadsheet is a record-keeping aid only. Consult a registered tax agent for ATO compliance advice.'],['ATO Reference:','ato.gov.au/individuals-and-families/investments-and-assets/capital-gains-tax']];const wsN=XLSX.utils.aoa_to_sheet(nD);wsN['!cols']=[{wch:22},{wch:80}];wsN['!merges']=[{s:{r:0,c:0},e:{r:0,c:1}}];XLSX.utils.book_append_sheet(wb,wsN,'ATO Notes');const today=new Date().toISOString().slice(0,10);XLSX.writeFile(wb,'TrendFollowing_ATO_'+today+'.xlsx');}
+function exportATO(){const trades=loadTrades();if(!trades.length){alert('No trades to export yet. Add your first trade first.');return;}const wb=XLSX.utils.book_new();const jH=['#','Status','Ticker','Side','Date Opened','Date Closed','Holding (days)','Shares','Entry Price (USD)','Entry Value (USD)','Brokerage Entry (USD)','Cost Base (USD)','AUD/USD (Entry)','Cost Base (AUD)','Exit Price (USD)','Exit Value (USD)','Brokerage Exit (USD)','Proceeds (USD)','AUD/USD (Exit)','Proceeds (AUD)','Gain/Loss (USD)','Gain/Loss (AUD)','CGT 50% Discount Eligible','Net CGT Gain/Loss (AUD)','Stop Loss','Target','Notes'];const jR=trades.map((t,i)=>[i+1,t.status,t.ticker,isShortT(t)?'SHORT':'LONG',t.dateOpen,t.dateClosed||'OPEN',t.holdingDays||'',t.shares,t.entryPriceUSD,t.entryValueUSD,t.brokerageEntryUSD,t.costBaseUSD,t.audUsdEntry,t.costBaseAUD||'',t.exitPriceUSD||'',t.exitValueUSD||'',t.brokerageExitUSD||'',t.proceedsUSD||'',t.audUsdExit||'',t.proceedsAUD||'',t.gainLossUSD||'',t.gainLossAUD||'',t.cgtEligible===null?'':(t.cgtEligible?'YES (50% discount)':'NO (<12 months)'),t.netGainAUD||'',t.stopLoss,t.target,t.notes||'']);const wsJ=XLSX.utils.aoa_to_sheet([jH,...jR]);wsJ['!cols']=jH.map(h=>({wch:Math.max(h.length,12)}));XLSX.utils.book_append_sheet(wb,wsJ,'Trade Journal');const closed=trades.filter(t=>t.status==='CLOSED'&&!isShortT(t));const aH=['CGT Event #','Ticker','Date of Acquisition','Date of Disposal','Holding Period (days)','CGT 50% Discount','Cost Base (AUD)','Capital Proceeds (AUD)','Capital Gain / (Loss) AUD','Net Taxable Gain (AUD)','Notes'];const aR=closed.map((t,i)=>[i+1,t.ticker,t.dateOpen,t.dateClosed||'',t.holdingDays||'',t.cgtEligible?'YES — 50% discount applies':'NO — held < 12 months',t.costBaseAUD||'',t.proceedsAUD||'',t.gainLossAUD||'',t.netGainAUD||'',t.notes||'']);if(closed.length){const tCA=closed.reduce((s,t)=>s+(t.costBaseAUD||0),0);const tPA=closed.reduce((s,t)=>s+(t.proceedsAUD||0),0);const tGA=closed.reduce((s,t)=>s+(t.gainLossAUD||0),0);const tNA=closed.reduce((s,t)=>s+(t.netGainAUD||0),0);aR.push(['TOTAL','','','','','',Math.round(tCA*100)/100,Math.round(tPA*100)/100,Math.round(tGA*100)/100,Math.round(tNA*100)/100,'']);}const wsA=XLSX.utils.aoa_to_sheet([aH,...aR]);wsA['!cols']=aH.map(h=>({wch:Math.max(h.length+2,14)}));XLSX.utils.book_append_sheet(wb,wsA,'ATO CGT Summary');const nD=[['AUSTRALIAN TAX OFFICE — CGT REPORTING NOTES'],[''],['Generated by:','Trend Following Dashboard — Shark Strategy'],['Export date:',new Date().toLocaleDateString('en-AU')],['Platform:','IBKR (long and short)'],[''],['KEY ATO RULES APPLIED:'],['CGT 50% Discount:','Applies to assets held 12+ months by Australian residents (individuals). Reduces net capital gain by 50%.'],['Cost Base:','Purchase price + brokerage commissions (entry). See ATO s110-25.'],['Capital Proceeds:','Sale price - brokerage commissions (exit). See ATO s116-20.'],['Foreign Currency:','All USD amounts converted to AUD at the exchange rate on the date of the transaction (ATO TR 2014/6).'],['CGT Event A1:','Disposal of a CGT asset (shares). Report in the year of disposal.'],['Short sales:','Excluded from the CGT summary. Selling borrowed shares is not a disposal of an asset you own — confirm the treatment with a tax agent.'],[''],['DISCLAIMER:','This spreadsheet is a record-keeping aid only. Consult a registered tax agent for ATO compliance advice.'],['ATO Reference:','ato.gov.au/individuals-and-families/investments-and-assets/capital-gains-tax']];const wsN=XLSX.utils.aoa_to_sheet(nD);wsN['!cols']=[{wch:22},{wch:80}];wsN['!merges']=[{s:{r:0,c:0},e:{r:0,c:1}}];XLSX.utils.book_append_sheet(wb,wsN,'ATO Notes');const today=new Date().toISOString().slice(0,10);XLSX.writeFile(wb,'TrendFollowing_ATO_'+today+'.xlsx');}
 
 // ─── Execution (Phase 5) ───────────────────────────────────────────
 // Patched each run by update_dashboard.build_execution_js().
 const EXECUTION = {
-  "mode": "SKIPPED",
-  "reason": "another engine run is in progress",
-  "updated": "17/10/2026 06:45",
+  "mode": "PAPER",
+  "reason": "mode PAPER",
+  "updated": "19/10/2026 20:02",
   "halted": false,
   "capital": null,
   "riskPct": 3.0,
   "oversize": "SHRINK",
   "redacted": true,
-  "reconciled": null,
+  "reconciled": {
+    "ok": true,
+    "drift": []
+  },
+  "shorts": true,
+  "positions": [
+    {
+      "ticker": "AAPL",
+      "side": "LONG",
+      "pnlPct": 0.36,
+      "opened": "16/10/2026",
+      "entry": null,
+      "stop": null,
+      "shares": null
+    }
+  ],
   "events": [
     {
-      "ts": "16+11:00",
+      "ts": "20:02:14",
       "event": "reconciliation",
       "ticker": null,
+      "side": "",
       "detail": ""
     },
     {
-      "ts": "16+11:00",
-      "event": "reconciliation",
+      "ts": "06:46:57",
+      "event": "stop_modified",
+      "ticker": "AAPL",
+      "side": "",
+      "detail": "MODIFY_STOP [...] AAPL @  stop [...]"
+    },
+    {
+      "ts": "06:46:52",
+      "event": "trades_json_stop",
       "ticker": null,
+      "side": "",
       "detail": ""
     },
     {
-      "ts": "56+11:00",
+      "ts": "06:46:41",
       "event": "reconciliation",
       "ticker": null,
+      "side": "",
       "detail": ""
     },
     {
-      "ts": "12+11:00",
+      "ts": "20:02:16",
       "event": "reconciliation",
       "ticker": null,
+      "side": "",
+      "detail": ""
+    },
+    {
+      "ts": "16:48:16",
+      "event": "reconciliation",
+      "ticker": null,
+      "side": "",
       "detail": ""
     }
   ]
@@ -2899,6 +2976,7 @@ function renderExecution(){
     + '<div class="plan-sig" style="background:'+modeCol+'22;color:'+modeCol+'">'+esc(e.mode)+'</div></div>'
     + '<div class="plan-body">'
     + '<div class="plan-row"><span class="pkey">Status</span><span class="pval">'+esc(modeNote)+'</span></div>'
+    + '<div class="plan-row"><span class="pkey">Short side</span><span class="pval '+(e.shorts?'amber':'')+'">'+(e.shorts?'ON'+(e.mode==='LIVE'?'':' (paper only)'):'off')+'</span></div>'
     + '<div class="plan-row"><span class="pkey">Kill switch</span><span class="pval '+(e.halted?'red':'green')+'">'+(e.halted?'ENGAGED':'clear')+'</span></div>'
     + '<div class="plan-row"><span class="pkey">Last run</span><span class="pval">'+esc(e.updated||'—')+'</span></div>'
     + '<div class="plan-row"><span class="pkey">Detail</span><span class="pval" style="font-size:.68rem">'+esc(e.reason||'')+'</span></div>'
@@ -2916,20 +2994,33 @@ function renderExecution(){
   let recHtml = '<div class="plan-row"><span class="pkey">Reconciliation</span><span class="pval">not run</span></div>';
   if(e.reconciled){
     recHtml = e.reconciled.ok
-      ? '<div class="plan-row"><span class="pkey">Reconciliation</span><span class="pval green">broker matches trades.json</span></div>'
+      ? '<div class="plan-row"><span class="pkey">Reconciliation</span><span class="pval green">broker matches the ledger</span></div>'
       : '<div class="plan-row"><span class="pkey">Reconciliation</span><span class="pval red">DRIFT — trading halted</span></div>'
         + (e.reconciled.drift||[]).map(d=>'<div class="plan-row"><span class="pkey">'+esc(d.ticker)+'</span><span class="pval red">broker '+d.broker+' vs local '+d.trades_json+'</span></div>').join('');
   }
   cards += '<div class="plan-card"><div class="plan-header"><div class="plan-ticker">Broker Sync</div></div><div class="plan-body">'+recHtml+'</div></div>';
+
+  // Open engine positions. P&L % comes from the engine; entry/stop are only
+  // present when the page isn't redacted for public publishing.
+  const pos = e.positions||[];
+  const posRows = pos.length ? pos.map(p=>{
+    const pct = p.pnlPct;
+    return '<div class="plan-row"><span class="pkey">'+esc(p.ticker)+' '+sideBadge(p.side)+'</span>'
+      + '<span class="pval '+(pct==null?'':(pct>=0?'green':'red'))+'">'
+      + (pct!=null?fmtPct(pct):'—')
+      + (p.entry!=null?' <span style="color:var(--text-faint);font-weight:400">· in '+fmtUSD(p.entry)+' · stop '+fmtUSD(p.stop)+'</span>':'')
+      + '</span></div>';
+  }).join('') : '<div class="plan-row"><span class="pkey">Positions</span><span class="pval">none (flat)</span></div>';
+  cards += '<div class="plan-card"><div class="plan-header"><div class="plan-ticker">Open Positions</div><div class="plan-sig" style="background:var(--bg-inset);color:var(--text-dim)">'+pos.length+'</div></div><div class="plan-body">'+posRows+'</div></div>';
 
   host.className = 'planner-grid';
   host.innerHTML = cards;
 
   const rows = (e.events||[]);
   document.getElementById('execLog').innerHTML = rows.length
-    ? '<table class="log-table"><thead><tr><th>Time</th><th>Event</th><th>Ticker</th><th>Detail</th></tr></thead><tbody>'
-      + rows.map(r=>'<tr><td>'+esc(r.ts||'')+'</td><td>'+esc(r.event||'')+'</td><td>'+esc(r.ticker||'—')+'</td><td style="font-size:.68rem">'+esc(r.detail||'')+'</td></tr>').join('')
-      + '</tbody></table>'
+    ? '<div class="log-scroll"><table class="log-table"><thead><tr><th>Time</th><th>Event</th><th>Ticker</th><th>Detail</th></tr></thead><tbody>'
+      + rows.map(r=>'<tr><td>'+esc(r.ts||'')+'</td><td>'+esc(r.event||'')+'</td><td>'+esc(r.ticker||'—')+(r.side?' '+sideBadge(r.side):'')+'</td><td style="font-size:.68rem">'+esc(r.detail||'')+'</td></tr>').join('')
+      + '</tbody></table></div>'
     : '<div class="plan-note">No execution activity recorded yet.</div>';
 }
 
