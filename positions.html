@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Trend Positions</title>
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink-2: #52514e;
+  --muted: #898781; --grid: #e1e0d9; --axis: #c3c2b7;
+  --border: rgba(11,11,11,0.10);
+  --price: #2a78d6; --price-wash: rgba(42,120,214,0.10);
+  --stop: #d03b3b; --gain: #2a78d6; --loss: #e34948;
+  --good: #0ca30c; --good-text: #006300; --bad-text: #b42626;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19; --ink: #f0efec; --ink-2: #c3c2b7;
+    --muted: #898781; --grid: #2c2c2a; --axis: #383835;
+    --border: rgba(255,255,255,0.10);
+    --price: #3987e5; --price-wash: rgba(57,135,229,0.12);
+    --stop: #d03b3b; --gain: #3987e5; --loss: #e66767;
+    --good-text: #0ca30c; --bad-text: #e66767;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d; --surface: #1a1a19; --ink: #f0efec; --ink-2: #c3c2b7;
+  --muted: #898781; --grid: #2c2c2a; --axis: #383835;
+  --border: rgba(255,255,255,0.10);
+  --price: #3987e5; --price-wash: rgba(57,135,229,0.12);
+  --stop: #d03b3b; --gain: #3987e5; --loss: #e66767;
+  --good-text: #0ca30c; --bad-text: #e66767;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--page); color: var(--ink);
+  font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 980px; margin: 0 auto; padding: 20px 16px 48px; }
+header { display: flex; justify-content: space-between; align-items: baseline;
+  gap: 12px; flex-wrap: wrap; }
+h1 { font-size: 20px; margin: 0; font-weight: 650; }
+h2 { font-size: 15px; font-weight: 650; margin: 32px 0 10px; }
+.sub { color: var(--ink-2); font-size: 13px; }
+.chip { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 8px;
+  border-radius: 999px; border: 1px solid var(--border); color: var(--ink-2); }
+.card { background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px; }
+.hero { margin-top: 16px; display: grid; gap: 12px;
+  grid-template-columns: minmax(200px, 1.2fr) repeat(auto-fit, minmax(140px, 1fr)); }
+.hero .big { font-size: 44px; font-weight: 650; line-height: 1.1; letter-spacing: -0.5px; }
+.tile .label { color: var(--ink-2); font-size: 13px; }
+.tile .value { font-size: 22px; font-weight: 600; margin-top: 2px; }
+.tile .note { color: var(--muted); font-size: 12px; margin-top: 2px; }
+.up { color: var(--good-text); } .down { color: var(--bad-text); }
+.meter { height: 6px; border-radius: 3px; background: var(--grid); margin-top: 8px;
+  position: relative; overflow: hidden; }
+.meter > span { position: absolute; inset: 0 auto 0 0; background: var(--price); border-radius: 3px; }
+.positions { display: grid; gap: 12px; }
+.pos-head { display: flex; justify-content: space-between; align-items: baseline;
+  gap: 8px; flex-wrap: wrap; }
+.pos-head .tk { font-size: 18px; font-weight: 650; }
+.pos-head .pnl { font-size: 20px; font-weight: 650; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; color: var(--ink-2);
+  font-size: 12px; margin: 6px 0 2px; }
+.key { display: inline-block; width: 14px; height: 0; border-top: 2px solid;
+  vertical-align: middle; margin-right: 5px; }
+.key.thin { border-top-width: 1px; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+  gap: 8px 14px; margin-top: 10px; }
+.stats div { font-size: 13px; color: var(--ink-2); }
+.stats b { display: block; font-size: 15px; color: var(--ink); font-weight: 600;
+  font-variant-numeric: tabular-nums; }
+.chart { position: relative; width: 100%; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.tip { position: absolute; pointer-events: none; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 8px; padding: 6px 9px;
+  font-size: 12px; box-shadow: 0 4px 14px rgba(0,0,0,0.12); white-space: nowrap;
+  display: none; z-index: 2; }
+.tip .row { display: flex; align-items: center; gap: 6px; }
+.tip strong { font-variant-numeric: tabular-nums; }
+.tip .d { color: var(--muted); margin-bottom: 2px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--grid); }
+th { color: var(--ink-2); font-weight: 600; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.scroll { overflow-x: auto; }
+.sig { font-weight: 600; }
+.empty { color: var(--ink-2); }
+details { margin-top: 8px; color: var(--ink-2); font-size: 13px; }
+.pending { color: var(--muted); font-size: 12px; }
+@media (max-width: 560px) { .hero .big { font-size: 36px; } }
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script>
+const DATA = {"updated": "Wed 21 Oct 2026, 14:12", "mode": "PAPER", "capital": 3000.0, "broker_ok": true, "summary": {"open_pnl": -18.39, "realised": 7.96, "total": -10.43, "total_pct": -0.35, "invested": 2391.75, "invested_pct": 79.7, "worst": -66.81, "wins": 1, "losses": 3}, "positions": [{"ticker": "AAPL", "side": "LONG", "shares": 5.0, "entry": 342.22, "now": 339.5, "stop": 338.62, "opened": "2026-10-15", "days": 5, "pnl": -13.6, "pnl_pct": -0.79, "stop_room_pct": 0.26, "if_stopped": -18.0, "prices": [["2026-10-05", 332.89], ["2026-10-06", 333.63], ["2026-10-07", 336.67], ["2026-10-08", 340.42], ["2026-10-09", 336.64], ["2026-10-12", 340.97], ["2026-10-13", 341.27], ["2026-10-14", 342.96], ["2026-10-15", 342.0], ["2026-10-16", 343.46], ["2026-10-19", 342.94], ["2026-10-20", 339.5]], "stops": [["2026-10-15", 335.94], ["2026-10-16", 336.9], ["2026-10-19", 337.96], ["2026-10-20", 338.62]], "pending": false}, {"ticker": "META", "side": "SHORT", "shares": 1.0, "entry": 689.46, "now": 694.25, "stop": 738.27, "opened": "2026-10-20", "days": 0, "pnl": -4.79, "pnl_pct": -0.69, "stop_room_pct": 6.34, "if_stopped": -48.81, "prices": [["2026-10-08", 720.89], ["2026-10-09", 718.67], ["2026-10-12", 742.96], ["2026-10-13", 762.5], ["2026-10-14", 737.54], ["2026-10-15", 736.72], ["2026-10-16", 709.33], ["2026-10-19", 705.44], ["2026-10-20", 694.25]], "stops": [["2026-10-20", 738.27]], "pending": true}], "closed": [{"ticker": "AAPL", "side": "LONG", "opened": "2026-08-22", "closed": "2026-09-26", "closed_us": "2026-09-25", "entry": 309.51, "exit": 335.65, "shares": 1.9385, "pnl": 48.67, "days": 35}, {"ticker": "NVDA", "side": "LONG", "opened": "2026-09-23", "closed": "2026-10-14", "closed_us": "2026-10-13", "entry": 230.53, "exit": 224.08, "shares": 1.0, "pnl": -7.45, "days": 21}, {"ticker": "QQQ", "side": "LONG", "opened": "2026-10-15", "closed": "2026-10-15", "closed_us": "2026-10-14", "entry": 728.4, "exit": 728.0, "shares": 2.0, "pnl": -3.83, "days": 0}, {"ticker": "META", "side": "LONG", "opened": "2026-10-15", "closed": "2026-10-16", "closed_us": "2026-10-15", "entry": 737.41, "exit": 723.21, "shares": 2.0, "pnl": -29.43, "days": 1}], "curve": [["2026-08-21", -0.31], ["2026-08-24", 1.61], ["2026-08-25", 0.76], ["2026-08-26", 7.64], ["2026-08-27", 9.83], ["2026-08-28", 19.75], ["2026-08-31", 14.23], ["2026-09-01", 30.28], ["2026-09-02", 29.95], ["2026-09-03", 36.25], ["2026-09-04", 20.28], ["2026-09-08", 13.01], ["2026-09-09", 11.3], ["2026-09-10", 33.07], ["2026-09-11", 44.12], ["2026-09-14", 45.69], ["2026-09-15", 42.32], ["2026-09-16", 44.39], ["2026-09-17", 53.29], ["2026-09-18", 51.6], ["2026-09-21", 57.13], ["2026-09-22", 56.96], ["2026-09-23", 48.31], ["2026-09-24", 45.25], ["2026-09-25", 43.21], ["2026-09-28", 47.0], ["2026-09-29", 45.35], ["2026-09-30", 46.52], ["2026-10-01", 49.0], ["2026-10-02", 52.09], ["2026-10-05", 57.04], ["2026-10-06", 57.38], ["2026-10-07", 55.61], ["2026-10-08", 48.62], ["2026-10-09", 47.42], ["2026-10-12", 44.46], ["2026-10-13", 41.22], ["2026-10-14", 37.65], ["2026-10-15", 6.86], ["2026-10-16", 14.16], ["2026-10-19", 11.56], ["2026-10-20", -10.43]], "signals": [{"ticker": "NVDA", "signal": "WATCH", "price": 216.47, "hilo": 229.69, "rsi": 40.8, "netvol": "BULLISH"}, {"ticker": "AAPL", "signal": "BUY", "price": 339.5, "hilo": 338.62, "rsi": 55.4, "netvol": "BULLISH"}, {"ticker": "META", "signal": "SELL", "price": 694.25, "hilo": 738.28, "rsi": 46.3, "netvol": "BEARISH"}, {"ticker": "QQQ", "signal": "WATCH", "price": 717.63, "hilo": 736.55, "rsi": 40.8, "netvol": "BULLISH"}]};
+
+const $ = (tag, attrs = {}, kids = []) => {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === "class") n.className = v; else if (k === "text") n.textContent = v;
+    else n.setAttribute(k, v);
+  }
+  for (const k of [].concat(kids)) if (k) n.append(k);
+  return n;
+};
+const SVG = "http://www.w3.org/2000/svg";
+/* Draw at the real width so text stays 11-12px on a phone instead of being
+   scaled down with a fixed 640px viewBox. */
+const chartWidth = () => Math.max(300, Math.min(940,
+  (document.getElementById("app").clientWidth || 640) - 34));
+const narrow = () => chartWidth() < 480;
+const s = (tag, attrs = {}) => {
+  const n = document.createElementNS(SVG, tag);
+  for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+  return n;
+};
+const money = (v, signed) => (v == null ? "—" :
+  (signed && v > 0 ? "+" : v < 0 ? "−" : "") + "$" + Math.abs(v).toLocaleString("en-US",
+  { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+const pct = (v, signed = true) => (v == null ? "—" :
+  (signed && v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(2) + "%");
+const tone = v => (v > 0 ? "up" : v < 0 ? "down" : "");
+const fmtDate = iso => new Date(iso + "T00:00:00").toLocaleDateString("en-AU",
+  { day: "numeric", month: "short" });
+
+/* Line chart: shared x = trading days; one y-scale; crosshair tooltip. */
+function lineChart(host, { dates, series, refs = [], height = 220, area = false,
+                           zero = false, fmt = v => money(v), mark = null }) {
+  const W = chartWidth(), H = narrow() ? Math.round(height * 0.85) : height;
+  const m = { t: 12, r: narrow() ? 84 : 96, b: 26, l: narrow() ? 38 : 48 };
+  const vals = series.flatMap(sr => sr.values.filter(v => v != null))
+    .concat(refs.map(r => r.v)).concat(zero ? [0] : []);
+  let lo = Math.min(...vals), hi = Math.max(...vals);
+  const pad = (hi - lo || Math.abs(hi) || 1) * 0.08; lo -= pad; hi += pad;
+  // round the scale to clean steps (1, 2, 2.5, 5 × 10^n)
+  const raw = (hi - lo) / 4, mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const step = [1, 2, 2.5, 5, 10].map(f => f * mag).find(v => v >= raw);
+  lo = Math.floor(lo / step) * step; hi = Math.ceil(hi / step) * step;
+  const x = i => m.l + (dates.length < 2 ? 0 : i * (W - m.l - m.r) / (dates.length - 1));
+  const y = v => m.t + (hi - v) * (H - m.t - m.b) / (hi - lo);
+  const svg = s("svg", { viewBox: `0 0 ${W} ${H}`, role: "img" });
+
+  // recessive grid + y ticks
+  for (let v = lo; v <= hi + step / 2; v += step) {
+    svg.append(s("line", { x1: m.l, x2: W - m.r, y1: y(v), y2: y(v),
+      stroke: "var(--grid)", "stroke-width": 1 }));
+    const t = s("text", { x: m.l - 6, y: y(v) + 4, "text-anchor": "end",
+      "font-size": 11, fill: "var(--muted)" });
+    t.textContent = Math.abs(v) >= 1000 ? (v / 1000).toFixed(1) + "K"
+      : (Math.abs(v) < 1e-9 ? "0" : v.toFixed(step < 1 ? 1 : 0));
+    svg.append(t);
+  }
+  if (zero && lo < 0 && hi > 0) svg.append(s("line", { x1: m.l, x2: W - m.r,
+    y1: y(0), y2: y(0), stroke: "var(--axis)", "stroke-width": 1 }));
+  // x labels: first, middle, last
+  [0, Math.floor((dates.length - 1) / 2), dates.length - 1]
+    .filter((v, i, a) => a.indexOf(v) === i && dates[v]).forEach(i => {
+      const t = s("text", { x: x(i), y: H - 6, "font-size": 11, fill: "var(--muted)",
+        "text-anchor": i === 0 ? "start" : i === dates.length - 1 ? "end" : "middle" });
+      t.textContent = fmtDate(dates[i]); svg.append(t);
+    });
+  // event marker (the entry day): vertical hairline + small label
+  if (mark && dates.indexOf(mark.date) >= 0) {
+    const mx = x(dates.indexOf(mark.date));
+    svg.append(s("line", { x1: mx, x2: mx, y1: m.t, y2: H - m.b,
+      stroke: "var(--ink-2)", "stroke-width": 1, opacity: 0.5 }));
+    const t = s("text", { x: mx + 4, y: m.t + 10, "font-size": 11, fill: "var(--ink-2)" });
+    t.textContent = mark.label; svg.append(t);
+  }
+  // reference lines (entry): hairline + right label
+  const endLabels = [];
+  refs.forEach(r => {
+    svg.append(s("line", { x1: m.l, x2: W - m.r, y1: y(r.v), y2: y(r.v),
+      stroke: "var(--ink-2)", "stroke-width": 1, opacity: 0.7 }));
+    endLabels.push({ y: y(r.v), text: r.label, color: "var(--ink-2)" });
+  });
+  // series
+  series.forEach(sr => {
+    const pts = sr.values.map((v, i) => (v == null ? null : [x(i), y(v)]));
+    let d = "", started = false, prev = null;
+    pts.forEach(p => {
+      if (!p) { started = false; prev = null; return; }
+      if (!started) { d += `M${p[0]},${p[1]}`; started = true; }
+      else if (sr.step) d += `H${p[0]}V${p[1]}`;
+      else d += `L${p[0]},${p[1]}`;
+      prev = p;
+    });
+    if (area && sr.area) {
+      const valid = pts.filter(Boolean);
+      if (valid.length > 1) {
+        const base = y(zero ? Math.max(lo, Math.min(0, hi)) : lo);
+        svg.append(s("path", { d: d + `L${valid[valid.length - 1][0]},${base}L${valid[0][0]},${base}Z`,
+          fill: "var(--price-wash)", stroke: "none" }));
+      }
+    }
+    svg.append(s("path", { d, fill: "none", stroke: sr.color, "stroke-width": 2,
+      "stroke-linejoin": "round", "stroke-linecap": "round" }));
+    const lastI = sr.values.map((v, i) => (v == null ? -1 : i)).filter(i => i >= 0).pop();
+    if (lastI != null && lastI >= 0) {
+      svg.append(s("circle", { cx: x(lastI), cy: y(sr.values[lastI]), r: 4,
+        fill: sr.color, stroke: "var(--surface)", "stroke-width": 2 }));
+      if (sr.endLabel) endLabels.push({ y: y(sr.values[lastI]),
+        text: sr.endLabel(sr.values[lastI]), color: "var(--ink)" });
+    }
+  });
+  // end labels with simple collision avoidance (min 14px apart)
+  endLabels.sort((a, b) => a.y - b.y);
+  for (let i = 1; i < endLabels.length; i++)
+    if (endLabels[i].y - endLabels[i - 1].y < 14) endLabels[i].y = endLabels[i - 1].y + 14;
+  endLabels.forEach(l => {
+    const t = s("text", { x: W - m.r + 8, y: l.y + 4, "font-size": 11.5,
+      fill: l.color, "font-weight": 600 });
+    t.textContent = l.text; svg.append(t);
+  });
+
+  // crosshair + tooltip
+  const wrap = $("div", { class: "chart" }); wrap.append(svg);
+  const tip = $("div", { class: "tip" }); wrap.append(tip);
+  const cross = s("line", { y1: m.t, y2: H - m.b, stroke: "var(--axis)",
+    "stroke-width": 1, visibility: "hidden" });
+  svg.append(cross);
+  const hit = s("rect", { x: m.l, y: m.t, width: W - m.l - m.r, height: H - m.t - m.b,
+    fill: "transparent" });
+  svg.append(hit);
+  const show = evt => {
+    const r = svg.getBoundingClientRect();
+    const px = (evt.clientX - r.left) * W / r.width;
+    const i = Math.max(0, Math.min(dates.length - 1,
+      Math.round((px - m.l) / ((W - m.l - m.r) / Math.max(1, dates.length - 1)))));
+    cross.setAttribute("x1", x(i)); cross.setAttribute("x2", x(i));
+    cross.setAttribute("visibility", "visible");
+    tip.replaceChildren($("div", { class: "d", text: fmtDate(dates[i]) }));
+    series.forEach(sr => {
+      if (sr.values[i] == null) return;
+      const key = $("span", { class: "key", style: `border-color:${sr.color}` });
+      tip.append($("div", { class: "row" }, [key, $("strong", { text: fmt(sr.values[i]) }),
+        $("span", { text: sr.name })]));
+    });
+    tip.style.display = "block";
+    const left = (x(i) / W) * r.width;
+    tip.style.left = Math.min(r.width - tip.offsetWidth, Math.max(0, left + 10)) + "px";
+    tip.style.top = "6px";
+  };
+  hit.addEventListener("pointermove", show);
+  hit.addEventListener("pointerdown", show);
+  hit.addEventListener("pointerleave", () => { tip.style.display = "none";
+    cross.setAttribute("visibility", "hidden"); });
+  host.append(wrap);
+}
+
+/* Diverging horizontal bars for closed-trade P&L. */
+function pnlBars(host, rows) {
+  const W = chartWidth(), rowH = 30, H = rows.length * rowH + 8;
+  const m = { l: narrow() ? 104 : 132, r: narrow() ? 58 : 70 };
+  const mx = Math.max(1, ...rows.map(r => Math.abs(r.pnl)));
+  const cx = m.l + (W - m.l - m.r) / 2, half = (W - m.l - m.r) / 2;
+  const svg = s("svg", { viewBox: `0 0 ${W} ${H}`, role: "img" });
+  svg.append(s("line", { x1: cx, x2: cx, y1: 0, y2: H, stroke: "var(--axis)", "stroke-width": 1 }));
+  rows.forEach((r, i) => {
+    const yy = 4 + i * rowH, len = Math.max(2, Math.abs(r.pnl) / mx * half), h = 16;
+    const x0 = r.pnl >= 0 ? cx : cx - len;
+    // 4px rounded data-end, square at the baseline
+    const path = r.pnl >= 0
+      ? `M${x0},${yy + 7} h${len - 4} a4,4 0 0 1 4,4 v${h - 8} a4,4 0 0 1 -4,4 h${-(len - 4)} Z`
+      : `M${cx},${yy + 7} h${-(len - 4)} a4,4 0 0 0 -4,4 v${h - 8} a4,4 0 0 0 4,4 h${len - 4} Z`;
+    const bar = s("path", { d: path, fill: r.pnl >= 0 ? "var(--gain)" : "var(--loss)" });
+    const title = s("title"); title.textContent = `${r.ticker} ${r.side}: ${money(r.pnl, true)}`;
+    bar.append(title); svg.append(bar);
+    const lab = s("text", { x: 0, y: yy + 19, "font-size": 12, fill: "var(--ink-2)" });
+    lab.textContent = `${r.ticker} · ${fmtDate(r.closed)}`; svg.append(lab);
+    const val = s("text", { x: r.pnl >= 0 ? cx + len + 6 : cx - len - 6, y: yy + 19,
+      "font-size": 12, "font-weight": 600, fill: "var(--ink)",
+      "text-anchor": r.pnl >= 0 ? "start" : "end" });
+    val.textContent = money(r.pnl, true); svg.append(val);
+  });
+  host.append($("div", { class: "chart" }, [svg]));
+}
+
+function render(D) {
+  const app = document.getElementById("app");
+  const S = D.summary;
+  app.append($("header", {}, [
+    $("h1", { text: "Trend positions" }),
+    $("div", { class: "sub" }, [
+      $("span", { class: "chip", text: D.mode }), " ",
+      document.createTextNode(`Updated ${D.updated}`)])
+  ]));
+
+  // hero + tiles
+  const hero = $("section", { class: "hero" });
+  hero.append($("div", { class: "card tile" }, [
+    $("div", { class: "label", text: `Total P&L on $${D.capital.toLocaleString()}` }),
+    $("div", { class: "big " + tone(S.total), text: money(S.total, true) }),
+    $("div", { class: "note", text: `${pct(S.total_pct)} · ${S.wins}W / ${S.losses}L closed` })]));
+  const tile = (label, value, note, cls = "", extra = null) =>
+    $("div", { class: "card tile" }, [$("div", { class: "label", text: label }),
+      $("div", { class: "value " + cls, text: value }),
+      note ? $("div", { class: "note", text: note }) : null, extra]);
+  hero.append(tile("Open P&L", money(S.open_pnl, true),
+    `${D.positions.length} open position${D.positions.length === 1 ? "" : "s"}`, tone(S.open_pnl)));
+  hero.append(tile("Realised", money(S.realised, true), "closed trades", tone(S.realised)));
+  const meter = $("div", { class: "meter" }, [$("span",
+    { style: `width:${Math.min(100, S.invested_pct / 90 * 100)}%` })]);
+  hero.append(tile("Invested", money(S.invested), `${S.invested_pct}% of capital · cap 90%`, "", meter));
+  hero.append(tile("If every stop hits", money(S.worst, true), "vs entry prices", tone(S.worst)));
+  app.append(hero);
+  if (!D.broker_ok) app.append($("p", { class: "pending",
+    text: "IBKR was unreachable when this page was built — positions are from the ledger." }));
+
+  // open positions
+  app.append($("h2", { text: "Open positions" }));
+  const box = $("section", { class: "positions" });
+  if (!D.positions.length) box.append($("p", { class: "empty", text: "No open positions." }));
+  D.positions.forEach(p => {
+    const card = $("div", { class: "card" });
+    card.append($("div", { class: "pos-head" }, [
+      $("div", {}, [$("span", { class: "tk", text: p.ticker }), " ",
+        $("span", { class: "chip", text: p.side === "SHORT" ? "Short ▼" : "Long ▲" }),
+        p.pending ? $("span", { class: "pending", text: "  filled — ledger updates next run" }) : null]),
+      $("div", { class: "pnl " + tone(p.pnl), text: `${money(p.pnl, true)}  ${pct(p.pnl_pct)}` })]));
+    const dates = p.prices.map(q => q[0]);
+    const price = p.prices.map(q => q[1]);
+    const stopAt = d => { let v = null; for (const [sd, sv] of p.stops) if (sd <= d) v = sv; return v; };
+    const stop = dates.map(d => (d >= p.opened ? stopAt(d) ?? p.stop : null));
+    if (stop.length && p.stop != null) stop[stop.length - 1] = p.stop;
+    card.append($("div", { class: "legend" }, [
+      $("span", {}, [$("span", { class: "key", style: "border-color:var(--price)" }), "Price"]),
+      p.stop != null ? $("span", {}, [$("span", { class: "key", style: "border-color:var(--stop)" }),
+        p.side === "SHORT" ? "Stop (buy-back) — trails down" : "Stop — trails up"]) : null,
+      $("span", {}, [$("span", { class: "key thin", style: "border-color:var(--ink-2)" }), "Entry"])]));
+    if (dates.length > 1) {
+      lineChart(card, { dates, height: 230,
+        series: [
+          { name: "Price", color: "var(--price)", values: price, endLabel: v => money(v) },
+          ...(p.stop != null ? [{ name: "Stop", color: "var(--stop)", values: stop, step: true,
+            endLabel: v => "Stop " + money(v) }] : [])],
+        refs: [{ v: p.entry, label: "Entry " + money(p.entry) }],
+        mark: { date: p.opened, label: (p.side === "SHORT" ? "Sold " : "Bought ") + fmtDate(p.opened) } });
+    }
+    const st = (k, v, cls = "") => $("div", {}, [k, $("b", { class: cls, text: v })]);
+    card.append($("div", { class: "stats" }, [
+      st("Shares", String(p.shares)), st("Entry", money(p.entry)), st("Now", money(p.now)),
+      st("Stop", money(p.stop)),
+      st("Room to stop", p.stop_room_pct == null ? "—" : p.stop_room_pct.toFixed(2) + "%"),
+      st("If stopped", money(p.if_stopped, true), tone(p.if_stopped)),
+      st("Held", `${p.days} day${p.days === 1 ? "" : "s"}`)]));
+    box.append(card);
+  });
+  app.append(box);
+
+  // account curve
+  if (D.curve.length > 1) {
+    app.append($("h2", { text: "Account P&L over time" }));
+    const card = $("div", { class: "card" });
+    card.append($("div", { class: "sub", text: "Realised + open positions marked at each day's close (approximate)." }));
+    lineChart(card, { dates: D.curve.map(c => c[0]), height: 220, area: true, zero: true,
+      series: [{ name: "Total P&L", color: "var(--price)", values: D.curve.map(c => c[1]),
+                 area: true, endLabel: v => money(v, true) }],
+      fmt: v => money(v, true) });
+    const tbl = $("table", {}, [$("tr", {}, [$("th", { text: "Date" }), $("th", { class: "num", text: "Total P&L" })])]);
+    D.curve.slice().reverse().forEach(c => tbl.append($("tr", {}, [
+      $("td", { text: fmtDate(c[0]) }), $("td", { class: "num", text: money(c[1], true) })])));
+    card.append($("details", {}, [$("summary", { text: "Show as table" }), $("div", { class: "scroll" }, [tbl])]));
+    app.append(card);
+  }
+
+  // closed trades
+  app.append($("h2", { text: "Closed trades" }));
+  const cc = $("div", { class: "card" });
+  if (!D.closed.length) cc.append($("p", { class: "empty", text: "No closed trades yet." }));
+  else {
+    pnlBars(cc, D.closed);
+    const tbl = $("table", {}, [$("tr", {}, ["Ticker", "Side", "Opened", "Closed", "Entry", "Exit", "P&L"]
+      .map((h, i) => $("th", { class: i >= 4 ? "num" : "", text: h })))]);
+    D.closed.slice().reverse().forEach(r => tbl.append($("tr", {}, [
+      $("td", { text: r.ticker }), $("td", { text: r.side === "SHORT" ? "Short" : "Long" }),
+      $("td", { text: fmtDate(r.opened) }), $("td", { text: fmtDate(r.closed) }),
+      $("td", { class: "num", text: money(r.entry) }), $("td", { class: "num", text: money(r.exit) }),
+      $("td", { class: "num " + tone(r.pnl), text: money(r.pnl, true) })])));
+    cc.append($("details", {}, [$("summary", { text: "Show as table" }), $("div", { class: "scroll" }, [tbl])]));
+  }
+  app.append(cc);
+
+  // signals
+  if (D.signals.length) {
+    app.append($("h2", { text: "Signals now" }));
+    const sc = $("div", { class: "card scroll" });
+    const tbl = $("table", {}, [$("tr", {}, ["Ticker", "Signal", "Price", "Hilo", "Net vol", "RSI"]
+      .map((h, i) => $("th", { class: i >= 2 && i !== 4 ? "num" : "", text: h })))]);
+    D.signals.forEach(g => {
+      const icon = g.signal === "BUY" ? "▲ BUY" : g.signal === "SELL" ? "▼ SELL" : "● WATCH";
+      const cls = g.signal === "BUY" ? "up" : g.signal === "SELL" ? "down" : "";
+      tbl.append($("tr", {}, [$("td", { text: g.ticker }),
+        $("td", { class: "sig " + cls, text: icon }),
+        $("td", { class: "num", text: money(g.price) }), $("td", { class: "num", text: money(g.hilo) }),
+        $("td", { text: (g.netvol || "").toLowerCase() }), $("td", { class: "num", text: g.rsi })]));
+    });
+    sc.append(tbl); app.append(sc);
+  }
+}
+render(DATA);
+// Redraw when the width changes (phone rotation, window resize) so charts
+// always match the screen they're on.
+let lastW = chartWidth(), timer = null;
+addEventListener("resize", () => {
+  clearTimeout(timer);
+  timer = setTimeout(() => {
+    if (Math.abs(chartWidth() - lastW) < 8) return;
+    lastW = chartWidth();
+    document.getElementById("app").replaceChildren();
+    render(DATA);
+  }, 150);
+});
+</script>
+</body>
+</html>
