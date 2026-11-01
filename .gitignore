@@ -1,0 +1,25 @@
+*.xlsx
+*.pdf
+*.docx
+*.pptx
+*.log
+.last_sync_hash
+.sync_log.txt
+.sync_daemon.log
+.sync_daemon_err.log
+__pycache__/
+.github_token
+
+# Phase 5 execution — runtime state, never publish
+execution_log.jsonl
+execution_config.json
+.execution_state.json
+.live_armed
+.HALT
+trades.json
+
+# Private: results never go to the public GitHub Pages site (1 Nov 2026)
+positions.html
+TrendFollowing_App.html
+.index_public.tmp
+reports/
