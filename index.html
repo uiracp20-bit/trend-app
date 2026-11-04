@@ -284,8 +284,8 @@ strong { font-weight:650; }
     <div>
       <h1><span class="logo">📈</span> Trend Following <span class="accent">Dashboard</span></h1>
       <div class="hero-meta">
-        <span class="badge prep">🌙 EVENING PREP</span>
-        <span class="badge date">📅 04/11/2026</span>
+        <span class="badge prep">🟡 PRE-CLOSE</span>
+        <span class="badge date">📅 05/11/2026</span>
         <span class="badge">Strategy: <strong>Shark</strong></span>
         <span class="badge">Platform: <strong>IBKR</strong> · Long &amp; Short (shorts paper-only)</span>
         <span class="ny-clock" id="nyClock">🕐 Loading NY time...</span>
@@ -490,12 +490,12 @@ strong { font-weight:650; }
   <div class="footer"><strong>Trend Following System</strong> — Shark Strategy · IBKR · Long &amp; Short · All signals for educational purposes only.</div>
 </div>
 <script>
-// ─── Live Data (EVENING PREP 04/11/2026 20:02 AEDT) ── ✅ AUTO via yfinance ──
+// ─── Live Data (PRE-CLOSE 05/11/2026 07:30 AEDT) ── ✅ AUTO via yfinance ──
 const ASSETS = {
-  NVDA: { name:"NVIDIA Corporation", price:206.69, hiloVal:223.72, hiHigh:223.72, hiLow:218.55, rsi:38.99, hiloSignal:"SELL", netVol:"BULLISH", period:23 },
-  AAPL: { name:"Apple Inc.", price:331.9, hiloVal:346.78, hiHigh:346.78, hiLow:339.75, rsi:41.66, hiloSignal:"SELL", netVol:"BULLISH", period:9 },
-  META: { name:"Meta Platforms Inc.", price:621.03, hiloVal:673.32, hiHigh:673.32, hiLow:652.64, rsi:36.91, hiloSignal:"SELL", netVol:"BEARISH", period:15 },
-  QQQ: { name:"Nasdaq 100 ETF", price:685.28, hiloVal:733.64, hiHigh:733.64, hiLow:724.49, rsi:34.37, hiloSignal:"SELL", netVol:"BULLISH", period:30 }
+  NVDA: { name:"NVIDIA Corporation", price:202.14, hiloVal:222.37, hiHigh:222.37, hiLow:217.13, rsi:35.64, hiloSignal:"SELL", netVol:"BULLISH", period:23 },
+  AAPL: { name:"Apple Inc.", price:352.21, hiloVal:339.61, hiHigh:347.46, hiLow:339.61, rsi:59.65, hiloSignal:"BUY", netVol:"BULLISH", period:9 },
+  META: { name:"Meta Platforms Inc.", price:631.9, hiloVal:665.42, hiHigh:665.42, hiLow:645.32, rsi:40.7, hiloSignal:"SELL", netVol:"BEARISH", period:15 },
+  QQQ: { name:"Nasdaq 100 ETF", price:693.15, hiloVal:732.11, hiHigh:732.11, hiLow:722.81, rsi:39.0, hiloSignal:"SELL", netVol:"BULLISH", period:30 }
 };
 const LOG = [
   { date:"13/04/2026", ticker:"NVDA", hilo:"BUY",     netVol:"BEARISH", rsi:68.17, signal:"WATCH", price:188.63, stop:176.30 },
@@ -2548,6 +2548,11 @@ const LOG = [
   { date:"03/11/2026", ticker:"AAPL", hilo:"SELL", netVol:"BULLISH", rsi:41.66, signal:"WATCH", price:331.9, stop:346.78 },  // 👀 EVENING PREP 04/11/2026 20:02 AEDT
   { date:"03/11/2026", ticker:"META", hilo:"SELL", netVol:"BEARISH", rsi:36.91, signal:"SELL", price:621.03, stop:673.32 },  // ❌ EVENING PREP 04/11/2026 20:02 AEDT
   { date:"03/11/2026", ticker:"QQQ", hilo:"SELL", netVol:"BULLISH", rsi:34.37, signal:"WATCH", price:685.28, stop:733.64 },  // 👀 EVENING PREP 04/11/2026 20:02 AEDT
+
+  { date:"04/11/2026", ticker:"NVDA", hilo:"SELL", netVol:"BULLISH", rsi:35.64, signal:"WATCH", price:202.14, stop:222.37 },  // 👀 PRE-CLOSE 05/11/2026 07:30 AEDT
+  { date:"04/11/2026", ticker:"AAPL", hilo:"BUY", netVol:"BULLISH", rsi:59.65, signal:"BUY", price:352.21, stop:339.61 },  // ✅ PRE-CLOSE 05/11/2026 07:30 AEDT
+  { date:"04/11/2026", ticker:"META", hilo:"SELL", netVol:"BEARISH", rsi:40.7, signal:"SELL", price:631.9, stop:665.42 },  // ❌ PRE-CLOSE 05/11/2026 07:30 AEDT
+  { date:"04/11/2026", ticker:"QQQ", hilo:"SELL", netVol:"BULLISH", rsi:39.0, signal:"WATCH", price:693.15, stop:732.11 },  // 👀 PRE-CLOSE 05/11/2026 07:30 AEDT
 ];
 
 // ─── Signal engine (unchanged from v1) ─────────────────────────────
